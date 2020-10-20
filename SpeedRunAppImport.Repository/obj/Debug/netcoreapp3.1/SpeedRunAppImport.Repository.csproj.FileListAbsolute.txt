@@ -1,0 +1,5 @@
+C:\TFSRepository\SpeedRunAppImport\SpeedRunAppImport.Repository\bin\Debug\netcoreapp3.1\SpeedRunAppImport.Repository.deps.json
+C:\TFSRepository\SpeedRunAppImport\SpeedRunAppImport.Repository\bin\Debug\netcoreapp3.1\SpeedRunAppImport.Repository.dll
+C:\TFSRepository\SpeedRunAppImport\SpeedRunAppImport.Repository\obj\Debug\netcoreapp3.1\SpeedRunAppImport.Repository.csprojAssemblyReference.cache
+C:\TFSRepository\SpeedRunAppImport\SpeedRunAppImport.Repository\obj\Debug\netcoreapp3.1\SpeedRunAppImport.Repository.AssemblyInfoInputs.cache
+C:\TFSRepository\SpeedRunAppImport\SpeedRunAppImport.Repository\obj\Debug\netcoreapp3.1\SpeedRunAppImport.Repository.AssemblyInfo.cs

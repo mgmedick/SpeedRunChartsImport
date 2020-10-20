@@ -1,0 +1,10 @@
+﻿{
+  "profiles": {
+    "SpeedRunAppImport": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

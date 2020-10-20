@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\SpeedRunApp\SpeedRunApp.Model\SpeedRunApp.Model.csproj" />
+    <ProjectReference Include="..\..\SpeedRunApp\SpeedRunCommon\SpeedRunCommon.csproj" />
+    <ProjectReference Include="..\SpeedRunAppImport.Service\SpeedRunAppImport.Service.csproj" />
+  </ItemGroup>
+
+</Project>

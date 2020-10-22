@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using SpeedRunApp.Client;
 using SpeedRunApp.Model.Data;
+using SpeedRunApp.Model.Entity;
 using SpeedRunAppImport.Interfaces.Services;
 using SpeedRunAppImport.Interfaces.Repositories;
 using Microsoft.Extensions.Configuration;
-using System.Threading.Tasks;
+using System.Threading;
 
 namespace SpeedRunAppImport.Service
 {
@@ -21,12 +22,12 @@ namespace SpeedRunAppImport.Service
             _gameRepo = gameRepo;
         }
 
-        public async Task<IEnumerable<Game>> GetGames()
+        public IEnumerable<Game> GetGames()
         {
             List<Game> results = new List<Game>();
 
             ClientContainer clientContainer = new ClientContainer();
-            int elementsPerPage = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("SpeedRunListElementsPerPage").Value);
+            int elementsPerPage = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxElementsPerPage").Value);
             var gameEmbeds = new GameEmbeds { EmbedCategories = true, EmbedLevels = true, EmbedModerators = false, EmbedPlatforms = true, EmbedVariables = true };
             List<Game> games = null;
 
@@ -34,15 +35,28 @@ namespace SpeedRunAppImport.Service
             {
                 games = clientContainer.Games.GetGames(elementsPerPage: elementsPerPage, embeds: gameEmbeds).ToList();
                 results.AddRange(games);
-                await Task.Delay(2000);
-            } while (games.Count == elementsPerPage);
+                Thread.Sleep(TimeSpan.FromSeconds(5));
+            }
+            while (games.Count == elementsPerPage);
 
             return results;
         }
 
         public void InsertGames(IEnumerable<Game> games)
         {
-            _gameRepo.InsertGames(games);
+            var gameEntities = games.Select(i => new GameEntity
+            {
+                SpeedRunComID = i.ID,
+                Name = i.Name,
+                JapaneseName = i.JapaneseName,
+                Abbreviation = i.Abbreviation,
+                YearOfRelease = i.YearOfRelease,
+                IsRomHack = i.IsRomHack,
+                CreatedBy = 1,
+                CreatedDate = DateTime.Now
+            });
+
+            _gameRepo.InsertGames(gameEntities);
         }
     }
 }

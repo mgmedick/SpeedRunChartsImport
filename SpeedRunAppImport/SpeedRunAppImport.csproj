@@ -1,13 +1,32 @@
-<Project Sdk="Microsoft.NET.Sdk.Worker">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <UserSecretsId>dotnet-SpeedRunAppImport-C8D4A07F-E60B-411E-9E34-3EF4A48F7952</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Lamar" Version="4.3.1" />
     <PackageReference Include="Lamar.Microsoft.DependencyInjection" Version="4.3.1" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.9" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.9" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.9" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SpeedRunAppImport.Service\SpeedRunAppImport.Service.csproj" />
+    <ProjectReference Include="..\SpeedRunAppImport.Interfaces\SpeedRunAppImport.Interfaces.csproj" />
+    <ProjectReference Include="..\..\SpeedRunApp\SpeedRunApp.Model\SpeedRunApp.Model.csproj" />
+    <ProjectReference Include="..\..\SpeedRunApp\SpeedRunCommon\SpeedRunCommon.csproj" />
+    <ProjectReference Include="..\SpeedRunAppImport.Repository\SpeedRunAppImport.Repository.csproj" />
+  </ItemGroup>
+    
+  <ItemGroup>
+    <Content Include="appsettings.json">
+       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>        
   </ItemGroup>
 </Project>
+
+

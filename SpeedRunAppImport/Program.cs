@@ -1,38 +1,42 @@
+﻿using Lamar;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
+using SpeedRunAppImport.Interfaces;
+using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
-using Lamar;
+using Lamar.Microsoft.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
+using System.Configuration;
+using Microsoft.Extensions.Configuration;
 
 namespace SpeedRunAppImport
 {
     public class Program
     {
-        public static void Main(string[] args)
+        private static IConfiguration _config;
+
+        static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            var host = CreateHostBuilder(args).Build();
+            using (var serviceScope = host.Services.CreateScope())
+            {
+                var services = serviceScope.ServiceProvider;
+                var processor = services.GetRequiredService<Processor>();
+                processor.ProcessGames();
+            }
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
+                .UseLamar(new ServiceAssemblyRegistry())
+                .ConfigureAppConfiguration((hostingContext, config) =>
+                {
+                    config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+                })
                 .ConfigureServices((hostContext, services) =>
                 {
-                    services.AddHostedService<Worker>();
-                })
-                .ConfigureContainer<Lamar.ServiceRegistry>((context, services) =>
-                {
-                    // Also exposes Lamar specific registrations
-                    // and functionality
-                    services.Scan(s =>
-                    {
-                        s.TheCallingAssembly();
-                        s.Assembly("SpeedRunApp.Interfaces");
-                        s.Assembly("SpeedRunApp.Service");
-                        s.WithDefaultConventions();
-                        s.SingleImplementationsOfInterface();
-                    });
-                });
+                    services.AddScoped<Processor>();
+                })                
+                .UseConsoleLifetime();
     }
 }

@@ -7,7 +7,7 @@ namespace SpeedRunAppImport.Interfaces.Services
 {
     public interface IGameService
     {
-        Task<IEnumerable<Game>> GetGames();
+        IEnumerable<Game> GetGames();
         void InsertGames(IEnumerable<Game> _gameRepo);
     }
 }

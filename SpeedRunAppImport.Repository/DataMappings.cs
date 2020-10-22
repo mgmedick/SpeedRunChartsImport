@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using NPoco.FluentMappings;
-using SpeedRunApp.Model.Data;
+using SpeedRunApp.Model.Entity;
 
 namespace SpeedRunAppImport.Repository
 {
@@ -10,7 +10,7 @@ namespace SpeedRunAppImport.Repository
     {
         public DataMappings()
         {
-            For<Game>().PrimaryKey("ID").TableName("dbo.tbl_Game");
+            For<GameEntity>().PrimaryKey("ID").TableName("dbo.tbl_Game");
         }
     }
 }

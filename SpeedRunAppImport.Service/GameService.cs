@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using SpeedRunApp.Client;
+using SpeedRunApp.Model;
 using SpeedRunApp.Model.Data;
 using SpeedRunApp.Model.Entity;
 using SpeedRunAppImport.Interfaces.Services;
@@ -11,7 +12,7 @@ using System.Threading;
 
 namespace SpeedRunAppImport.Service
 {
-    public class GameService : IGameService
+    public class GameService : BaseService, IGameService
     {
         private readonly IConfiguration _config = null;
         private readonly IGameRepository _gameRepo = null;
@@ -24,39 +25,22 @@ namespace SpeedRunAppImport.Service
 
         public IEnumerable<Game> GetGames()
         {
-            List<Game> results = new List<Game>();
+            var results = new List<Game>();
 
             ClientContainer clientContainer = new ClientContainer();
-            int elementsPerPage = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxElementsPerPage").Value);
             var gameEmbeds = new GameEmbeds { EmbedCategories = true, EmbedLevels = true, EmbedModerators = false, EmbedPlatforms = true, EmbedVariables = true };
             List<Game> games = null;
 
             do
             {
-                games = clientContainer.Games.GetGames(elementsPerPage: elementsPerPage, embeds: gameEmbeds).ToList();
+                games = clientContainer.Games.GetGames(elementsPerPage: MaxElementsPerPage, embeds: gameEmbeds, orderBy: GamesOrdering.CreationDateDescending).ToList();
                 results.AddRange(games);
                 Thread.Sleep(TimeSpan.FromSeconds(5));
             }
-            while (games.Count == elementsPerPage);
+            //while (games.Count == MaxElementsPerPage && results.Min(i => i.CreationDate ?? DateTime.MinValue) >= GameLastImportDate);
+            while (1 == 0);
 
-            return results;
-        }
-
-        public void InsertGames(IEnumerable<Game> games)
-        {
-            var gameEntities = games.Select(i => new GameEntity
-            {
-                SpeedRunComID = i.ID,
-                Name = i.Name,
-                JapaneseName = i.JapaneseName,
-                Abbreviation = i.Abbreviation,
-                YearOfRelease = i.YearOfRelease,
-                IsRomHack = i.IsRomHack,
-                CreatedBy = 1,
-                CreatedDate = DateTime.Now
-            });
-
-            _gameRepo.InsertGames(gameEntities);
+            return results.Where(i => !string.IsNullOrWhiteSpace(i.ID) && (i.CreationDate ?? DateTime.MinValue) >= GameLastImportDate);
         }
     }
 }

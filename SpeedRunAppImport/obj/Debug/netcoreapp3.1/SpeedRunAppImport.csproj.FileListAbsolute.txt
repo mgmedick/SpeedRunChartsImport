@@ -107,6 +107,7 @@ C:/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/Bas
 C:/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/Lamar.dll
 C:/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/LamarCodeGeneration.dll
 C:/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/Lamar.Microsoft.DependencyInjection.dll
+/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/appsettings.json
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/SpeedRunAppImport.deps.json
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/SpeedRunAppImport.runtimeconfig.json
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/SpeedRunAppImport.runtimeconfig.dev.json
@@ -214,12 +215,12 @@ C:/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/Lam
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/SpeedRunAppImport.Repository.dll
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/SpeedRunAppImport.Service.dll
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/SpeedRunCommon.dll
-/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/SpeedRunApp.Client.pdb
-/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/SpeedRunApp.Model.pdb
-/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/SpeedRunAppImport.Interfaces.pdb
-/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/SpeedRunAppImport.Repository.pdb
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/SpeedRunAppImport.Service.pdb
+/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/SpeedRunAppImport.Interfaces.pdb
+/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/SpeedRunApp.Model.pdb
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/SpeedRunCommon.pdb
+/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/SpeedRunAppImport.Repository.pdb
+/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/SpeedRunApp.Client.pdb
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/obj/Debug/netcoreapp3.1/SpeedRunAppImport.csprojAssemblyReference.cache
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/obj/Debug/netcoreapp3.1/SpeedRunAppImport.AssemblyInfoInputs.cache
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/obj/Debug/netcoreapp3.1/SpeedRunAppImport.AssemblyInfo.cs
@@ -228,4 +229,3 @@ C:/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/Lam
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/obj/Debug/netcoreapp3.1/SpeedRunAppImport.dll
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/obj/Debug/netcoreapp3.1/SpeedRunAppImport.pdb
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/obj/Debug/netcoreapp3.1/SpeedRunAppImport.genruntimeconfig.cache
-/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/appsettings.json

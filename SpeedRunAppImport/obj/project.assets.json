@@ -8183,6 +8183,7 @@
       "Lamar.Microsoft.DependencyInjection >= 4.3.1",
       "Microsoft.AspNetCore >= 2.2.0",
       "Microsoft.Extensions.Configuration >= 3.1.9",
+      "Microsoft.Extensions.Configuration.CommandLine >= 3.1.9",
       "Microsoft.Extensions.Configuration.Json >= 3.1.9",
       "Microsoft.Extensions.Hosting >= 3.1.9",
       "SpeedRunApp.Model >= 1.0.0",
@@ -8260,6 +8261,10 @@
             "version": "[2.2.0, )"
           },
           "Microsoft.Extensions.Configuration": {
+            "target": "Package",
+            "version": "[3.1.9, )"
+          },
+          "Microsoft.Extensions.Configuration.CommandLine": {
             "target": "Package",
             "version": "[3.1.9, )"
           },

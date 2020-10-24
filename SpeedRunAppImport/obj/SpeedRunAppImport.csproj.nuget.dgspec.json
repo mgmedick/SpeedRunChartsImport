@@ -481,6 +481,10 @@
               "target": "Package",
               "version": "[3.1.9, )"
             },
+            "Microsoft.Extensions.Configuration.CommandLine": {
+              "target": "Package",
+              "version": "[3.1.9, )"
+            },
             "Microsoft.Extensions.Configuration.Json": {
               "target": "Package",
               "version": "[3.1.9, )"

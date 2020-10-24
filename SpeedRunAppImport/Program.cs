@@ -22,16 +22,17 @@ namespace SpeedRunAppImport
             {
                 var services = serviceScope.ServiceProvider;
                 var processor = services.GetRequiredService<Processor>();
-                processor.ProcessGames();
+                processor.RunProcesses();
             }
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
+            Host.CreateDefaultBuilder(args)          
                 .UseLamar(new ServiceAssemblyRegistry())
                 .ConfigureAppConfiguration((hostingContext, config) =>
                 {
                     config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+                    config.AddCommandLine(args);
                 })
                 .ConfigureServices((hostContext, services) =>
                 {

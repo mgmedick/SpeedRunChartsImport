@@ -14,21 +14,56 @@ namespace SpeedRunAppImport.Repository
         {
         }
 
-        public void InsertGames(IEnumerable<GameEntity> games)
+        public void TruncateGameDetails()
         {
-            for (int i = 0; i < games.Count(); i++)
+            using (IDatabase db = DBFactory.GetDatabase())
             {
-                if (i % 1000 == 0)
+                using (var tran = db.GetTransaction())
                 {
-                    var batch = games.Skip(i).Take(1000);
-                    using (IDatabase db = DBFactory.GetDatabase())
-                    {
-                        db.BeginTransaction();
-                        db.InsertBatch<GameEntity>(batch);
-                        db.CompleteTransaction();
-                    }
+                    db.Execute(@"TRUNCATE TABLE dbo.tbl_Variable
+                                TRUNCATE TABLE dbo.tbl_Category
+                                TRUNCATE TABLE dbo.tbl_Level
+                                TRUNCATE TABLE dbo.tbl_Game_Platform
+                                TRUNCATE TABLE dbo.tbl_Game_Region
+                                TRUNCATE TABLE dbo.tbl_Game");
+                    tran.Complete();
                 }
             }
+        }
+
+        public void InsertGameDetails(IEnumerable<GameEntity> games, IEnumerable<LevelEntity> levels, IEnumerable<CategoryEntity> categories, IEnumerable<VariableEntity> variables, IEnumerable<GamePlatformEntity> gamePlatforms, IEnumerable<GameRegionEntity> gameRegions)
+        {
+            try
+            {
+                int batchCount = 0;
+                while (batchCount < games.Count())
+                {
+                    var gamesBatch = games.Skip(batchCount).Take(MaxBulkRows);
+                    var levelsBatch = levels.Where(i => gamesBatch.Any(g => g.ID == i.GameID));
+                    var categoriesBatch = categories.Where(i => gamesBatch.Any(g => g.ID == i.GameID));
+                    var variablesBatch = variables.Where(i => gamesBatch.Any(g => g.ID == i.GameID));
+
+                    using (IDatabase db = DBFactory.GetDatabase())
+                    {
+                        using (var tran = db.GetTransaction())
+                        {
+                            db.InsertBatch<GameEntity>(gamesBatch);
+                            db.InsertBatch<LevelEntity>(levelsBatch);
+                            db.InsertBatch<CategoryEntity>(categoriesBatch);
+                            db.InsertBatch<VariableEntity>(variablesBatch);
+                            db.InsertBatch<GamePlatformEntity>(gamePlatforms);
+                            db.InsertBatch<GameRegionEntity>(gameRegions);
+                            tran.Complete();
+                        }
+                    }
+
+                    batchCount += MaxBulkRows;
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }            
         }
     }
 }

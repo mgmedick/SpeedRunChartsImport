@@ -6,6 +6,6 @@ namespace SpeedRunAppImport.Interfaces
 {
     public interface IProcessor
     {
-        bool ProcessGames();
+        void ProcessGames();
     }
 }

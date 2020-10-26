@@ -21,6 +21,6 @@ namespace SpeedRunAppImport.Repository.Configuration
             });
 
             BaseRepository.MaxBulkRows = maxBulkRows;
-        }  
+        }   
     }
 }

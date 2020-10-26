@@ -12,6 +12,6 @@ namespace SpeedRunAppImport.Repository
         public static DatabaseFactory DBFactory { get; set; }
         public static int MaxBulkRows { get; set; }
     }  
-}
+} 
 
 

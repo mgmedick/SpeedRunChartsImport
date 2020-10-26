@@ -29,7 +29,7 @@ namespace SpeedRunAppImport.Repository
                     tran.Complete();
                 }
             }
-        }
+        } 
 
         public void InsertGameDetails(IEnumerable<GameEntity> games, IEnumerable<LevelEntity> levels, IEnumerable<CategoryEntity> categories, IEnumerable<VariableEntity> variables, IEnumerable<GamePlatformEntity> gamePlatforms, IEnumerable<GameRegionEntity> gameRegions)
         {

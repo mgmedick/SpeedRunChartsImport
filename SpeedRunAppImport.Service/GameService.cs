@@ -26,22 +26,48 @@ namespace SpeedRunAppImport.Service
         public IEnumerable<Game> GetGames()
         {
             var results = new List<Game>();
-
-            ClientContainer clientContainer = new ClientContainer();
-            var gameEmbeds = new GameEmbeds { EmbedCategories = true, EmbedLevels = true, EmbedModerators = false, EmbedPlatforms = true, EmbedVariables = true };
             List<Game> games = null;
+            var gameEmbeds = new GameEmbeds { EmbedCategories = true, EmbedLevels = true, EmbedModerators = false, EmbedPlatforms = true, EmbedVariables = true };
 
             do
             {
-                games = clientContainer.Games.GetGames(elementsPerPage: MaxElementsPerPage, embeds: gameEmbeds, orderBy: GamesOrdering.CreationDateDescending).ToList();
+                games = GetGamesWithRetry(MaxElementsPerPage, results.Count, gameEmbeds, GamesOrdering.CreationDateDescending).ToList();
                 results.AddRange(games);
                 Thread.Sleep(TimeSpan.FromSeconds(5));
             }
-            //while (games.Count == MaxElementsPerPage && results.Min(i => i.CreationDate ?? DateTime.MinValue) >= GameLastImportDate);
-            while (1 == 0);
+            while (games.Count == MaxElementsPerPage && (IsFullImport || games.Min(i => i.CreationDate ?? DateTime.MinValue) >= GameLastImportDate));
 
-            return results.Where(i => !string.IsNullOrWhiteSpace(i.ID) && (i.CreationDate ?? DateTime.MinValue) >= GameLastImportDate);
+            if (!IsFullImport)
+            {
+                results = results.Where(i => (i.CreationDate ?? DateTime.MinValue) >= GameLastImportDate).ToList();
+            }
+
+            return results;
         }
+
+        private IEnumerable<Game> GetGamesWithRetry(int elementsPerPage, int elementsOffset, GameEmbeds embeds, GamesOrdering orderBy, int retryCount = 0)
+        {
+            ClientContainer clientContainer = new ClientContainer();
+            IEnumerable<Game> games = null;
+            try
+            {
+                games = clientContainer.Games.GetGames(elementsPerPage: elementsPerPage, elementsOffset: elementsOffset, embeds: embeds, orderBy: orderBy);
+            }
+            catch (Exception ex)
+            {
+                if (retryCount <= MaxRetryCount)
+                {
+                    GetGamesWithRetry(elementsPerPage, elementsOffset, embeds, orderBy, retryCount++);
+                }
+                else
+                {
+                    throw ex;
+                }
+            }
+
+            return games;
+        }
+
     }
 }
 

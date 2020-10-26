@@ -1,4 +1,7 @@
 ﻿using Lamar;
+using Serilog;
+using Serilog.Extensions.Hosting;
+using Serilog.Sinks.Email;
 using System;
 using SpeedRunAppImport.Interfaces;
 using Microsoft.AspNetCore;
@@ -8,13 +11,12 @@ using Lamar.Microsoft.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using System.Configuration;
 using Microsoft.Extensions.Configuration;
+using Serilog.Settings.Configuration;
 
 namespace SpeedRunAppImport
 {
     public class Program
     {
-        private static IConfiguration _config;
-
         static void Main(string[] args)
         {
             var host = CreateHostBuilder(args).Build();
@@ -27,17 +29,30 @@ namespace SpeedRunAppImport
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)          
-                .UseLamar(new ServiceAssemblyRegistry())
+            Host.CreateDefaultBuilder(args)
+                .UseLamar()
+                .UseSerilog((hostingContext, loggerConfiguration) =>
+                {
+                    loggerConfiguration.ReadFrom.Configuration(hostingContext.Configuration);
+                })
                 .ConfigureAppConfiguration((hostingContext, config) =>
                 {
                     config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
                     config.AddCommandLine(args);
                 })
-                .ConfigureServices((hostContext, services) =>
+                .ConfigureContainer<Lamar.ServiceRegistry>((context, services) =>
                 {
                     services.AddScoped<Processor>();
-                })                
+                    services.Scan(s =>
+                    {
+                        s.TheCallingAssembly();
+                        s.Assembly("SpeedRunAppImport.Repository");
+                        s.Assembly("SpeedRunAppImport.Service");
+                        s.Assembly("SpeedRunAppImport.Interfaces");
+                        s.WithDefaultConventions();
+                        s.SingleImplementationsOfInterface();
+                    });
+                })
                 .UseConsoleLifetime();
     }
 }

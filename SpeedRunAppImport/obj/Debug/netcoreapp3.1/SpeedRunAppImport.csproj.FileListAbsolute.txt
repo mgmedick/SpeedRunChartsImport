@@ -117,6 +117,7 @@ C:/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/Lam
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/Lamar.dll
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/Lamar.Microsoft.DependencyInjection.dll
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/LamarCodeGeneration.dll
+/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/MailKit.dll
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/Microsoft.AspNetCore.dll
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/Microsoft.AspNetCore.Antiforgery.dll
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/Microsoft.AspNetCore.Authentication.Abstractions.dll
@@ -190,9 +191,17 @@ C:/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/Lam
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/Microsoft.Extensions.Primitives.dll
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/Microsoft.Extensions.WebEncoders.dll
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/Microsoft.Net.Http.Headers.dll
+/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/MimeKit.dll
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/Newtonsoft.Json.dll
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/Newtonsoft.Json.Bson.dll
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/NPoco.dll
+/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/BouncyCastle.Crypto.dll
+/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/Serilog.dll
+/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/Serilog.Extensions.Hosting.dll
+/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/Serilog.Extensions.Logging.dll
+/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/Serilog.Settings.Configuration.dll
+/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/Serilog.Sinks.Email.dll
+/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/Serilog.Sinks.PeriodicBatching.dll
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/System.Data.SqlClient.dll
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/System.Diagnostics.EventLog.dll
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/System.IO.Pipelines.dll

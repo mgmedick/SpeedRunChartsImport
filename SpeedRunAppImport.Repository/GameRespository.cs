@@ -38,10 +38,11 @@ namespace SpeedRunAppImport.Repository
                 int batchCount = 0;
                 while (batchCount < games.Count())
                 {
-                    var gamesBatch = games.Skip(batchCount).Take(MaxBulkRows);
-                    var levelsBatch = levels.Where(i => gamesBatch.Any(g => g.ID == i.GameID));
-                    var categoriesBatch = categories.Where(i => gamesBatch.Any(g => g.ID == i.GameID));
-                    var variablesBatch = variables.Where(i => gamesBatch.Any(g => g.ID == i.GameID));
+                    var gamesBatch = games.Skip(batchCount).Take(MaxBulkRows).ToList();
+                    var gameIDs = gamesBatch.Select(i => i.ID).Distinct().ToList();
+                    var levelsBatch = levels.Where(i => gameIDs.Contains(i.GameID)).ToList();
+                    var categoriesBatch = categories.Where(i => gameIDs.Contains(i.GameID)).ToList();
+                    var variablesBatch = variables.Where(i => gameIDs.Contains(i.GameID)).ToList();
 
                     using (IDatabase db = DBFactory.GetDatabase())
                     {

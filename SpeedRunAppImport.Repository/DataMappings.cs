@@ -17,7 +17,7 @@ namespace SpeedRunAppImport.Repository
             For<GamePlatformEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_Game_Platform");
             For<GameRegionEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_Game_Region");
             For<SettingEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_Setting");
-        }
+        } 
     }
 }
 

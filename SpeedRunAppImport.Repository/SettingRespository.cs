@@ -29,5 +29,5 @@ namespace SpeedRunAppImport.Repository
                 db.Update(setting);
             }
         }
-    }
+    } 
 }

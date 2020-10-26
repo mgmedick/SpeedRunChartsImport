@@ -13,7 +13,7 @@ namespace SpeedRunAppImport.Repository
         public GameRespository()
         {
         }
-
+         
         public void TruncateGameDetails()
         {
             using (IDatabase db = DBFactory.GetDatabase())

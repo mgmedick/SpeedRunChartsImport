@@ -8,4 +8,4 @@ namespace SpeedRunAppImport.Interfaces
     {
         void ProcessGames();
     }
-}
+} 

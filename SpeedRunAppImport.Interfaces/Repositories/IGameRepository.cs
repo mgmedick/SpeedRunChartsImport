@@ -9,7 +9,7 @@ namespace SpeedRunAppImport.Interfaces.Repositories
     {
         void TruncateGameDetails();
         void InsertGameDetails(IEnumerable<GameEntity> games, IEnumerable<LevelEntity> levels, IEnumerable<CategoryEntity> categories, IEnumerable<VariableEntity> variables, IEnumerable<GamePlatformEntity> gamePlatforms, IEnumerable<GameRegionEntity> gameRegions);
-    }
+    } 
 }
 
 

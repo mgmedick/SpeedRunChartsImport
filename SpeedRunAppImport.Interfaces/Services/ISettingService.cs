@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using SpeedRunApp.Model.Data;
 using SpeedRunApp.Model.Entity;
 using System.Threading.Tasks;
 
 namespace SpeedRunAppImport.Interfaces.Services
 {
-    public interface IGameService
+    public interface ISettingService
     {
-        IEnumerable<Game> GetGames();
+        SettingEntity GetSetting(string name);
+        void UpdateSetting(SettingEntity setting);
     }
-} 
+}
+
 
 
 

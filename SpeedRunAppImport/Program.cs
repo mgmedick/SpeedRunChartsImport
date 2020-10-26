@@ -62,4 +62,4 @@ namespace SpeedRunAppImport
                 })
                 .UseConsoleLifetime();
     }
-}
+} 

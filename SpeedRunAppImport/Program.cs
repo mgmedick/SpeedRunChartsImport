@@ -1,6 +1,8 @@
 ﻿using Lamar;
 using Serilog;
+using System.Net;
 using Serilog.Extensions.Hosting;
+using Serilog.Sinks.SystemConsole;
 using Serilog.Sinks.Email;
 using System;
 using SpeedRunAppImport.Interfaces;
@@ -12,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Configuration;
 using Microsoft.Extensions.Configuration;
 using Serilog.Settings.Configuration;
+using SpeedRunCommon;
 
 namespace SpeedRunAppImport
 {
@@ -19,7 +22,9 @@ namespace SpeedRunAppImport
     {
         static void Main(string[] args)
         {
+            Console.WriteLine("test");
             var host = CreateHostBuilder(args).Build();
+            Serilog.Debugging.SelfLog.Enable(Console.WriteLine);
             using (var serviceScope = host.Services.CreateScope())
             {
                 var services = serviceScope.ServiceProvider;
@@ -28,17 +33,19 @@ namespace SpeedRunAppImport
             }
         }
 
+        private static IConfigurationRoot _config = null;
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .UseLamar()
-                .UseSerilog((hostingContext, loggerConfiguration) =>
-                {
-                    loggerConfiguration.ReadFrom.Configuration(hostingContext.Configuration);
-                })
                 .ConfigureAppConfiguration((hostingContext, config) =>
                 {
                     config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
                     config.AddCommandLine(args);
+                    _config = config.Build();
+                })
+                .UseSerilog((hostingContext, loggerConfiguration) =>
+                {
+                    loggerConfiguration.ReadFrom.Configuration(hostingContext.Configuration);
                 })
                 .ConfigureContainer<Lamar.ServiceRegistry>((context, services) =>
                 {

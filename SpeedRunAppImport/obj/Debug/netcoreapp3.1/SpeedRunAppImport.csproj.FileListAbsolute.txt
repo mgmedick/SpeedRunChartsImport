@@ -200,6 +200,7 @@ C:/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/Lam
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/Serilog.Extensions.Hosting.dll
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/Serilog.Extensions.Logging.dll
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/Serilog.Settings.Configuration.dll
+/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/Serilog.Sinks.Console.dll
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/Serilog.Sinks.Email.dll
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/Serilog.Sinks.PeriodicBatching.dll
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport/bin/Debug/netcoreapp3.1/System.Data.SqlClient.dll

@@ -1,8 +1,3 @@
-C:/TFSRepository/SpeedRunAppImport/SpeedRunAppImport.Repository/bin/Debug/netcoreapp3.1/SpeedRunAppImport.Repository.deps.json
-C:/TFSRepository/SpeedRunAppImport/SpeedRunAppImport.Repository/bin/Debug/netcoreapp3.1/SpeedRunAppImport.Repository.dll
-C:/TFSRepository/SpeedRunAppImport/SpeedRunAppImport.Repository/obj/Debug/netcoreapp3.1/SpeedRunAppImport.Repository.csprojAssemblyReference.cache
-C:/TFSRepository/SpeedRunAppImport/SpeedRunAppImport.Repository/obj/Debug/netcoreapp3.1/SpeedRunAppImport.Repository.AssemblyInfoInputs.cache
-C:/TFSRepository/SpeedRunAppImport/SpeedRunAppImport.Repository/obj/Debug/netcoreapp3.1/SpeedRunAppImport.Repository.AssemblyInfo.cs
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport.Repository/bin/Debug/netcoreapp3.1/SpeedRunAppImport.Repository.deps.json
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport.Repository/bin/Debug/netcoreapp3.1/SpeedRunAppImport.Repository.dll
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport.Repository/bin/Debug/netcoreapp3.1/SpeedRunAppImport.Repository.pdb
@@ -19,3 +14,18 @@ C:/TFSRepository/SpeedRunAppImport/SpeedRunAppImport.Repository/obj/Debug/netcor
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport.Repository/obj/Debug/netcoreapp3.1/SpeedRunAppImport.Repository.csproj.CopyComplete
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport.Repository/obj/Debug/netcoreapp3.1/SpeedRunAppImport.Repository.dll
 /Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport.Repository/obj/Debug/netcoreapp3.1/SpeedRunAppImport.Repository.pdb
+C:\TFSRepository\SpeedRunAppImport\SpeedRunAppImport.Repository\bin\Debug\netcoreapp3.1\SpeedRunAppImport.Repository.deps.json
+C:\TFSRepository\SpeedRunAppImport\SpeedRunAppImport.Repository\bin\Debug\netcoreapp3.1\SpeedRunAppImport.Repository.dll
+C:\TFSRepository\SpeedRunAppImport\SpeedRunAppImport.Repository\bin\Debug\netcoreapp3.1\SpeedRunAppImport.Repository.pdb
+C:\TFSRepository\SpeedRunAppImport\SpeedRunAppImport.Repository\bin\Debug\netcoreapp3.1\SpeedRunApp.Model.dll
+C:\TFSRepository\SpeedRunAppImport\SpeedRunAppImport.Repository\bin\Debug\netcoreapp3.1\SpeedRunAppImport.Interfaces.dll
+C:\TFSRepository\SpeedRunAppImport\SpeedRunAppImport.Repository\bin\Debug\netcoreapp3.1\SpeedRunCommon.dll
+C:\TFSRepository\SpeedRunAppImport\SpeedRunAppImport.Repository\bin\Debug\netcoreapp3.1\SpeedRunApp.Model.pdb
+C:\TFSRepository\SpeedRunAppImport\SpeedRunAppImport.Repository\bin\Debug\netcoreapp3.1\SpeedRunCommon.pdb
+C:\TFSRepository\SpeedRunAppImport\SpeedRunAppImport.Repository\bin\Debug\netcoreapp3.1\SpeedRunAppImport.Interfaces.pdb
+C:\TFSRepository\SpeedRunAppImport\SpeedRunAppImport.Repository\obj\Debug\netcoreapp3.1\SpeedRunAppImport.Repository.csprojAssemblyReference.cache
+C:\TFSRepository\SpeedRunAppImport\SpeedRunAppImport.Repository\obj\Debug\netcoreapp3.1\SpeedRunAppImport.Repository.AssemblyInfoInputs.cache
+C:\TFSRepository\SpeedRunAppImport\SpeedRunAppImport.Repository\obj\Debug\netcoreapp3.1\SpeedRunAppImport.Repository.AssemblyInfo.cs
+C:\TFSRepository\SpeedRunAppImport\SpeedRunAppImport.Repository\obj\Debug\netcoreapp3.1\SpeedRunAppImport.Repository.csproj.CopyComplete
+C:\TFSRepository\SpeedRunAppImport\SpeedRunAppImport.Repository\obj\Debug\netcoreapp3.1\SpeedRunAppImport.Repository.dll
+C:\TFSRepository\SpeedRunAppImport\SpeedRunAppImport.Repository\obj\Debug\netcoreapp3.1\SpeedRunAppImport.Repository.pdb

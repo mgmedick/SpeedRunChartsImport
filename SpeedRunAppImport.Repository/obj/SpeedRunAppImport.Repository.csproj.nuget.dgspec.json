@@ -1,35 +1,158 @@
 {
   "format": 1,
   "restore": {
-    "/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport.Repository/SpeedRunAppImport.Repository.csproj": {}
+    "C:\\TFSRepository\\SpeedRunAppImport\\SpeedRunAppImport.Repository\\SpeedRunAppImport.Repository.csproj": {}
   },
   "projects": {
-    "/Users/michaelmedick/Documents/TFSRepository/SpeedRunApp/SpeedRunApp.Model/SpeedRunApp.Model.csproj": {
+    "C:\\TFSRepository\\SpeedRunAppImport\\SpeedRunAppImport.Interfaces\\SpeedRunAppImport.Interfaces.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/michaelmedick/Documents/TFSRepository/SpeedRunApp/SpeedRunApp.Model/SpeedRunApp.Model.csproj",
-        "projectName": "SpeedRunApp.Model",
-        "projectPath": "/Users/michaelmedick/Documents/TFSRepository/SpeedRunApp/SpeedRunApp.Model/SpeedRunApp.Model.csproj",
-        "packagesPath": "/Users/michaelmedick/.nuget/packages/",
-        "outputPath": "/Users/michaelmedick/Documents/TFSRepository/SpeedRunApp/SpeedRunApp.Model/obj/",
+        "projectUniqueName": "C:\\TFSRepository\\SpeedRunAppImport\\SpeedRunAppImport.Interfaces\\SpeedRunAppImport.Interfaces.csproj",
+        "projectName": "SpeedRunAppImport.Interfaces",
+        "projectPath": "C:\\TFSRepository\\SpeedRunAppImport\\SpeedRunAppImport.Interfaces\\SpeedRunAppImport.Interfaces.csproj",
+        "packagesPath": "C:\\Users\\mgmed\\.nuget\\packages\\",
+        "outputPath": "C:\\TFSRepository\\SpeedRunAppImport\\SpeedRunAppImport.Interfaces\\obj\\",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "/usr/local/share/dotnet/sdk/NuGetFallbackFolder"
-        ],
         "configFilePaths": [
-          "/Users/michaelmedick/.config/NuGet/NuGet.Config"
+          "C:\\Users\\mgmed\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "netcoreapp3.1"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "netcoreapp3.1": {
+            "projectReferences": {
+              "C:\\TFSRepository\\SpeedRunApp\\SpeedRunApp.Model\\SpeedRunApp.Model.csproj": {
+                "projectPath": "C:\\TFSRepository\\SpeedRunApp\\SpeedRunApp.Model\\SpeedRunApp.Model.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "netcoreapp3.1": {
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.101\\RuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\TFSRepository\\SpeedRunAppImport\\SpeedRunAppImport.Repository\\SpeedRunAppImport.Repository.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\TFSRepository\\SpeedRunAppImport\\SpeedRunAppImport.Repository\\SpeedRunAppImport.Repository.csproj",
+        "projectName": "SpeedRunAppImport.Repository",
+        "projectPath": "C:\\TFSRepository\\SpeedRunAppImport\\SpeedRunAppImport.Repository\\SpeedRunAppImport.Repository.csproj",
+        "packagesPath": "C:\\Users\\mgmed\\.nuget\\packages\\",
+        "outputPath": "C:\\TFSRepository\\SpeedRunAppImport\\SpeedRunAppImport.Repository\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\mgmed\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "netcoreapp3.1"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "netcoreapp3.1": {
+            "projectReferences": {
+              "C:\\TFSRepository\\SpeedRunAppImport\\SpeedRunAppImport.Interfaces\\SpeedRunAppImport.Interfaces.csproj": {
+                "projectPath": "C:\\TFSRepository\\SpeedRunAppImport\\SpeedRunAppImport.Interfaces\\SpeedRunAppImport.Interfaces.csproj"
+              },
+              "C:\\TFSRepository\\SpeedRunApp\\SpeedRunApp.Model\\SpeedRunApp.Model.csproj": {
+                "projectPath": "C:\\TFSRepository\\SpeedRunApp\\SpeedRunApp.Model\\SpeedRunApp.Model.csproj"
+              },
+              "C:\\TFSRepository\\SpeedRunApp\\SpeedRunCommon\\SpeedRunCommon.csproj": {
+                "projectPath": "C:\\TFSRepository\\SpeedRunApp\\SpeedRunCommon\\SpeedRunCommon.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "netcoreapp3.1": {
+          "dependencies": {
+            "NPoco": {
+              "target": "Package",
+              "version": "[4.0.3, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.101\\RuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\TFSRepository\\SpeedRunApp\\SpeedRunApp.Model\\SpeedRunApp.Model.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\TFSRepository\\SpeedRunApp\\SpeedRunApp.Model\\SpeedRunApp.Model.csproj",
+        "projectName": "SpeedRunApp.Model",
+        "projectPath": "C:\\TFSRepository\\SpeedRunApp\\SpeedRunApp.Model\\SpeedRunApp.Model.csproj",
+        "packagesPath": "C:\\Users\\mgmed\\.nuget\\packages\\",
+        "outputPath": "C:\\TFSRepository\\SpeedRunApp\\SpeedRunApp.Model\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\mgmed\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "netcoreapp2.1"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "netcoreapp2.1": {
             "projectReferences": {
-              "/Users/michaelmedick/Documents/TFSRepository/SpeedRunApp/SpeedRunCommon/SpeedRunCommon.csproj": {
-                "projectPath": "/Users/michaelmedick/Documents/TFSRepository/SpeedRunApp/SpeedRunCommon/SpeedRunCommon.csproj"
+              "C:\\TFSRepository\\SpeedRunApp\\SpeedRunCommon\\SpeedRunCommon.csproj": {
+                "projectPath": "C:\\TFSRepository\\SpeedRunApp\\SpeedRunCommon\\SpeedRunCommon.csproj"
               }
             }
           }
@@ -68,29 +191,28 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/3.1.402/RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.101\\RuntimeIdentifierGraph.json"
         }
       }
     },
-    "/Users/michaelmedick/Documents/TFSRepository/SpeedRunApp/SpeedRunCommon/SpeedRunCommon.csproj": {
+    "C:\\TFSRepository\\SpeedRunApp\\SpeedRunCommon\\SpeedRunCommon.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/michaelmedick/Documents/TFSRepository/SpeedRunApp/SpeedRunCommon/SpeedRunCommon.csproj",
+        "projectUniqueName": "C:\\TFSRepository\\SpeedRunApp\\SpeedRunCommon\\SpeedRunCommon.csproj",
         "projectName": "SpeedRunCommon",
-        "projectPath": "/Users/michaelmedick/Documents/TFSRepository/SpeedRunApp/SpeedRunCommon/SpeedRunCommon.csproj",
-        "packagesPath": "/Users/michaelmedick/.nuget/packages/",
-        "outputPath": "/Users/michaelmedick/Documents/TFSRepository/SpeedRunApp/SpeedRunCommon/obj/",
+        "projectPath": "C:\\TFSRepository\\SpeedRunApp\\SpeedRunCommon\\SpeedRunCommon.csproj",
+        "packagesPath": "C:\\Users\\mgmed\\.nuget\\packages\\",
+        "outputPath": "C:\\TFSRepository\\SpeedRunApp\\SpeedRunCommon\\obj\\",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "/usr/local/share/dotnet/sdk/NuGetFallbackFolder"
-        ],
         "configFilePaths": [
-          "/Users/michaelmedick/.config/NuGet/NuGet.Config"
+          "C:\\Users\\mgmed\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "netcoreapp2.1"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -160,133 +282,7 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/3.1.402/RuntimeIdentifierGraph.json"
-        }
-      }
-    },
-    "/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport.Interfaces/SpeedRunAppImport.Interfaces.csproj": {
-      "version": "1.0.0",
-      "restore": {
-        "projectUniqueName": "/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport.Interfaces/SpeedRunAppImport.Interfaces.csproj",
-        "projectName": "SpeedRunAppImport.Interfaces",
-        "projectPath": "/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport.Interfaces/SpeedRunAppImport.Interfaces.csproj",
-        "packagesPath": "/Users/michaelmedick/.nuget/packages/",
-        "outputPath": "/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport.Interfaces/obj/",
-        "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "/usr/local/share/dotnet/sdk/NuGetFallbackFolder"
-        ],
-        "configFilePaths": [
-          "/Users/michaelmedick/.config/NuGet/NuGet.Config"
-        ],
-        "originalTargetFrameworks": [
-          "netcoreapp3.1"
-        ],
-        "sources": {
-          "https://api.nuget.org/v3/index.json": {}
-        },
-        "frameworks": {
-          "netcoreapp3.1": {
-            "projectReferences": {
-              "/Users/michaelmedick/Documents/TFSRepository/SpeedRunApp/SpeedRunApp.Model/SpeedRunApp.Model.csproj": {
-                "projectPath": "/Users/michaelmedick/Documents/TFSRepository/SpeedRunApp/SpeedRunApp.Model/SpeedRunApp.Model.csproj"
-              }
-            }
-          }
-        },
-        "warningProperties": {
-          "warnAsError": [
-            "NU1605"
-          ]
-        }
-      },
-      "frameworks": {
-        "netcoreapp3.1": {
-          "imports": [
-            "net461",
-            "net462",
-            "net47",
-            "net471",
-            "net472",
-            "net48"
-          ],
-          "assetTargetFallback": true,
-          "warn": true,
-          "frameworkReferences": {
-            "Microsoft.NETCore.App": {
-              "privateAssets": "all"
-            }
-          },
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/3.1.402/RuntimeIdentifierGraph.json"
-        }
-      }
-    },
-    "/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport.Repository/SpeedRunAppImport.Repository.csproj": {
-      "version": "1.0.0",
-      "restore": {
-        "projectUniqueName": "/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport.Repository/SpeedRunAppImport.Repository.csproj",
-        "projectName": "SpeedRunAppImport.Repository",
-        "projectPath": "/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport.Repository/SpeedRunAppImport.Repository.csproj",
-        "packagesPath": "/Users/michaelmedick/.nuget/packages/",
-        "outputPath": "/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport.Repository/obj/",
-        "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "/usr/local/share/dotnet/sdk/NuGetFallbackFolder"
-        ],
-        "configFilePaths": [
-          "/Users/michaelmedick/.config/NuGet/NuGet.Config"
-        ],
-        "originalTargetFrameworks": [
-          "netcoreapp3.1"
-        ],
-        "sources": {
-          "https://api.nuget.org/v3/index.json": {}
-        },
-        "frameworks": {
-          "netcoreapp3.1": {
-            "projectReferences": {
-              "/Users/michaelmedick/Documents/TFSRepository/SpeedRunApp/SpeedRunApp.Model/SpeedRunApp.Model.csproj": {
-                "projectPath": "/Users/michaelmedick/Documents/TFSRepository/SpeedRunApp/SpeedRunApp.Model/SpeedRunApp.Model.csproj"
-              },
-              "/Users/michaelmedick/Documents/TFSRepository/SpeedRunApp/SpeedRunCommon/SpeedRunCommon.csproj": {
-                "projectPath": "/Users/michaelmedick/Documents/TFSRepository/SpeedRunApp/SpeedRunCommon/SpeedRunCommon.csproj"
-              },
-              "/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport.Interfaces/SpeedRunAppImport.Interfaces.csproj": {
-                "projectPath": "/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport.Interfaces/SpeedRunAppImport.Interfaces.csproj"
-              }
-            }
-          }
-        },
-        "warningProperties": {
-          "warnAsError": [
-            "NU1605"
-          ]
-        }
-      },
-      "frameworks": {
-        "netcoreapp3.1": {
-          "dependencies": {
-            "NPoco": {
-              "target": "Package",
-              "version": "[4.0.3, )"
-            }
-          },
-          "imports": [
-            "net461",
-            "net462",
-            "net47",
-            "net471",
-            "net472",
-            "net48"
-          ],
-          "assetTargetFallback": true,
-          "warn": true,
-          "frameworkReferences": {
-            "Microsoft.NETCore.App": {
-              "privateAssets": "all"
-            }
-          },
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/3.1.402/RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.101\\RuntimeIdentifierGraph.json"
         }
       }
     }

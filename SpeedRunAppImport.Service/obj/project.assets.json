@@ -7061,47 +7061,45 @@
     ]
   },
   "packageFolders": {
-    "/Users/michaelmedick/.nuget/packages/": {},
-    "/usr/local/share/dotnet/sdk/NuGetFallbackFolder": {}
+    "C:\\Users\\mgmed\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport.Service/SpeedRunAppImport.Service.csproj",
+      "projectUniqueName": "C:\\TFSRepository\\SpeedRunAppImport\\SpeedRunAppImport.Service\\SpeedRunAppImport.Service.csproj",
       "projectName": "SpeedRunAppImport.Service",
-      "projectPath": "/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport.Service/SpeedRunAppImport.Service.csproj",
-      "packagesPath": "/Users/michaelmedick/.nuget/packages/",
-      "outputPath": "/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport.Service/obj/",
+      "projectPath": "C:\\TFSRepository\\SpeedRunAppImport\\SpeedRunAppImport.Service\\SpeedRunAppImport.Service.csproj",
+      "packagesPath": "C:\\Users\\mgmed\\.nuget\\packages\\",
+      "outputPath": "C:\\TFSRepository\\SpeedRunAppImport\\SpeedRunAppImport.Service\\obj\\",
       "projectStyle": "PackageReference",
-      "fallbackFolders": [
-        "/usr/local/share/dotnet/sdk/NuGetFallbackFolder"
-      ],
       "configFilePaths": [
-        "/Users/michaelmedick/.config/NuGet/NuGet.Config"
+        "C:\\Users\\mgmed\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
         "netcoreapp3.1"
       ],
       "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
         "netcoreapp3.1": {
           "projectReferences": {
-            "/Users/michaelmedick/Documents/TFSRepository/SpeedRunApp/SpeedRunApp.Client/SpeedRunApp.Client.csproj": {
-              "projectPath": "/Users/michaelmedick/Documents/TFSRepository/SpeedRunApp/SpeedRunApp.Client/SpeedRunApp.Client.csproj"
+            "C:\\TFSRepository\\SpeedRunAppImport\\SpeedRunAppImport.Interfaces\\SpeedRunAppImport.Interfaces.csproj": {
+              "projectPath": "C:\\TFSRepository\\SpeedRunAppImport\\SpeedRunAppImport.Interfaces\\SpeedRunAppImport.Interfaces.csproj"
             },
-            "/Users/michaelmedick/Documents/TFSRepository/SpeedRunApp/SpeedRunApp.Model/SpeedRunApp.Model.csproj": {
-              "projectPath": "/Users/michaelmedick/Documents/TFSRepository/SpeedRunApp/SpeedRunApp.Model/SpeedRunApp.Model.csproj"
+            "C:\\TFSRepository\\SpeedRunAppImport\\SpeedRunAppImport.Repository\\SpeedRunAppImport.Repository.csproj": {
+              "projectPath": "C:\\TFSRepository\\SpeedRunAppImport\\SpeedRunAppImport.Repository\\SpeedRunAppImport.Repository.csproj"
             },
-            "/Users/michaelmedick/Documents/TFSRepository/SpeedRunApp/SpeedRunCommon/SpeedRunCommon.csproj": {
-              "projectPath": "/Users/michaelmedick/Documents/TFSRepository/SpeedRunApp/SpeedRunCommon/SpeedRunCommon.csproj"
+            "C:\\TFSRepository\\SpeedRunApp\\SpeedRunApp.Client\\SpeedRunApp.Client.csproj": {
+              "projectPath": "C:\\TFSRepository\\SpeedRunApp\\SpeedRunApp.Client\\SpeedRunApp.Client.csproj"
             },
-            "/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport.Interfaces/SpeedRunAppImport.Interfaces.csproj": {
-              "projectPath": "/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport.Interfaces/SpeedRunAppImport.Interfaces.csproj"
+            "C:\\TFSRepository\\SpeedRunApp\\SpeedRunApp.Model\\SpeedRunApp.Model.csproj": {
+              "projectPath": "C:\\TFSRepository\\SpeedRunApp\\SpeedRunApp.Model\\SpeedRunApp.Model.csproj"
             },
-            "/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport.Repository/SpeedRunAppImport.Repository.csproj": {
-              "projectPath": "/Users/michaelmedick/Documents/TFSRepository/SpeedRunAppImport/SpeedRunAppImport.Repository/SpeedRunAppImport.Repository.csproj"
+            "C:\\TFSRepository\\SpeedRunApp\\SpeedRunCommon\\SpeedRunCommon.csproj": {
+              "projectPath": "C:\\TFSRepository\\SpeedRunApp\\SpeedRunCommon\\SpeedRunCommon.csproj"
             }
           }
         }
@@ -7129,7 +7127,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/3.1.402/RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.101\\RuntimeIdentifierGraph.json"
       }
     }
   }

@@ -42,18 +42,19 @@ namespace SpeedRunAppImport
             {
                 var connString = _config.GetSection("ConnectionStrings").GetSection("DBConnectionString").Value;
                 var maxBulkRows = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxElementsPerPage").Value);
-                NPocoBootstrapper.Configure(connString, maxBulkRows);
+                var isFullImport = _config.GetValue<bool>("IsFullImport");
+                NPocoBootstrapper.Configure(connString, maxBulkRows, isFullImport);
 
                 BaseService.GameLastImportDate = _settingService.GetSetting("GameLastImportDate")?.Dte ?? DateTime.MinValue;
                 BaseService.PlatformLastImportDate = _settingService.GetSetting("PlatformLastImportDate")?.Dte ?? DateTime.MinValue;
                 BaseService.SpeedRunLastImportDate = _settingService.GetSetting("SpeedRunLastImportDate")?.Dte ?? DateTime.MinValue;
                 BaseService.MaxElementsPerPage = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxElementsPerPage").Value);
                 BaseService.MaxRetryCount = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxRetryCount").Value);
-                BaseService.IsFullImport = _config.GetValue<bool>("IsFullImport");
+                BaseService.IsFullImport = isFullImport;
             }
             catch (Exception ex)
             {
-                _logger.Error(ex.GetBaseException().Message, ex);
+                _logger.Error(ex, "Init");
             }
         }
 
@@ -67,9 +68,6 @@ namespace SpeedRunAppImport
         {
             try
             {
-                _logger.Information("testinfo");
-                throw new Exception();
-
                 var games = _gameService.GetGames();
                 var gamesLastImportDate = DateTime.Now;
                 if (games.Any())
@@ -84,10 +82,15 @@ namespace SpeedRunAppImport
 
                     if (BaseService.IsFullImport)
                     {
-                        _gameRepo.TruncateGameDetails();
+                        _gameRepo.CopyGameDetailTables();
                     }
 
                     _gameRepo.InsertGameDetails(gameEntities, levelEntities, categoryEntities, variableEntities, gamePlatformEntities, gameRegionEntities);
+
+                    if (BaseService.IsFullImport)
+                    {
+                        _gameRepo.RenameAndDropGameDetailTables();
+                    }
                 }
 
                 var gameSetting = _settingService.GetSetting("GameLastImportDate");
@@ -95,11 +98,8 @@ namespace SpeedRunAppImport
                 _settingService.UpdateSetting(gameSetting);
             }
             catch (Exception ex)
-            {                
-                _logger.Fatal(ex, "ProcessGames");
-            }
-            finally{
-                Log.CloseAndFlush();
+            {
+                _logger.Error(ex, "ProcessGames");
             }
         }
     } 

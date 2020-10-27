@@ -10,9 +10,9 @@ namespace SpeedRunAppImport.Repository.Configuration
 {
     public static class NPocoBootstrapper
     {
-        public static void Configure(string connectionString, int maxBulkRows)
+        public static void Configure(string connectionString, int maxBulkRows, bool isFullImport)
         {
-            var fluentConfig = FluentMappingConfiguration.Configure(new Repository.DataMappings());
+            var fluentConfig = FluentMappingConfiguration.Configure(new Repository.DataMappings(isFullImport));
 
             BaseRepository.DBFactory = DatabaseFactory.Config(i =>
             {
@@ -21,6 +21,6 @@ namespace SpeedRunAppImport.Repository.Configuration
             });
 
             BaseRepository.MaxBulkRows = maxBulkRows;
-        }   
+        }
     }
 }

@@ -22,7 +22,6 @@ namespace SpeedRunAppImport
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("test");
             var host = CreateHostBuilder(args).Build();
             Serilog.Debugging.SelfLog.Enable(Console.WriteLine);
             using (var serviceScope = host.Services.CreateScope())
@@ -30,6 +29,7 @@ namespace SpeedRunAppImport
                 var services = serviceScope.ServiceProvider;
                 var processor = services.GetRequiredService<Processor>();
                 processor.RunProcesses();
+                Log.CloseAndFlush();
             }
         }
 

@@ -34,8 +34,7 @@ namespace SpeedRunAppImport.Service
                 results.AddRange(users);
                 Thread.Sleep(TimeSpan.FromSeconds(5));
             }
-            while (1 == 0);
-            //while (users.Count == MaxElementsPerPage && (IsFullImport || users.Min(i => i.SignUpDate ?? DateTime.MinValue) >= UserLastImportDate));
+            while (users.Count == MaxElementsPerPage && (IsFullImport || users.Min(i => i.SignUpDate ?? DateTime.MinValue) >= UserLastImportDate));
 
             if (!IsFullImport)
             {

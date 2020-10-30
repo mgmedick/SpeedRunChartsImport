@@ -75,7 +75,7 @@ namespace SpeedRunAppImport
             try
             {
                 var games = _gameService.GetGames();
-                var gameLastImportDate = DateTime.Now;
+                var gameLastImportDate = DateTime.UtcNow;
                 if (games.Any())
                 {
                     games = games.OrderBy(i => (i.CreationDate ?? DateTime.MinValue)).ThenBy(i => i.Name);
@@ -114,7 +114,7 @@ namespace SpeedRunAppImport
             try
             {
                 var users = _userService.GetUsers();
-                var userLastImportDate = DateTime.Now;
+                var userLastImportDate = DateTime.UtcNow;
                 if (users.Any())
                 {
                     users = users.OrderBy(i => (i.SignUpDate ?? DateTime.MinValue)).ThenBy(i => i.Name);

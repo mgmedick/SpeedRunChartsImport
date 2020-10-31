@@ -85,13 +85,14 @@ namespace SpeedRunAppImport
                     var variableEntities = games.SelectMany(i => i.Variables.Select(i => i.ConvertToEntity()));
                     var gamePlatformEntities = games.SelectMany(i => i.PlatformIDs.Select(g => new GamePlatformEntity { GameID = i.ID, PlatformID = g }));
                     var gameRegionEntities = games.SelectMany(i => i.RegionIDs.Select(g => new GameRegionEntity { GameID = i.ID, RegionID = g }));
+                    var gameModeratorEntities = games.SelectMany(i => i.Moderators.Select(g => new GameModeratorEntity { GameID = i.ID, UserID = g.UserID }));
 
                     if (BaseService.IsFullImport)
                     {
                         _gameRepo.CopyGameDetailTables();
                     }
 
-                    _gameRepo.InsertGameDetails(gameEntities, levelEntities, categoryEntities, variableEntities, gamePlatformEntities, gameRegionEntities);
+                    _gameRepo.InsertGameDetails(gameEntities, levelEntities, categoryEntities, variableEntities, gamePlatformEntities, gameRegionEntities, gameModeratorEntities);
 
                     if (BaseService.IsFullImport)
                     {
@@ -142,5 +143,41 @@ namespace SpeedRunAppImport
                 _logger.Error(ex, "ProcessUsers");
             }
         }
+
+        /*
+        public void ProcessSpeedRuns()
+        {
+            try
+            {
+                var users = _userService.GetUsers();
+                var userLastImportDate = DateTime.UtcNow;
+                if (users.Any())
+                {
+                    users = users.OrderBy(i => (i.SignUpDate ?? DateTime.MinValue)).ThenBy(i => i.Name);
+                    var userEntities = users.Select(i => i.ConvertToEntity());
+
+                    if (BaseService.IsFullImport)
+                    {
+                        _userRepo.CopyUserTables();
+                    }
+
+                    _userRepo.InsertUsers(userEntities);
+
+                    if (BaseService.IsFullImport)
+                    {
+                        _userRepo.RenameAndDropUserTables();
+                    }
+                }
+
+                var userSetting = _settingService.GetSetting("UserLastImportDate");
+                userSetting.Dte = userLastImportDate;
+                _settingService.UpdateSetting(userSetting);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "ProcessUsers");
+            }
+        }
+        */
     } 
 }

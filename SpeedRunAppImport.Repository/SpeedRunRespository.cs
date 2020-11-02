@@ -1,0 +1,165 @@
+﻿using System;
+using System.Collections.Generic;
+using NPoco;
+using NPoco.Extensions;
+using System.Linq;
+using SpeedRunApp.Model;
+using SpeedRunApp.Model.Entity;
+using SpeedRunAppImport.Interfaces.Repositories;
+using Microsoft.Extensions.Configuration;
+
+namespace SpeedRunAppImport.Repository
+{
+    public class SpeedRunRespository : BaseRepository, ISpeedRunRepository
+    {
+        public SpeedRunRespository()
+        {
+        }
+
+        public void CopySpeedRunTables()
+        {
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                using (var tran = db.GetTransaction())
+                {
+                    db.Execute(@"IF OBJECT_ID('dbo.tbl_SpeedRun_Full') IS NOT NULL 
+                                    DROP TABLE dbo.tbl_SpeedRun_Full
+
+                                IF OBJECT_ID('dbo.tbl_SpeedRun_Player_Full') IS NOT NULL 
+                                    DROP TABLE dbo.tbl_SpeedRun_Player_Full
+
+                                IF OBJECT_ID('dbo.tbl_SpeedRun_Variable_Full') IS NOT NULL 
+                                    DROP TABLE dbo.tbl_SpeedRun_Variable_Full
+
+                                IF OBJECT_ID('dbo.tbl_SpeedRun_Video_Full') IS NOT NULL 
+                                    DROP TABLE dbo.tbl_SpeedRun_Video_Full
+
+                                SELECT TOP 0 * INTO dbo.tbl_SpeedRun_Full FROM dbo.tbl_SpeedRun
+                                SELECT TOP 0 * INTO dbo.tbl_SpeedRun_Player_Full FROM dbo.tbl_SpeedRun_Player
+                                SELECT TOP 0 * INTO dbo.tbl_SpeedRun_Variable_Full FROM dbo.tbl_SpeedRun_Variable
+                                SELECT TOP 0 * INTO dbo.tbl_SpeedRun_Video_Full FROM dbo.tbl_SpeedRun_Video
+
+                                ALTER TABLE [dbo].[tbl_SpeedRun_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                ALTER TABLE [dbo].[tbl_SpeedRun_Full] ADD CONSTRAINT [DF_tbl_SpeedRun_Full_ImportDate] DEFAULT GETDATE() FOR [ImportDate]
+                                ALTER TABLE [dbo].[tbl_SpeedRun_Player_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_Full_Player] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                ALTER TABLE [dbo].[tbl_SpeedRun_Variable_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_Full_Variable] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                ALTER TABLE [dbo].[tbl_SpeedRun_Video_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_Full_Video] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]");
+                    tran.Complete();
+                }
+            }
+        }
+
+        public void RenameAndDropSpeedRunTables()
+        {
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                using (var tran = db.GetTransaction())
+                {
+                    db.Execute(@"EXEC sp_rename 'dbo.tbl_SpeedRun', 'tbl_SpeedRun_ToRemove'
+                                EXEC sp_rename 'dbo.tbl_SpeedRun_Player', 'tbl_SpeedRun_Player_ToRemove'
+                                EXEC sp_rename 'dbo.tbl_SpeedRun_Variable', 'tbl_SpeedRun_Variable_ToRemove'
+                                EXEC sp_rename 'dbo.tbl_SpeedRun_Video', 'tbl_SpeedRun_Video_ToRemove'
+
+                                EXEC sp_rename 'dbo.tbl_SpeedRun_Full', 'tbl_SpeedRun'
+                                EXEC sp_rename 'dbo.tbl_SpeedRun_Player_Full', 'tbl_SpeedRun_Player'
+                                EXEC sp_rename 'dbo.tbl_SpeedRun_Variable_Full', 'tbl_SpeedRun_Variable'
+                                EXEC sp_rename 'dbo.tbl_SpeedRun_Video_Full', 'tbl_SpeedRun_Video'
+
+                                DROP TABLE dbo.tbl_SpeedRun_ToRemove
+                                DROP TABLE dbo.tbl_SpeedRun_Player_ToRemove
+                                DROP TABLE dbo.tbl_SpeedRun_Variable_ToRemove
+                                DROP TABLE dbo.tbl_SpeedRun_Video_ToRemove
+
+                                EXEC sp_rename 'dbo.PK_tbl_SpeedRun_Full', 'PK_tbl_SpeedRun'
+                                EXEC sp_rename 'dbo.DF_tbl_SpeedRun_Full_ImportedDate', 'DF_tbl_SpeedRun_ImportedDate'
+                                EXEC sp_rename 'dbo.PK_tbl_SpeedRun_Full_Player', 'PK_tbl_SpeedRun_Player'
+                                EXEC sp_rename 'dbo.PK_tbl_SpeedRun_Full_Variable', 'PK_tbl_SpeedRun_Variable'
+                                EXEC sp_rename 'dbo.PK_tbl_SpeedRun_Full_Video', 'PK_tbl_SpeedRun_Video'");
+                    tran.Complete();
+                }
+            }
+        }
+
+        public void InsertSpeedRuns(IEnumerable<SpeedRunEntity> speedRuns, IEnumerable<SpeedRunVariableValueEntity> variableValues, IEnumerable<SpeedRunPlayerEntity> players, IEnumerable<SpeedRunVideoEntity> videos)
+        {
+            try
+            {
+                int batchCount = 0;
+                while (batchCount < speedRuns.Count())
+                {
+                    var runsBatch = speedRuns.Skip(batchCount).Take(MaxBulkRows).ToList();
+                    var runIDs = speedRuns.Select(i => i.ID).Distinct().ToList();
+                    var variableValuesBatch = variableValues.Where(i => runIDs.Contains(i.SpeedRunID)).ToList();
+                    var playersBatch = players.Where(i => runIDs.Contains(i.SpeedRunID)).ToList();
+                    var videosBatch = videos.Where(i => runIDs.Contains(i.SpeedRunID)).ToList();
+
+                    using (IDatabase db = DBFactory.GetDatabase())
+                    {
+                        using (var tran = db.GetTransaction())
+                        {
+                            db.InsertBulk<SpeedRunEntity>(runsBatch);
+                            db.InsertBulk<SpeedRunVariableValueEntity>(variableValuesBatch);
+                            db.InsertBulk<SpeedRunPlayerEntity>(playersBatch);
+                            db.InsertBulk<SpeedRunVideoEntity>(videosBatch);
+                            tran.Complete();
+                        }
+                    }
+
+                    batchCount += MaxBulkRows;
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }
+
+        public void UpdateSpeedRunStatus(IEnumerable<SpeedRunEntity> speedRuns, RunStatusType statusType)
+        {
+            try
+            {
+                int batchCount = 0;
+                while (batchCount < speedRuns.Count())
+                {
+                    var runsBatch = speedRuns.Skip(batchCount).Take(MaxBulkRows).Select(i => i.ID).ToArray();
+
+                    using (IDatabase db = DBFactory.GetDatabase())
+                    {
+                        using (var tran = db.GetTransaction())
+                        {
+                            db.UpdateMany<SpeedRunEntity>()
+                              .Where(i => runsBatch.Contains(i.ID))
+                              .OnlyFields(i => i.StatusTypeID)
+                              .Execute(new SpeedRunEntity() { StatusTypeID = (int)statusType });
+                            tran.Complete();
+                        }
+                    }
+
+                    batchCount += MaxBulkRows;
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }
+
+        public void UpdateSpeedRunStatusAndRejectReason(IEnumerable<SpeedRunEntity> speedRuns)
+        {
+            try
+            {
+                using (IDatabase db = DBFactory.GetDatabase())
+                {
+                    foreach (var speedRun in speedRuns)
+                    {
+                        db.Update<SpeedRunEntity>(speedRun, i => new { i.StatusTypeID, i.RejectReason });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }
+    }
+}

@@ -7,9 +7,9 @@ namespace SpeedRunAppImport.Interfaces.Repositories
 {
     public interface IGameRepository
     {
-        void InsertGameDetails(IEnumerable<GameEntity> games, IEnumerable<LevelEntity> levels, IEnumerable<CategoryEntity> categories, IEnumerable<VariableEntity> variables, IEnumerable<GamePlatformEntity> gamePlatforms, IEnumerable<GameRegionEntity> gameRegions, IEnumerable<GameModeratorEntity> gameModerators);
-        void CopyGameDetailTables();
-        void RenameAndDropGameDetailTables();
+        void InsertGames(IEnumerable<GameEntity> games, IEnumerable<LevelEntity> levels, IEnumerable<CategoryEntity> categories, IEnumerable<VariableEntity> variables, IEnumerable<VariableValueEntity> variableValues, IEnumerable<GamePlatformEntity> gamePlatforms, IEnumerable<GameRegionEntity> gameRegions, IEnumerable<GameModeratorEntity> gameModerators);
+        void CopyGameTables();
+        void RenameAndDropGameTables();
     }
 }
 

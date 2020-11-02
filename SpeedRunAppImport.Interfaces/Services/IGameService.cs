@@ -8,7 +8,7 @@ namespace SpeedRunAppImport.Interfaces.Services
 {
     public interface IGameService
     {
-        IEnumerable<Game> GetGames();
+        IEnumerable<Game> GetGames(DateTime lastImportDate, bool isFullImport);
     }
 } 
 

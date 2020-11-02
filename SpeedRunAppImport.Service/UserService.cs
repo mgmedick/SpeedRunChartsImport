@@ -23,7 +23,7 @@ namespace SpeedRunAppImport.Service
             _gameRepo = gameRepo;
         }
 
-        public IEnumerable<User> GetUsers()
+        public IEnumerable<User> GetUsers(DateTime lastImportDate, bool isFullImport)
         {
             var results = new List<User>();
             List<User> users = null;
@@ -34,11 +34,11 @@ namespace SpeedRunAppImport.Service
                 results.AddRange(users);
                 Thread.Sleep(TimeSpan.FromSeconds(5));
             }
-            while (users.Count == MaxElementsPerPage && (IsFullImport || users.Min(i => i.SignUpDate ?? DateTime.MinValue) >= UserLastImportDate));
+            while (users.Count == MaxElementsPerPage && (IsFullImport || users.Min(i => i.SignUpDate ?? DateTime.MinValue) >= lastImportDate));
 
-            if (!IsFullImport)
+            if (!isFullImport)
             {
-                results = results.Where(i => (i.SignUpDate ?? DateTime.MinValue) >= UserLastImportDate).ToList();
+                results = results.Where(i => (i.SignUpDate ?? DateTime.MinValue) >= lastImportDate).ToList();
             }
 
             return results;

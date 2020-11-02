@@ -14,7 +14,7 @@ namespace SpeedRunAppImport.Repository
         {
         }
 
-        public void CopyGameDetailTables()
+        public void CopyGameTables()
         {
             using (IDatabase db = DBFactory.GetDatabase())
             {
@@ -32,8 +32,11 @@ namespace SpeedRunAppImport.Repository
                                 IF OBJECT_ID('dbo.tbl_Variable_Full') IS NOT NULL 
                                     DROP TABLE dbo.tbl_Variable_Full
 
-                                IF OBJECT_ID('dbo.tbl_Game_Platform_Full') IS NOT NULL 
-                                    DROP TABLE dbo.tbl_Game_Platform_Full
+                                IF OBJECT_ID('dbo.tbl_Variable_Full') IS NOT NULL 
+                                    DROP TABLE dbo.tbl_Variable_Full
+
+                                IF OBJECT_ID('dbo.tbl_VariableValue_Full') IS NOT NULL 
+                                    DROP TABLE dbo.tbl_VariableValue_Full
 
                                 IF OBJECT_ID('dbo.tbl_Game_Region_Full') IS NOT NULL 
                                     DROP TABLE dbo.tbl_Game_Region_Full
@@ -45,14 +48,25 @@ namespace SpeedRunAppImport.Repository
                                 SELECT TOP 0 * INTO dbo.tbl_Level_Full FROM dbo.tbl_Level
                                 SELECT TOP 0 * INTO dbo.tbl_Category_Full FROM dbo.tbl_Category
                                 SELECT TOP 0 * INTO dbo.tbl_Variable_Full FROM dbo.tbl_Variable
+                                SELECT TOP 0 * INTO dbo.tbl_VariableValue_Full FROM dbo.tbl_VariableValue
                                 SELECT TOP 0 * INTO dbo.tbl_Game_Platform_Full FROM dbo.tbl_Game_Platform
-                                SELECT TOP 0 * INTO dbo.tbl_Game_Moderator_Full FROM dbo.tbl_Game_Moderator");
+                                SELECT TOP 0 * INTO dbo.tbl_Game_Moderator_Full FROM dbo.tbl_Game_Moderator
+
+                                ALTER TABLE [dbo].[tbl_Game_Full] ADD CONSTRAINT [PK_tbl_Game_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                ALTER TABLE [dbo].[tbl_Game_Full] ADD CONSTRAINT [DF_tbl_Game_Full_ImportDate] DEFAULT GETDATE() FOR [ImportDate]
+                                ALTER TABLE [dbo].[tbl_Level_Full] ADD CONSTRAINT [PK_tbl_Level_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                ALTER TABLE [dbo].[tbl_Category_Full] ADD CONSTRAINT [PK_tbl_Category_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                ALTER TABLE [dbo].[tbl_Variable_Full] ADD CONSTRAINT [PK_tbl_Variable_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                ALTER TABLE [dbo].[tbl_VariableValue_Full] ADD CONSTRAINT [PK_tbl_VariableValue_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                ALTER TABLE [dbo].[tbl_Game_Platform_Full] ADD CONSTRAINT [PK_tbl_Game_Platform_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                ALTER TABLE [dbo].[tbl_Game_Region_Full] ADD CONSTRAINT [PK_tbl_Game_Region_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                ALTER TABLE [dbo].[tbl_Game_Moderator_Full] ADD CONSTRAINT [PK_tbl_Game_Moderator_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]");
                     tran.Complete();
                 }
             }
         }
 
-        public void RenameAndDropGameDetailTables()
+        public void RenameAndDropGameTables()
         {
             using (IDatabase db = DBFactory.GetDatabase())
             {
@@ -62,6 +76,7 @@ namespace SpeedRunAppImport.Repository
                                 EXEC sp_rename 'dbo.tbl_Level', 'tbl_Level_ToRemove'
                                 EXEC sp_rename 'dbo.tbl_Category', 'tbl_Category_ToRemove'
                                 EXEC sp_rename 'dbo.tbl_Variable', 'tbl_Variable_ToRemove'
+                                EXEC sp_rename 'dbo.tbl_VariableValue', 'tbl_VariableValue_ToRemove'
                                 EXEC sp_rename 'dbo.tbl_Game_Platform', 'tbl_Game_Platform_ToRemove'
                                 EXEC sp_rename 'dbo.tbl_Game_Region', 'tbl_Game_Region_ToRemove'
                                 EXEC sp_rename 'dbo.tbl_Game_Moderator', 'tbl_Game_Moderator_ToRemove'
@@ -70,6 +85,7 @@ namespace SpeedRunAppImport.Repository
                                 EXEC sp_rename 'dbo.tbl_Level_Full', 'tbl_Level'
                                 EXEC sp_rename 'dbo.tbl_Category_Full', 'tbl_Category'
                                 EXEC sp_rename 'dbo.tbl_Variable_Full', 'tbl_Variable'
+                                EXEC sp_rename 'dbo.tbl_VariableValue_Full', 'tbl_VariableValue'
                                 EXEC sp_rename 'dbo.tbl_Game_Platform_Full', 'tbl_Game_Platform'
                                 EXEC sp_rename 'dbo.tbl_Game_Region_Full', 'tbl_Game_Region'
                                 EXEC sp_rename 'dbo.tbl_Game_Moderator_Full', 'tbl_Game_Moderator'
@@ -78,23 +94,26 @@ namespace SpeedRunAppImport.Repository
                                 DROP TABLE dbo.tbl_Level_ToRemove
                                 DROP TABLE dbo.tbl_Category_ToRemove
                                 DROP TABLE dbo.tbl_Variable_ToRemove
+                                DROP TABLE dbo.tbl_VariableValue_ToRemove
                                 DROP TABLE dbo.tbl_Game_Platform_ToRemove
                                 DROP TABLE dbo.tbl_Game_Region_ToRemove
                                 DROP TABLE dbo.tbl_Game_Moderator_ToRemove
 
-                                ALTER TABLE [dbo].[tbl_Game] ADD CONSTRAINT [PK_tbl_Game] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                ALTER TABLE [dbo].[tbl_Level] ADD CONSTRAINT [PK_tbl_Level] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                ALTER TABLE [dbo].[tbl_Category] ADD CONSTRAINT [PK_tbl_Category] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                ALTER TABLE [dbo].[tbl_Variable] ADD CONSTRAINT [PK_tbl_Variable] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                ALTER TABLE [dbo].[tbl_Game_Platform] ADD CONSTRAINT [PK_tbl_Game_Platform] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                ALTER TABLE [dbo].[tbl_Game_Region] ADD CONSTRAINT [PK_tbl_Game_Region] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                ALTER TABLE [dbo].[tbl_Game_Moderator] ADD CONSTRAINT [PK_tbl_Game_Moderator] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]");
+                                EXEC sp_rename 'dbo.PK_tbl_Game_Full', 'PK_tbl_Game'
+                                EXEC sp_rename 'dbo.DF_tbl_Game_Full_ImportedDate', 'DF_tbl_Game_ImportedDate'
+                                EXEC sp_rename 'dbo.PK_tbl_Level_Full', 'PK_tbl_Level'
+                                EXEC sp_rename 'dbo.PK_tbl_Category_Full', 'PK_tbl_Category'
+                                EXEC sp_rename 'dbo.PK_tbl_Variable_Full', 'PK_tbl_Variable'
+                                EXEC sp_rename 'dbo.PK_tbl_VariableValue_Full', 'PK_tbl_VariableValue'
+                                EXEC sp_rename 'dbo.PK_tbl_Game_Platform_Full', 'PK_tbl_Game_Platform'
+                                EXEC sp_rename 'dbo.PK_tbl_Game_Region_Full', 'PK_tbl_Game_Region'
+                                EXEC sp_rename 'dbo.PK_tbl_Game_Moderator_Full', 'PK_tbl_Game_Moderator'");
                     tran.Complete();
                 }
             }
         }
 
-        public void InsertGameDetails(IEnumerable<GameEntity> games, IEnumerable<LevelEntity> levels, IEnumerable<CategoryEntity> categories, IEnumerable<VariableEntity> variables, IEnumerable<GamePlatformEntity> gamePlatforms, IEnumerable<GameRegionEntity> gameRegions, IEnumerable<GameModeratorEntity> gameModerators)
+        public void InsertGames(IEnumerable<GameEntity> games, IEnumerable<LevelEntity> levels, IEnumerable<CategoryEntity> categories, IEnumerable<VariableEntity> variables, IEnumerable<VariableValueEntity> variableValues, IEnumerable<GamePlatformEntity> gamePlatforms, IEnumerable<GameRegionEntity> gameRegions, IEnumerable<GameModeratorEntity> gameModerators)
         {
             try
             {
@@ -106,18 +125,21 @@ namespace SpeedRunAppImport.Repository
                     var levelsBatch = levels.Where(i => gameIDs.Contains(i.GameID)).ToList();
                     var categoriesBatch = categories.Where(i => gameIDs.Contains(i.GameID)).ToList();
                     var variablesBatch = variables.Where(i => gameIDs.Contains(i.GameID)).ToList();
+                    var variableIDs = variablesBatch.Select(i => i.ID).Distinct().ToList();
+                    var variablesValuesBatch = variableValues.Where(i => variableIDs.Contains(i.VariableID)).ToList();
 
                     using (IDatabase db = DBFactory.GetDatabase())
                     {
                         using (var tran = db.GetTransaction())
                         {
-                            db.InsertBatch<GameEntity>(gamesBatch);
-                            db.InsertBatch<LevelEntity>(levelsBatch);
-                            db.InsertBatch<CategoryEntity>(categoriesBatch);
-                            db.InsertBatch<VariableEntity>(variablesBatch);
-                            db.InsertBatch<GamePlatformEntity>(gamePlatforms);
-                            db.InsertBatch<GameRegionEntity>(gameRegions);
-                            db.InsertBatch<GameModeratorEntity>(gameModerators);
+                            db.InsertBulk<GameEntity>(gamesBatch);
+                            db.InsertBulk<LevelEntity>(levelsBatch);
+                            db.InsertBulk<CategoryEntity>(categoriesBatch);
+                            db.InsertBulk<VariableEntity>(variablesBatch);
+                            db.InsertBulk<VariableValueEntity>(variablesValuesBatch);
+                            db.InsertBulk<GamePlatformEntity>(gamePlatforms);
+                            db.InsertBulk<GameRegionEntity>(gameRegions);
+                            db.InsertBulk<GameModeratorEntity>(gameModerators);
                             tran.Complete();
                         }
                     }

@@ -12,51 +12,59 @@ using System.Threading;
 
 namespace SpeedRunAppImport.Service
 {
-    public class SpeedRunService : BaseService//, IUserService
+    public class SpeedRunService : BaseService, ISpeedRunService
     {
         private readonly IConfiguration _config = null;
-        private readonly IGameRepository _gameRepo = null;
+        private readonly ISpeedRunRepository _speedRunRepo = null;
 
-        public SpeedRunService(IConfiguration config, IGameRepository gameRepo)
+        public SpeedRunService(IConfiguration config, ISpeedRunRepository speedRunRepo)
         {
             _config = config;
-            _gameRepo = gameRepo;
+            _speedRunRepo = speedRunRepo;
         }
 
-        public IEnumerable<run> GetSpeedRuns()
+        public IEnumerable<SpeedRun> GetSpeedRuns(DateTime lastImportDate, bool isFullImport, RunStatusType? statusType = null)
         {
-            var results = new List<User>();
-            List<User> users = null;
+            var results = new List<SpeedRun>();           
+            List<SpeedRun> runs = null;
+            var ordering = (statusType == RunStatusType.Verified) ? RunsOrdering.VerifyDateDescending : RunsOrdering.DateSubmittedDescending;
 
             do
             {
-                users = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count, UsersOrdering.SignUpDateDescending).ToList();
-                results.AddRange(users);
+                runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count, ordering, statusType).ToList();
+                results.AddRange(runs);
                 Thread.Sleep(TimeSpan.FromSeconds(5));
             }
-            while (users.Count == MaxElementsPerPage && (IsFullImport || users.Min(i => i.SignUpDate ?? DateTime.MinValue) >= UserLastImportDate));
+            while (runs.Count == MaxElementsPerPage && ((statusType == RunStatusType.Verified && runs.Min(i => i.VerifyDate ?? DateTime.MinValue) >= lastImportDate) || (runs.Min(i => i.DateSubmitted ?? DateTime.MinValue) >= lastImportDate)));
 
             if (!IsFullImport)
             {
-                results = results.Where(i => (i.SignUpDate ?? DateTime.MinValue) >= UserLastImportDate).ToList();
+                if (statusType == RunStatusType.Verified)
+                {
+                    results = results.Where(i => (i.VerifyDate ?? DateTime.MinValue) >= lastImportDate).ToList();
+                }
+                else
+                {
+                    results = results.Where(i => (i.DateSubmitted ?? DateTime.MinValue) >= lastImportDate).ToList();
+                }
             }
 
             return results;
         }
 
-        private IEnumerable<User> GetSpeedRunsWithRetry(int elementsPerPage, int elementsOffset, UsersOrdering orderBy, int retryCount = 0)
+        private IEnumerable<SpeedRun> GetSpeedRunsWithRetry(int elementsPerPage, int elementsOffset, RunsOrdering orderBy, RunStatusType? statusType = null, int retryCount = 0)
         {
             ClientContainer clientContainer = new ClientContainer();
-            IEnumerable<User> users = null;
+            IEnumerable<SpeedRun> runs = null;
             try
             {
-                users = clientContainer.Users.GetUsers(elementsPerPage: elementsPerPage, elementsOffset: elementsOffset, orderBy: orderBy);
+                runs = clientContainer.Runs.GetRuns(status: statusType, elementsPerPage: elementsPerPage, elementsOffset: elementsOffset, orderBy: orderBy);
             }
             catch (Exception ex)
             {
                 if (retryCount <= MaxRetryCount)
                 {
-                    GetUsersWithRetry(elementsPerPage, elementsOffset, orderBy, retryCount++);
+                    GetSpeedRunsWithRetry(elementsPerPage, elementsOffset, orderBy, statusType, retryCount++);
                 }
                 else
                 {
@@ -64,9 +72,8 @@ namespace SpeedRunAppImport.Service
                 }
             }
 
-            return users;
+            return runs;
         }
-
     }
 }
 

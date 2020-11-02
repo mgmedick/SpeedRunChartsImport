@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using SpeedRunApp.Model;
 using SpeedRunApp.Model.Data;
 using SpeedRunApp.Model.Entity;
 using System.Threading.Tasks;
 
 namespace SpeedRunAppImport.Interfaces.Services
 {
-    public interface IUserService
+    public interface ISpeedRunService
     {
-        IEnumerable<User> GetUsers(DateTime lastImportDate, bool isFullImport);
+        IEnumerable<SpeedRun> GetSpeedRuns(DateTime lastImportDate, bool isFullImport, RunStatusType? statusType = null);
     }
 } 
 

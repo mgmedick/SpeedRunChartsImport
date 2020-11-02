@@ -26,7 +26,7 @@ namespace SpeedRunAppImport.Repository
                                 SELECT TOP 0 * INTO dbo.tbl_User_Full FROM dbo.tbl_User
 
                                 ALTER TABLE [dbo].[tbl_User_Full] ADD CONSTRAINT [PK_tbl_User_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                ALTER TABLE [dbo].[tbl_User_Full] ADD CONSTRAINT [DF_tbl_User_Full_ImportDate] DEFAULT GETDATE() FOR [ImportDate]");
+                                ALTER TABLE [dbo].[tbl_User_Full] ADD CONSTRAINT [DF_tbl_User_Full_ImportedDate] DEFAULT GETDATE() FOR [ImportedDate]");
                     tran.Complete();
                 }
             }

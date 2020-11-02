@@ -34,11 +34,13 @@ namespace SpeedRunAppImport.Service
                 results.AddRange(users);
                 Thread.Sleep(TimeSpan.FromSeconds(5));
             }
-            while (users.Count == MaxElementsPerPage && (IsFullImport || users.Min(i => i.SignUpDate ?? DateTime.MinValue) >= lastImportDate));
+            //while (users.Count == MaxElementsPerPage && users.Min(i => i.SignUpDate ?? DateTime.MinValue) >= lastImportDate);
+            while (1 == 0);
 
             if (!isFullImport)
             {
-                results = results.Where(i => (i.SignUpDate ?? DateTime.MinValue) >= lastImportDate).ToList();
+                var userIDsToRemove = users.Where(i => (i.SignUpDate ?? DateTime.MinValue) < lastImportDate).Select(i => i.ID).ToList();
+                results.RemoveAll(i => userIDsToRemove.Contains(i.ID));
             }
 
             return results;

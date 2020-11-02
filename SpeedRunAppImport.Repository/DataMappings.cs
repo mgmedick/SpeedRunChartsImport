@@ -23,7 +23,10 @@ namespace SpeedRunAppImport.Repository
                 For<GameRegionEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_Game_Region_Full");
                 For<GameModeratorEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_Game_Moderator_Full");
                 For<UserEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_User_Full").Columns(i => { i.Column(g => g.ImportedDate).Ignore(); });
-                For<UserEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_SpeedRun_Full").Columns(i => { i.Column(g => g.ImportedDate).Ignore(); });
+                For<SpeedRunEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_SpeedRun_Full").Columns(i => { i.Column(g => g.ImportedDate).Ignore(); });
+                For<SpeedRunVariableValueEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_SpeedRun_VariableValue_Full");
+                For<SpeedRunPlayerEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_SpeedRun_Player_Full");
+                For<SpeedRunVideoEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_SpeedRun_Video_Full");
             }
             else
             {
@@ -36,7 +39,10 @@ namespace SpeedRunAppImport.Repository
                 For<GameRegionEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_Game_Region");
                 For<GameModeratorEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_Game_Moderator");
                 For<UserEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_User").Columns(i => { i.Column(g => g.ImportedDate).Ignore(); });
-                For<UserEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_SpeedRun").Columns(i => { i.Column(g => g.ImportedDate).Ignore(); });
+                For<SpeedRunEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_SpeedRun").Columns(i => { i.Column(g => g.ImportedDate).Ignore(); });
+                For<SpeedRunVariableValueEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_SpeedRun_VariableValue");
+                For<SpeedRunPlayerEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_SpeedRun_Player");
+                For<SpeedRunVideoEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_SpeedRun_Video");
             }
         }  
     }

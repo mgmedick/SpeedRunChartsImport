@@ -35,17 +35,20 @@ namespace SpeedRunAppImport.Service
                 results.AddRange(runs);
                 Thread.Sleep(TimeSpan.FromSeconds(5));
             }
-            while (runs.Count == MaxElementsPerPage && ((statusType == RunStatusType.Verified && runs.Min(i => i.VerifyDate ?? DateTime.MinValue) >= lastImportDate) || (runs.Min(i => i.DateSubmitted ?? DateTime.MinValue) >= lastImportDate)));
+            //while (runs.Count == MaxElementsPerPage && ((statusType == RunStatusType.Verified && runs.Min(i => i.VerifyDate ?? DateTime.MinValue) >= lastImportDate) || (runs.Min(i => i.DateSubmitted ?? DateTime.MinValue) >= lastImportDate)));
+            while (1 == 0);
 
             if (!IsFullImport)
             {
                 if (statusType == RunStatusType.Verified)
                 {
-                    results = results.Where(i => (i.VerifyDate ?? DateTime.MinValue) >= lastImportDate).ToList();
+                    var runIDsToRemove = runs.Where(i => (i.VerifyDate ?? DateTime.MinValue) < lastImportDate).Select(i => i.ID).ToList();
+                    results.RemoveAll(i => runIDsToRemove.Contains(i.ID));
                 }
                 else
                 {
-                    results = results.Where(i => (i.DateSubmitted ?? DateTime.MinValue) >= lastImportDate).ToList();
+                    var runIDsToRemove = runs.Where(i => (i.DateSubmitted ?? DateTime.MinValue) < lastImportDate).Select(i => i.ID).ToList();
+                    results.RemoveAll(i => runIDsToRemove.Contains(i.ID));
                 }
             }
 

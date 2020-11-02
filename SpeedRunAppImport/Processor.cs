@@ -36,8 +36,10 @@ namespace SpeedRunAppImport
         {
             _gameService = gameService;
             _userService = userService;
+            _speedRunService = speedRunService;
             _gameRepo = gameRepo;
             _userRepo = userRepo;
+            _speedRunRepo = speedRunRepo;
             _settingService = settingService;
             _config = config;
             _logger = logger;
@@ -80,7 +82,8 @@ namespace SpeedRunAppImport
         {
             Init();
             //ProcessGames();
-            ProcessUsers();
+            //ProcessUsers();
+            ProcessSpeedRuns();
         }
 
         public void ProcessGames()
@@ -89,14 +92,14 @@ namespace SpeedRunAppImport
             {
                 var newImportDate = DateTime.UtcNow;
                 var games = _gameService.GetGames(GameLastImportDate, IsFullImport);
-                var gameEntities = games.Select(i => i.ConvertToEntity());
-                var levelEntities = games.SelectMany(i => i.Levels.Select(i => i.ConvertToEntity()));
-                var categoryEntities = games.SelectMany(i => i.Categories.Select(i => i.ConvertToEntity()));
-                var variableEntities = games.SelectMany(i => i.Variables.Select(i => i.ConvertToEntity()));
-                var variableValueEntities = games.SelectMany(i => i.Variables.SelectMany(g => g.Values.Select(h => h.ConvertToEntity())));
-                var gamePlatformEntities = games.SelectMany(i => i.PlatformIDs.Select(g => new GamePlatformEntity { GameID = i.ID, PlatformID = g }));
-                var gameRegionEntities = games.SelectMany(i => i.RegionIDs.Select(g => new GameRegionEntity { GameID = i.ID, RegionID = g }));
-                var gameModeratorEntities = games.SelectMany(i => i.Moderators.Select(g => new GameModeratorEntity { GameID = i.ID, UserID = g.UserID }));
+                var gameEntities = games.Select(i => i.ConvertToEntity()).ToList();
+                var levelEntities = games.SelectMany(i => i.Levels.Select(i => i.ConvertToEntity())).ToList();
+                var categoryEntities = games.SelectMany(i => i.Categories.Select(i => i.ConvertToEntity())).ToList();
+                var variableEntities = games.SelectMany(i => i.Variables.Select(i => i.ConvertToEntity())).ToList();
+                var variableValueEntities = games.SelectMany(i => i.Variables.SelectMany(g => g.Values.Select(h => h.ConvertToEntity()))).ToList();
+                var gamePlatformEntities = games.SelectMany(i => i.PlatformIDs.Select(g => new GamePlatformEntity { GameID = i.ID, PlatformID = g })).ToList();
+                var gameRegionEntities = games.SelectMany(i => i.RegionIDs.Select(g => new GameRegionEntity { GameID = i.ID, RegionID = g })).ToList();
+                var gameModeratorEntities = games.SelectMany(i => i.Moderators.Select(g => new GameModeratorEntity { GameID = i.ID, UserID = g.UserID })).ToList();
 
                 if (IsFullImport)
                 {
@@ -131,7 +134,7 @@ namespace SpeedRunAppImport
             {
                 var newImportDate = DateTime.UtcNow;
                 var users = _userService.GetUsers(UserLastImportDate, IsFullImport);
-                var userEntities = users.Select(i => i.ConvertToEntity());
+                var userEntities = users.Select(i => i.ConvertToEntity()).ToList();
 
                 if (IsFullImport)
                 {
@@ -166,10 +169,12 @@ namespace SpeedRunAppImport
             {
                 var newImportDate = DateTime.UtcNow;
                 var runs = _speedRunService.GetSpeedRuns(SpeedRunLastImportDate, IsFullImport);
-                var runEntities = runs.Select(i => i.ConvertToEntity());
-                var variableValueEntities = runs.SelectMany(i => i.VariableValueMappings.Select(g => new SpeedRunVariableValueEntity() { SpeedRunID = i.ID, VariableID = g.VariableID, VariableValueID = g.VariableValueID }));
-                var playerEntities = runs.SelectMany(i => i.Players.Select(g => new SpeedRunPlayerEntity() { SpeedRunID = i.ID, IsUser = g.IsUser, UserID = g.UserID, GuestName = g.GuestName } ));
-                var videoEntities = runs.SelectMany(i=> i.Videos?.Links?.Select((g, n) => new SpeedRunVideoEntity() { SpeedRunID = i.ID, VideoLinkUrl = g.AbsoluteUri, VideoLinkEmbededUrl = i.Videos.EmbededLinks?.ToArray()[n].AbsoluteUri }));
+                var runEntities = runs.Select(i => i.ConvertToEntity()).ToList();
+                var variableValueEntities = runs.SelectMany(i => i.VariableValueMappings.Select(g => new SpeedRunVariableValueEntity() { SpeedRunID = i.ID, VariableID = g.VariableID, VariableValueID = g.VariableValueID })).ToList();
+                var playerEntities = runs.SelectMany(i => i.Players.Select(g => new SpeedRunPlayerEntity() { SpeedRunID = i.ID, IsUser = g.IsUser, UserID = g.UserID, GuestName = g.GuestName } )).ToList();
+                var videoEntities = runs.Where(i => i.Videos?.Links != null && i.Videos.Links.Any(g => g != null))
+                                        .SelectMany(i => i.Videos?.Links?.Select((g, n) => new SpeedRunVideoEntity() { SpeedRunID = i.ID, VideoLinkUrl = g?.ToString(), VideoLinkEmbededUrl = i.Videos?.EmbededLinks?.ToArray()[n]?.ToString() }))
+                                        .ToList();
 
                 if (IsFullImport)
                 {

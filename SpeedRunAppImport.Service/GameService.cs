@@ -27,7 +27,7 @@ namespace SpeedRunAppImport.Service
         {
             var results = new List<Game>();
             List<Game> games = null;
-            var gameEmbeds = new GameEmbeds { EmbedCategories = true, EmbedLevels = true, EmbedModerators = false, EmbedPlatforms = true, EmbedVariables = true };
+            var gameEmbeds = new GameEmbeds { EmbedCategories = true, EmbedLevels = true, EmbedModerators = false, EmbedPlatforms = false, EmbedVariables = true };
 
             do
             {
@@ -35,11 +35,12 @@ namespace SpeedRunAppImport.Service
                 results.AddRange(games);
                 Thread.Sleep(TimeSpan.FromSeconds(5));
             }
-            while (games.Count == MaxElementsPerPage && (IsFullImport || games.Min(i => i.CreationDate ?? DateTime.MinValue) >= lastImportDate));
+            while (games.Count == MaxElementsPerPage && games.Min(i => i.CreationDate ?? DateTime.MinValue) >= lastImportDate);
 
             if (!IsFullImport)
             {
-                results = results.Where(i => (i.CreationDate ?? DateTime.MinValue) >= lastImportDate).ToList();
+                var gameIDsToRemove = games.Where(i => (i.CreationDate ?? DateTime.MinValue) < lastImportDate).Select(i => i.ID).ToList();
+                results.RemoveAll(i => gameIDsToRemove.Contains(i.ID));
             }
 
             return results;

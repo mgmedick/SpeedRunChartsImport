@@ -28,22 +28,22 @@ namespace SpeedRunAppImport.Repository
                                 IF OBJECT_ID('dbo.tbl_SpeedRun_Player_Full') IS NOT NULL 
                                     DROP TABLE dbo.tbl_SpeedRun_Player_Full
 
-                                IF OBJECT_ID('dbo.tbl_SpeedRun_Variable_Full') IS NOT NULL 
-                                    DROP TABLE dbo.tbl_SpeedRun_Variable_Full
+                                IF OBJECT_ID('dbo.tbl_SpeedRun_VariableValue_Full') IS NOT NULL 
+                                    DROP TABLE dbo.tbl_SpeedRun_VariableValue_Full
 
                                 IF OBJECT_ID('dbo.tbl_SpeedRun_Video_Full') IS NOT NULL 
                                     DROP TABLE dbo.tbl_SpeedRun_Video_Full
 
                                 SELECT TOP 0 * INTO dbo.tbl_SpeedRun_Full FROM dbo.tbl_SpeedRun
                                 SELECT TOP 0 * INTO dbo.tbl_SpeedRun_Player_Full FROM dbo.tbl_SpeedRun_Player
-                                SELECT TOP 0 * INTO dbo.tbl_SpeedRun_Variable_Full FROM dbo.tbl_SpeedRun_Variable
+                                SELECT TOP 0 * INTO dbo.tbl_SpeedRun_VariableValue_Full FROM dbo.tbl_SpeedRun_VariableValue
                                 SELECT TOP 0 * INTO dbo.tbl_SpeedRun_Video_Full FROM dbo.tbl_SpeedRun_Video
 
                                 ALTER TABLE [dbo].[tbl_SpeedRun_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                ALTER TABLE [dbo].[tbl_SpeedRun_Full] ADD CONSTRAINT [DF_tbl_SpeedRun_Full_ImportDate] DEFAULT GETDATE() FOR [ImportDate]
-                                ALTER TABLE [dbo].[tbl_SpeedRun_Player_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_Full_Player] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                ALTER TABLE [dbo].[tbl_SpeedRun_Variable_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_Full_Variable] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                ALTER TABLE [dbo].[tbl_SpeedRun_Video_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_Full_Video] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]");
+                                ALTER TABLE [dbo].[tbl_SpeedRun_Full] ADD CONSTRAINT [DF_tbl_SpeedRun_Full_ImportedDate] DEFAULT GETDATE() FOR [ImportedDate]
+                                ALTER TABLE [dbo].[tbl_SpeedRun_Player_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_Player_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                ALTER TABLE [dbo].[tbl_SpeedRun_VariableValue_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_VariableValue_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                ALTER TABLE [dbo].[tbl_SpeedRun_Video_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_Video_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]");
                     tran.Complete();
                 }
             }
@@ -57,24 +57,24 @@ namespace SpeedRunAppImport.Repository
                 {
                     db.Execute(@"EXEC sp_rename 'dbo.tbl_SpeedRun', 'tbl_SpeedRun_ToRemove'
                                 EXEC sp_rename 'dbo.tbl_SpeedRun_Player', 'tbl_SpeedRun_Player_ToRemove'
-                                EXEC sp_rename 'dbo.tbl_SpeedRun_Variable', 'tbl_SpeedRun_Variable_ToRemove'
+                                EXEC sp_rename 'dbo.tbl_SpeedRun_VariableValue', 'tbl_SpeedRun_VariableValue_ToRemove'
                                 EXEC sp_rename 'dbo.tbl_SpeedRun_Video', 'tbl_SpeedRun_Video_ToRemove'
 
                                 EXEC sp_rename 'dbo.tbl_SpeedRun_Full', 'tbl_SpeedRun'
                                 EXEC sp_rename 'dbo.tbl_SpeedRun_Player_Full', 'tbl_SpeedRun_Player'
-                                EXEC sp_rename 'dbo.tbl_SpeedRun_Variable_Full', 'tbl_SpeedRun_Variable'
+                                EXEC sp_rename 'dbo.tbl_SpeedRun_VariableValue_Full', 'tbl_SpeedRun_VariableValue'
                                 EXEC sp_rename 'dbo.tbl_SpeedRun_Video_Full', 'tbl_SpeedRun_Video'
 
                                 DROP TABLE dbo.tbl_SpeedRun_ToRemove
                                 DROP TABLE dbo.tbl_SpeedRun_Player_ToRemove
-                                DROP TABLE dbo.tbl_SpeedRun_Variable_ToRemove
+                                DROP TABLE dbo.tbl_SpeedRun_VariableValue_ToRemove
                                 DROP TABLE dbo.tbl_SpeedRun_Video_ToRemove
 
                                 EXEC sp_rename 'dbo.PK_tbl_SpeedRun_Full', 'PK_tbl_SpeedRun'
                                 EXEC sp_rename 'dbo.DF_tbl_SpeedRun_Full_ImportedDate', 'DF_tbl_SpeedRun_ImportedDate'
-                                EXEC sp_rename 'dbo.PK_tbl_SpeedRun_Full_Player', 'PK_tbl_SpeedRun_Player'
-                                EXEC sp_rename 'dbo.PK_tbl_SpeedRun_Full_Variable', 'PK_tbl_SpeedRun_Variable'
-                                EXEC sp_rename 'dbo.PK_tbl_SpeedRun_Full_Video', 'PK_tbl_SpeedRun_Video'");
+                                EXEC sp_rename 'dbo.PK_tbl_SpeedRun_Player_Full', 'PK_tbl_SpeedRun_Player'
+                                EXEC sp_rename 'dbo.PK_tbl_SpeedRun_VariableValue_Full', 'PK_tbl_SpeedRun_VariableValue'
+                                EXEC sp_rename 'dbo.PK_tbl_SpeedRun_Video_Full', 'PK_tbl_SpeedRun_Video'");
                     tran.Complete();
                 }
             }

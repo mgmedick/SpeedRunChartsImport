@@ -25,21 +25,25 @@ namespace SpeedRunAppImport
         private readonly IGameService _gameService;
         private readonly IUserService _userService;
         private readonly ISpeedRunService _speedRunService;
+        private readonly IPlatformService _platformService;
         private readonly IGameRepository _gameRepo;
         private readonly IUserRepository _userRepo;
         private readonly ISpeedRunRepository _speedRunRepo;
+        private readonly IPlatformRepository _platformRepo;
         private readonly ISettingService _settingService;
         private readonly IConfiguration _config;
         private readonly ILogger _logger;
 
-        public Processor(IGameService gameService, IUserService userService, ISpeedRunService speedRunService, IGameRepository gameRepo, IUserRepository userRepo, ISpeedRunRepository speedRunRepo, ISettingService settingService, IConfiguration config, ILogger logger)
+        public Processor(IGameService gameService, IUserService userService, ISpeedRunService speedRunService, IPlatformService platformService, IGameRepository gameRepo, IUserRepository userRepo, ISpeedRunRepository speedRunRepo, IPlatformRepository platformRepo, ISettingService settingService, IConfiguration config, ILogger logger)
         {
             _gameService = gameService;
             _userService = userService;
             _speedRunService = speedRunService;
+            _platformService = platformService;
             _gameRepo = gameRepo;
             _userRepo = userRepo;
             _speedRunRepo = speedRunRepo;
+            _platformRepo = platformRepo;
             _settingService = settingService;
             _config = config;
             _logger = logger;
@@ -87,6 +91,11 @@ namespace SpeedRunAppImport
             ProcessGames();
             ProcessUsers();
             ProcessSpeedRuns();
+
+            if (IsFullImport)
+            {
+                ProcessPlatforms();
+            }
         }
 
         public void ProcessGames()
@@ -224,6 +233,60 @@ namespace SpeedRunAppImport
             catch (Exception ex)
             {
                 _logger.Error(ex, "ProcessSpeedRuns");
+            }
+        }
+
+        public void ProcessPlatforms()
+        {
+            try
+            {
+                _logger.Information("Started ProcessPlatforms");
+                var newImportDate = DateTime.UtcNow;
+                var platforms = _platformService.GetAllPlatforms();
+                var platformEntities = platforms.Select(i => i.ConvertToEntity()).ToList();
+
+                if (platformEntities.Any())
+                {
+                    _platformRepo.CopyPlatformTables();
+                    _platformRepo.InsertPlatforms(platformEntities);
+                    _platformRepo.RenameAndDropPlatformTables();
+                }
+
+                var platformSetting = _settingService.GetSetting("PlatformLastImportDate");
+                platformSetting.Dte = newImportDate;
+                _settingService.UpdateSetting(platformSetting);
+                _logger.Information("Completed ProcessPlatforms");
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "ProcessPlatforms");
+            }
+        }
+
+        public void ProcessLeaderboards()
+        {
+            try
+            {
+                _logger.Information("Started ProcessPlatforms");
+                var newImportDate = DateTime.UtcNow;
+                var platforms = _platformService.GetAllPlatforms();
+                var platformEntities = platforms.Select(i => i.ConvertToEntity()).ToList();
+
+                if (platformEntities.Any())
+                {
+                    _platformRepo.CopyPlatformTables();
+                    _platformRepo.InsertPlatforms(platformEntities);
+                    _platformRepo.RenameAndDropPlatformTables();
+                }
+
+                var platformSetting = _settingService.GetSetting("PlatformLastImportDate");
+                platformSetting.Dte = newImportDate;
+                _settingService.UpdateSetting(platformSetting);
+                _logger.Information("Completed ProcessPlatforms");
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "ProcessPlatforms");
             }
         }
 

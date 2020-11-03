@@ -15,6 +15,7 @@ namespace SpeedRunAppImport.Service
     {
         public static int MaxElementsPerPage { get; set; }
         public static int MaxRetryCount { get; set; }
+        public static int PullDelayMS { get; set; }
         public static bool IsFullImport { get; set; }
     }
 }

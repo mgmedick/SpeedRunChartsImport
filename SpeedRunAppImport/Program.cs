@@ -15,6 +15,7 @@ using System.Configuration;
 using Microsoft.Extensions.Configuration;
 using Serilog.Settings.Configuration;
 using SpeedRunCommon;
+using System.Text;
 
 namespace SpeedRunAppImport
 {

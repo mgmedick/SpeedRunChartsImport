@@ -9,22 +9,26 @@ using SpeedRunAppImport.Interfaces.Services;
 using SpeedRunAppImport.Interfaces.Repositories;
 using Microsoft.Extensions.Configuration;
 using System.Threading;
+using Serilog;
 
 namespace SpeedRunAppImport.Service
 {
     public class UserService : BaseService, IUserService
     {
-        private readonly IConfiguration _config = null;
         private readonly IGameRepository _gameRepo = null;
+        private readonly IConfiguration _config = null;
+        private readonly ILogger _logger;
 
-        public UserService(IConfiguration config, IGameRepository gameRepo)
+        public UserService(IGameRepository gameRepo, IConfiguration config, ILogger logger)
         {
-            _config = config;
             _gameRepo = gameRepo;
+            _config = config;
+            _logger = logger;
         }
 
         public IEnumerable<User> GetUsers(DateTime lastImportDate, bool isFullImport)
         {
+            _logger.Information("Started GetUsers: {@lastImportDate}, {@isFullImport}", lastImportDate, isFullImport);
             var results = new List<User>();
             List<User> users = null;
 
@@ -32,7 +36,8 @@ namespace SpeedRunAppImport.Service
             {
                 users = GetUsersWithRetry(MaxElementsPerPage, results.Count, UsersOrdering.SignUpDateDescending).ToList();
                 results.AddRange(users);
-                Thread.Sleep(TimeSpan.FromSeconds(5));
+                _logger.Information("Pulled users: {@New}, total users: {@Total}", users.Count, results.Count);
+                Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
             }
             //while (users.Count == MaxElementsPerPage && users.Min(i => i.SignUpDate ?? DateTime.MinValue) >= lastImportDate);
             while (1 == 0);
@@ -43,6 +48,7 @@ namespace SpeedRunAppImport.Service
                 results.RemoveAll(i => userIDsToRemove.Contains(i.ID));
             }
 
+            _logger.Information("Completed GetUsers");
             return results;
         }
 

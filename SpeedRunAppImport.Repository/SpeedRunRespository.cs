@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using NPoco;
+using Serilog;
 using NPoco.Extensions;
 using System.Linq;
 using SpeedRunApp.Model;
@@ -12,8 +13,11 @@ namespace SpeedRunAppImport.Repository
 {
     public class SpeedRunRespository : BaseRepository, ISpeedRunRepository
     {
-        public SpeedRunRespository()
+        private readonly ILogger _logger;
+
+        public SpeedRunRespository(ILogger logger)
         {
+            _logger = logger;
         }
 
         public void CopySpeedRunTables()
@@ -82,36 +86,33 @@ namespace SpeedRunAppImport.Repository
 
         public void InsertSpeedRuns(IEnumerable<SpeedRunEntity> speedRuns, IEnumerable<SpeedRunVariableValueEntity> variableValues, IEnumerable<SpeedRunPlayerEntity> players, IEnumerable<SpeedRunVideoEntity> videos)
         {
-            try
+            _logger.Information("Started InsertSpeedRuns");
+            int batchCount = 0;
+            var speedRunsList = speedRuns.ToList();
+            while (batchCount < speedRunsList.Count)
             {
-                int batchCount = 0;
-                while (batchCount < speedRuns.Count())
+                var runsBatch = speedRunsList.Skip(batchCount).Take(MaxBulkRows).ToList();
+                var runIDs = runsBatch.Select(i => i.ID).Distinct().ToList();
+                var variableValuesBatch = variableValues.Where(i => runIDs.Contains(i.SpeedRunID)).ToList();
+                var playersBatch = players.Where(i => runIDs.Contains(i.SpeedRunID)).ToList();
+                var videosBatch = videos.Where(i => runIDs.Contains(i.SpeedRunID)).ToList();
+
+                using (IDatabase db = DBFactory.GetDatabase())
                 {
-                    var runsBatch = speedRuns.Skip(batchCount).Take(MaxBulkRows).ToList();
-                    var runIDs = speedRuns.Select(i => i.ID).Distinct().ToList();
-                    var variableValuesBatch = variableValues.Where(i => runIDs.Contains(i.SpeedRunID)).ToList();
-                    var playersBatch = players.Where(i => runIDs.Contains(i.SpeedRunID)).ToList();
-                    var videosBatch = videos.Where(i => runIDs.Contains(i.SpeedRunID)).ToList();
-
-                    using (IDatabase db = DBFactory.GetDatabase())
+                    using (var tran = db.GetTransaction())
                     {
-                        using (var tran = db.GetTransaction())
-                        {
-                            db.InsertBulk<SpeedRunEntity>(runsBatch);
-                            db.InsertBulk<SpeedRunVariableValueEntity>(variableValuesBatch);
-                            db.InsertBulk<SpeedRunPlayerEntity>(playersBatch);
-                            db.InsertBulk<SpeedRunVideoEntity>(videosBatch);
-                            tran.Complete();
-                        }
+                        db.InsertBulk<SpeedRunEntity>(runsBatch);
+                        db.InsertBulk<SpeedRunVariableValueEntity>(variableValuesBatch);
+                        db.InsertBulk<SpeedRunPlayerEntity>(playersBatch);
+                        db.InsertBulk<SpeedRunVideoEntity>(videosBatch);
+                        tran.Complete();
                     }
-
-                    batchCount += MaxBulkRows;
                 }
-            }
-            catch (Exception ex)
-            {
 
+                _logger.Information("Saved games {@Count} / {@Total}", runsBatch.Count, speedRunsList.Count);
+                batchCount += MaxBulkRows;
             }
+            _logger.Information("Completed InsertSpeedRuns");
         }
 
         public void UpdateSpeedRunStatus(IEnumerable<SpeedRunEntity> speedRuns, RunStatusType statusType)
@@ -140,7 +141,7 @@ namespace SpeedRunAppImport.Repository
             }
             catch (Exception ex)
             {
-
+                _logger.Error(ex, "UpdateSpeedRunStatus");
             }
         }
 
@@ -158,7 +159,7 @@ namespace SpeedRunAppImport.Repository
             }
             catch (Exception ex)
             {
-
+                _logger.Error(ex, "UpdateSpeedRunStatusAndRejectReason");
             }
         }
     }

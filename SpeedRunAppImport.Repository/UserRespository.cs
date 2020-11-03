@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using NPoco;
+using Serilog;
 using System.Linq;
 using SpeedRunApp.Model.Entity;
 using SpeedRunAppImport.Interfaces.Repositories;
@@ -10,8 +11,11 @@ namespace SpeedRunAppImport.Repository
 {
     public class UserRespository : BaseRepository, IUserRepository
     {
-        public UserRespository()
+        private readonly ILogger _logger;
+
+        public UserRespository(ILogger logger)
         {
+            _logger = logger;
         }
 
         public void CopyUserTables()
@@ -53,29 +57,26 @@ namespace SpeedRunAppImport.Repository
 
         public void InsertUsers(IEnumerable<UserEntity> users)
         {
-            try
+            _logger.Information("Started InsertGames");
+            int batchCount = 0;
+            var usersList = users.ToList();
+            while (batchCount < usersList.Count)
             {
-                int batchCount = 0;
-                while (batchCount < users.Count())
+                var usersBatch = usersList.Skip(batchCount).Take(MaxBulkRows).ToList();
+
+                using (IDatabase db = DBFactory.GetDatabase())
                 {
-                    var usersBatch = users.Skip(batchCount).Take(MaxBulkRows).ToList();
-
-                    using (IDatabase db = DBFactory.GetDatabase())
+                    using (var tran = db.GetTransaction())
                     {
-                        using (var tran = db.GetTransaction())
-                        {
-                            db.InsertBulk<UserEntity>(usersBatch);
-                            tran.Complete();
-                        }
+                        db.InsertBulk<UserEntity>(usersBatch);
+                        tran.Complete();
                     }
-
-                    batchCount += MaxBulkRows;
                 }
-            }
-            catch (Exception ex)
-            {
 
-            }            
+                _logger.Information("Saved users {@Count} / {@Total}", usersBatch.Count, usersList.Count);
+                batchCount += MaxBulkRows;
+            }
+            _logger.Information("Completed InsertGames");
         }
     }
 }

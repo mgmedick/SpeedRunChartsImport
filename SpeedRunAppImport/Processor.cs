@@ -49,6 +49,7 @@ namespace SpeedRunAppImport
         {
             try
             {
+                _logger.Information("Started Init");
                 var connString = _config.GetSection("ConnectionStrings").GetSection("DBConnectionString").Value;
                 var maxBulkRows = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxElementsPerPage").Value);
                 IsFullImport = _config.GetValue<bool>("IsFullImport");
@@ -71,6 +72,8 @@ namespace SpeedRunAppImport
 
                 BaseService.MaxElementsPerPage = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxElementsPerPage").Value);
                 BaseService.MaxRetryCount = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxRetryCount").Value);
+                BaseService.PullDelayMS = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("PullDelayMS").Value);
+                _logger.Information("Completed Init");
             }
             catch (Exception ex)
             {
@@ -81,8 +84,8 @@ namespace SpeedRunAppImport
         public void RunProcesses()
         {
             Init();
-            //ProcessGames();
-            //ProcessUsers();
+            ProcessGames();
+            ProcessUsers();
             ProcessSpeedRuns();
         }
 
@@ -90,6 +93,7 @@ namespace SpeedRunAppImport
         {
             try
             {
+                _logger.Information("Started ProcessGames");
                 var newImportDate = DateTime.UtcNow;
                 var games = _gameService.GetGames(GameLastImportDate, IsFullImport);
                 var gameEntities = games.Select(i => i.ConvertToEntity()).ToList();
@@ -121,6 +125,7 @@ namespace SpeedRunAppImport
                 var gameSetting = _settingService.GetSetting("GameLastImportDate");
                 gameSetting.Dte = newImportDate;
                 _settingService.UpdateSetting(gameSetting);
+                _logger.Information("Completed ProcessGames");
             }
             catch (Exception ex)
             {
@@ -132,6 +137,7 @@ namespace SpeedRunAppImport
         {
             try
             {
+                _logger.Information("Started ProcessUsers");
                 var newImportDate = DateTime.UtcNow;
                 var users = _userService.GetUsers(UserLastImportDate, IsFullImport);
                 var userEntities = users.Select(i => i.ConvertToEntity()).ToList();
@@ -156,6 +162,7 @@ namespace SpeedRunAppImport
                 var userSetting = _settingService.GetSetting("UserLastImportDate");
                 userSetting.Dte = newImportDate;
                 _settingService.UpdateSetting(userSetting);
+                _logger.Information("Completed ProcessUsers");
             }
             catch (Exception ex)
             {
@@ -167,6 +174,7 @@ namespace SpeedRunAppImport
         {
             try
             {
+                _logger.Information("Started ProcessSpeedRuns");
                 var newImportDate = DateTime.UtcNow;
                 var runs = _speedRunService.GetSpeedRuns(SpeedRunLastImportDate, IsFullImport);
                 var runEntities = runs.Select(i => i.ConvertToEntity()).ToList();
@@ -211,6 +219,7 @@ namespace SpeedRunAppImport
                 var speedRunSetting = _settingService.GetSetting("SpeedRunLastImportDate");
                 speedRunSetting.Dte = newImportDate;
                 _settingService.UpdateSetting(speedRunSetting);
+                _logger.Information("Completed ProcessSpeedRuns");
             }
             catch (Exception ex)
             {

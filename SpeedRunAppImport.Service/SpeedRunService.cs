@@ -9,22 +9,26 @@ using SpeedRunAppImport.Interfaces.Services;
 using SpeedRunAppImport.Interfaces.Repositories;
 using Microsoft.Extensions.Configuration;
 using System.Threading;
+using Serilog;
 
 namespace SpeedRunAppImport.Service
 {
     public class SpeedRunService : BaseService, ISpeedRunService
     {
-        private readonly IConfiguration _config = null;
         private readonly ISpeedRunRepository _speedRunRepo = null;
+        private readonly IConfiguration _config = null;
+        private readonly ILogger _logger;
 
-        public SpeedRunService(IConfiguration config, ISpeedRunRepository speedRunRepo)
+        public SpeedRunService(ISpeedRunRepository speedRunRepo, IConfiguration config, ILogger logger)
         {
-            _config = config;
             _speedRunRepo = speedRunRepo;
+            _config = config;
+            _logger = logger;
         }
 
         public IEnumerable<SpeedRun> GetSpeedRuns(DateTime lastImportDate, bool isFullImport, RunStatusType? statusType = null)
         {
+            _logger.Information("Started GetGames: {@lastImportDate}, {@isFullImport}, {@statusType}", lastImportDate, isFullImport, statusType);
             var results = new List<SpeedRun>();           
             List<SpeedRun> runs = null;
             var ordering = (statusType == RunStatusType.Verified) ? RunsOrdering.VerifyDateDescending : RunsOrdering.DateSubmittedDescending;
@@ -33,7 +37,7 @@ namespace SpeedRunAppImport.Service
             {
                 runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count, ordering, statusType).ToList();
                 results.AddRange(runs);
-                Thread.Sleep(TimeSpan.FromSeconds(5));
+                Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
             }
             //while (runs.Count == MaxElementsPerPage && ((statusType == RunStatusType.Verified && runs.Min(i => i.VerifyDate ?? DateTime.MinValue) >= lastImportDate) || (runs.Min(i => i.DateSubmitted ?? DateTime.MinValue) >= lastImportDate)));
             while (1 == 0);
@@ -52,6 +56,7 @@ namespace SpeedRunAppImport.Service
                 }
             }
 
+            _logger.Information("Completed GetGames");
             return results;
         }
 

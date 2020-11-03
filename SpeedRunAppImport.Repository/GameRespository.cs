@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using NPoco;
+using Serilog;
 using System.Linq;
 using SpeedRunApp.Model.Entity;
 using SpeedRunAppImport.Interfaces.Repositories;
@@ -10,8 +11,11 @@ namespace SpeedRunAppImport.Repository
 {
     public class GameRespository : BaseRepository, IGameRepository
     {
-        public GameRespository()
+        private readonly ILogger _logger;
+
+        public GameRespository(ILogger logger)
         {
+            _logger = logger;
         }
 
         public void CopyGameTables()
@@ -118,10 +122,12 @@ namespace SpeedRunAppImport.Repository
         {
             try
             {
+                _logger.Information("Started InsertGames");
                 int batchCount = 0;
-                while (batchCount < games.Count())
+                var gamesList = games.ToList();
+                while (batchCount < gamesList.Count)
                 {
-                    var gamesBatch = games.Skip(batchCount).Take(MaxBulkRows).ToList();
+                    var gamesBatch = gamesList.Skip(batchCount).Take(MaxBulkRows).ToList();
                     var gameIDs = gamesBatch.Select(i => i.ID).Distinct().ToList();
                     var levelsBatch = levels.Where(i => gameIDs.Contains(i.GameID)).ToList();
                     var categoriesBatch = categories.Where(i => gameIDs.Contains(i.GameID)).ToList();
@@ -145,13 +151,15 @@ namespace SpeedRunAppImport.Repository
                         }
                     }
 
+                    _logger.Information("Saved games {@Count} / {@Total}", gamesBatch.Count, gamesList.Count);
                     batchCount += MaxBulkRows;
                 }
+                _logger.Information("Completed InsertGames");
             }
             catch (Exception ex)
             {
-
-            }            
+                _logger.Error(ex, "InsertGames");
+            }
         }
     }
 }

@@ -263,11 +263,12 @@ namespace SpeedRunAppImport
             }
         }
 
-        public void ProcessLeaderboards()
+        private void ProcessLeaderboards(List<int> gameIDs)
         {
             try
             {
                 _logger.Information("Started ProcessPlatforms");
+                var games = _gameRepo.GetGames(i => gameIDs.Contains(i.ID));
                 var newImportDate = DateTime.UtcNow;
                 var platforms = _platformService.GetAllPlatforms();
                 var platformEntities = platforms.Select(i => i.ConvertToEntity()).ToList();

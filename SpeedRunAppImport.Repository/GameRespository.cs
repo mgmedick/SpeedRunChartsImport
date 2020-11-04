@@ -6,6 +6,7 @@ using System.Linq;
 using SpeedRunApp.Model.Entity;
 using SpeedRunAppImport.Interfaces.Repositories;
 using Microsoft.Extensions.Configuration;
+using System.Linq.Expressions;
 
 namespace SpeedRunAppImport.Repository
 {
@@ -120,45 +121,46 @@ namespace SpeedRunAppImport.Repository
 
         public void InsertGames(IEnumerable<GameEntity> games, IEnumerable<LevelEntity> levels, IEnumerable<CategoryEntity> categories, IEnumerable<VariableEntity> variables, IEnumerable<VariableValueEntity> variableValues, IEnumerable<GamePlatformEntity> gamePlatforms, IEnumerable<GameRegionEntity> gameRegions, IEnumerable<GameModeratorEntity> gameModerators)
         {
-            try
+            _logger.Information("Started InsertGames");
+            int batchCount = 0;
+            var gamesList = games.ToList();
+            while (batchCount < gamesList.Count)
             {
-                _logger.Information("Started InsertGames");
-                int batchCount = 0;
-                var gamesList = games.ToList();
-                while (batchCount < gamesList.Count)
+                var gamesBatch = gamesList.Skip(batchCount).Take(MaxBulkRows).ToList();
+                var gameIDs = gamesBatch.Select(i => i.ID).Distinct().ToList();
+                var levelsBatch = levels.Where(i => gameIDs.Contains(i.GameID)).ToList();
+                var categoriesBatch = categories.Where(i => gameIDs.Contains(i.GameID)).ToList();
+                var variablesBatch = variables.Where(i => gameIDs.Contains(i.GameID)).ToList();
+                var variableIDs = variablesBatch.Select(i => i.ID).Distinct().ToList();
+                var variablesValuesBatch = variableValues.Where(i => variableIDs.Contains(i.VariableID)).ToList();
+
+                using (IDatabase db = DBFactory.GetDatabase())
                 {
-                    var gamesBatch = gamesList.Skip(batchCount).Take(MaxBulkRows).ToList();
-                    var gameIDs = gamesBatch.Select(i => i.ID).Distinct().ToList();
-                    var levelsBatch = levels.Where(i => gameIDs.Contains(i.GameID)).ToList();
-                    var categoriesBatch = categories.Where(i => gameIDs.Contains(i.GameID)).ToList();
-                    var variablesBatch = variables.Where(i => gameIDs.Contains(i.GameID)).ToList();
-                    var variableIDs = variablesBatch.Select(i => i.ID).Distinct().ToList();
-                    var variablesValuesBatch = variableValues.Where(i => variableIDs.Contains(i.VariableID)).ToList();
-
-                    using (IDatabase db = DBFactory.GetDatabase())
+                    using (var tran = db.GetTransaction())
                     {
-                        using (var tran = db.GetTransaction())
-                        {
-                            db.InsertBulk<GameEntity>(gamesBatch);
-                            db.InsertBulk<LevelEntity>(levelsBatch);
-                            db.InsertBulk<CategoryEntity>(categoriesBatch);
-                            db.InsertBulk<VariableEntity>(variablesBatch);
-                            db.InsertBulk<VariableValueEntity>(variablesValuesBatch);
-                            db.InsertBulk<GamePlatformEntity>(gamePlatforms);
-                            db.InsertBulk<GameRegionEntity>(gameRegions);
-                            db.InsertBulk<GameModeratorEntity>(gameModerators);
-                            tran.Complete();
-                        }
+                        db.InsertBulk<GameEntity>(gamesBatch);
+                        db.InsertBulk<LevelEntity>(levelsBatch);
+                        db.InsertBulk<CategoryEntity>(categoriesBatch);
+                        db.InsertBulk<VariableEntity>(variablesBatch);
+                        db.InsertBulk<VariableValueEntity>(variablesValuesBatch);
+                        db.InsertBulk<GamePlatformEntity>(gamePlatforms);
+                        db.InsertBulk<GameRegionEntity>(gameRegions);
+                        db.InsertBulk<GameModeratorEntity>(gameModerators);
+                        tran.Complete();
                     }
-
-                    _logger.Information("Saved games {@Count} / {@Total}", gamesBatch.Count, gamesList.Count);
-                    batchCount += MaxBulkRows;
                 }
-                _logger.Information("Completed InsertGames");
+
+                _logger.Information("Saved games {@Count} / {@Total}", gamesBatch.Count, gamesList.Count);
+                batchCount += MaxBulkRows;
             }
-            catch (Exception ex)
+            _logger.Information("Completed InsertGames");
+        }
+
+        public IEnumerable<GameEntity> GetGameViews(Expression<Func<GameEntity, bool>> predicate)
+        {
+            using (IDatabase db = DBFactory.GetDatabase())
             {
-                _logger.Error(ex, "InsertGames");
+                return db.Query<GameEntity>().Where(predicate).ToList();
             }
         }
     }

@@ -156,11 +156,18 @@ namespace SpeedRunAppImport.Repository
             _logger.Information("Completed InsertGames");
         }
 
-        public IEnumerable<GameEntity> GetGameViews(Expression<Func<GameEntity, bool>> predicate)
+        public IEnumerable<GameView> GetGameViews(Expression<Func<GameView, bool>> predicate)
         {
             using (IDatabase db = DBFactory.GetDatabase())
             {
-                return db.Query<GameEntity>().Where(predicate).ToList();
+                var games = db.Query<GameView>().Where(predicate).ToList();
+                foreach (var game in games)
+                {
+                    game.Categories = db.Query<CategoryEntity>().Where(i => i.GameID == game.ID).ToList();
+                    game.Levels = db.Query<LevelEntity>().Where(i => i.GameID == game.ID).ToList();
+                }
+
+                return games;
             }
         }
     }

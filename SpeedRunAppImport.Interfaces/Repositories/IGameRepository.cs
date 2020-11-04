@@ -11,7 +11,7 @@ namespace SpeedRunAppImport.Interfaces.Repositories
         void InsertGames(IEnumerable<GameEntity> games, IEnumerable<LevelEntity> levels, IEnumerable<CategoryEntity> categories, IEnumerable<VariableEntity> variables, IEnumerable<VariableValueEntity> variableValues, IEnumerable<GamePlatformEntity> gamePlatforms, IEnumerable<GameRegionEntity> gameRegions, IEnumerable<GameModeratorEntity> gameModerators);
         void CopyGameTables();
         void RenameAndDropGameTables();
-        IEnumerable<GameEntity> GetGames(Expression<Func<GameEntity, bool>> predicate);
+        IEnumerable<GameView> GetGameViews(Expression<Func<GameView, bool>> predicate);
     }
 }
 

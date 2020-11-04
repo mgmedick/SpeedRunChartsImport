@@ -13,7 +13,7 @@ using Serilog;
 
 namespace SpeedRunAppImport.Service
 {
-    public class LeaderboardService : BaseService//, IPlatformService
+    public class LeaderboardService : BaseService, ILeaderboardService
     {
         private readonly ILogger _logger;
 
@@ -22,48 +22,62 @@ namespace SpeedRunAppImport.Service
             _logger = logger;
         }
 
-        //public IEnumerable<Leaderboard> GetAllPlatforms()
-        //{
-        //    _logger.Information("Started GetAllPlatforms");
-        //    var results = new List<Platform>();
-        //    List<Platform> platforms = null;
+        public IEnumerable<Leaderboard> GetLeaderboards(IEnumerable<GameView> games)
+        {
+            var results = new List<Leaderboard>();
 
-        //    do
-        //    {
-        //        platforms = GetPlatformsWithRetry(MaxElementsPerPage, results.Count, PlatformsOrdering.YearOfReleaseDescending).ToList();
-        //        results.AddRange(platforms);
-        //        _logger.Information("Pulled platforms: {@New}, total platforms: {@Total}", platforms.Count, results.Count);
-        //        Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
-        //    }
-        //    while (platforms.Count == MaxElementsPerPage);
+            foreach (var game in games)
+            {
+                foreach (var category in game.Categories)
+                {
+                    if (category.CategoryTypeID == (int)CategoryType.PerLevel)
+                    {
+                        foreach (var level in game.Levels)
+                        {
+                            var leaderboard = GetLeaderboardWithRetry(game.ID, category.ID, level.ID);
+                            results.Add(leaderboard);
+                        }
+                    }
+                    else
+                    {
+                        var leaderboard = GetLeaderboardWithRetry(game.ID, category.ID);
+                        results.Add(leaderboard);
+                    }
+                }
+            }
 
-        //    _logger.Information("Completed GetAllPlatforms");
-        //    return results;
-        //}
+            return results;
+        }
 
-        //private IEnumerable<Platform> GetPlatformsWithRetry(int elementsPerPage, int elementsOffset, PlatformsOrdering orderBy, int retryCount = 0)
-        //{
-        //    ClientContainer clientContainer = new ClientContainer();
-        //    IEnumerable<Platform> platforms = null;
-        //    try
-        //    {
-        //        platforms = clientContainer.Platforms.GetPlatforms(elementsPerPage: elementsPerPage, elementsOffset: elementsOffset, orderBy: orderBy);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        if (retryCount <= MaxRetryCount)
-        //        {
-        //            GetPlatformsWithRetry(elementsPerPage, elementsOffset, orderBy, retryCount++);
-        //        }
-        //        else
-        //        {
-        //            throw ex;
-        //        }
-        //    }
+        private Leaderboard GetLeaderboardWithRetry(string gameID, string categoryID, string levelID = null, int retryCount = 0)
+        {
+            ClientContainer clientContainer = new ClientContainer();
+            Leaderboard leaderboard = null;
+            try
+            {
+                if(string.IsNullOrWhiteSpace(levelID))
+                {
+                    leaderboard = clientContainer.Leaderboards.GetLeaderboardForFullGameCategory(gameId: gameID, categoryId: categoryID);
+                }
+                else
+                {
+                    leaderboard = clientContainer.Leaderboards.GetLeaderboardForLevel(gameId: gameID, categoryId: categoryID, levelId: levelID);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (retryCount <= MaxRetryCount)
+                {
+                    GetLeaderboardWithRetry(gameID, categoryID, levelID, retryCount++);
+                }
+                else
+                {
+                    throw ex;
+                }
+            }
 
-        //    return platforms;
-        //}
-
+            return leaderboard;
+        }
     }
 }
 

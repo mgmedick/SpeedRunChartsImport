@@ -26,24 +26,28 @@ namespace SpeedRunAppImport
         private readonly IUserService _userService;
         private readonly ISpeedRunService _speedRunService;
         private readonly IPlatformService _platformService;
+        private readonly ILeaderboardService _leaderboardService;
         private readonly IGameRepository _gameRepo;
         private readonly IUserRepository _userRepo;
         private readonly ISpeedRunRepository _speedRunRepo;
         private readonly IPlatformRepository _platformRepo;
+        private readonly ILeaderboardRepository _leaderboardRepo;
         private readonly ISettingService _settingService;
         private readonly IConfiguration _config;
         private readonly ILogger _logger;
 
-        public Processor(IGameService gameService, IUserService userService, ISpeedRunService speedRunService, IPlatformService platformService, IGameRepository gameRepo, IUserRepository userRepo, ISpeedRunRepository speedRunRepo, IPlatformRepository platformRepo, ISettingService settingService, IConfiguration config, ILogger logger)
+        public Processor(IGameService gameService, IUserService userService, ISpeedRunService speedRunService, IPlatformService platformService, ILeaderboardService leaderboardService, IGameRepository gameRepo, IUserRepository userRepo, ISpeedRunRepository speedRunRepo, IPlatformRepository platformRepo, ILeaderboardRepository leaderboardRepo, ISettingService settingService, IConfiguration config, ILogger logger)
         {
             _gameService = gameService;
             _userService = userService;
             _speedRunService = speedRunService;
             _platformService = platformService;
+            _leaderboardService = leaderboardService;
             _gameRepo = gameRepo;
             _userRepo = userRepo;
             _speedRunRepo = speedRunRepo;
             _platformRepo = platformRepo;
+            _leaderboardRepo = leaderboardRepo;
             _settingService = settingService;
             _config = config;
             _logger = logger;
@@ -263,31 +267,41 @@ namespace SpeedRunAppImport
             }
         }
 
-        private void ProcessLeaderboards(List<int> gameIDs)
+        private void ProcessLeaderboards(List<string> gameIDs)
         {
             try
             {
-                _logger.Information("Started ProcessPlatforms");
-                var games = _gameRepo.GetGames(i => gameIDs.Contains(i.ID));
+                _logger.Information("Started ProcessLeaderboards");
                 var newImportDate = DateTime.UtcNow;
-                var platforms = _platformService.GetAllPlatforms();
-                var platformEntities = platforms.Select(i => i.ConvertToEntity()).ToList();
+                var games = _gameRepo.GetGameViews(i => gameIDs.Contains(i.ID));
+                var leaderboards = _leaderboardService.GetLeaderboards(games);
+                var leaderboardEntities = leaderboards.Select(i => i.ConvertToEntity()).ToList();
 
-                if (platformEntities.Any())
+                if (IsFullImport)
                 {
-                    _platformRepo.CopyPlatformTables();
-                    _platformRepo.InsertPlatforms(platformEntities);
-                    _platformRepo.RenameAndDropPlatformTables();
+                    if (leaderboardEntities.Any())
+                    {
+                        _leaderboardRepo.CopyLeaderboardTables();
+                        _leaderboardRepo.InsertLeaderboards(leaderboardEntities);
+                        _leaderboardRepo.RenameAndDropLeaderboardTables();
+                    }
+                }
+                else
+                {
+                    if (leaderboardEntities.Any())
+                    {
+                        _leaderboardRepo.InsertLeaderboards(leaderboardEntities);
+                    }
                 }
 
-                var platformSetting = _settingService.GetSetting("PlatformLastImportDate");
-                platformSetting.Dte = newImportDate;
-                _settingService.UpdateSetting(platformSetting);
-                _logger.Information("Completed ProcessPlatforms");
+                var leaderboardSetting = _settingService.GetSetting("LeaderboardLastImportDate");
+                leaderboardSetting.Dte = newImportDate;
+                _settingService.UpdateSetting(leaderboardSetting);
+                _logger.Information("Completed ProcessLeaderboards");
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, "ProcessPlatforms");
+                _logger.Error(ex, "ProcessLeaderboards");
             }
         }
 

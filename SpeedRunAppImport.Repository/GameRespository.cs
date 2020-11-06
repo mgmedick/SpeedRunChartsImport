@@ -160,14 +160,7 @@ namespace SpeedRunAppImport.Repository
         {
             using (IDatabase db = DBFactory.GetDatabase())
             {
-                var games = db.Query<GameView>().Where(predicate).ToList();
-                foreach (var game in games)
-                {
-                    game.Categories = db.Query<CategoryEntity>().Where(i => i.GameID == game.ID).ToList();
-                    game.Levels = db.Query<LevelEntity>().Where(i => i.GameID == game.ID).ToList();
-                }
-
-                return games;
+                return db.Query<GameView>().Where(predicate).ToList();
             }
         }
     }

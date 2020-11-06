@@ -130,7 +130,7 @@ namespace SpeedRunAppImport.Repository
                         {
                             db.UpdateMany<SpeedRunEntity>()
                               .Where(i => runsBatch.Contains(i.ID))
-                              .OnlyFields(i => i.StatusTypeID)
+                              .OnlyFields(i => new { i.StatusTypeID, i.Comment })
                               .Execute(new SpeedRunEntity() { StatusTypeID = (int)statusType });
                             tran.Complete();
                         }
@@ -153,7 +153,7 @@ namespace SpeedRunAppImport.Repository
                 {
                     foreach (var speedRun in speedRuns)
                     {
-                        db.Update<SpeedRunEntity>(speedRun, i => new { i.StatusTypeID, i.RejectReason });
+                        db.Update<SpeedRunEntity>(speedRun, i => new { i.StatusTypeID, i.Comment, i.RejectReason });
                     }
                 }
             }

@@ -9,7 +9,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace SpeedRunAppImport.Repository
 {
-    public class LeaderboardRespository : BaseRepository//, IUserRepository
+    public class LeaderboardRespository : BaseRepository, ILeaderboardRepository
     {
         private readonly ILogger _logger;
 

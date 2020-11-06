@@ -92,13 +92,42 @@ namespace SpeedRunAppImport
         public void RunProcesses()
         {
             Init();
-            ProcessGames();
-            ProcessUsers();
-            ProcessSpeedRuns();
 
             if (IsFullImport)
             {
                 ProcessPlatforms();
+            }
+
+            ProcessGames();
+            ProcessUsers();
+            var gameIDs = ProcessSpeedRuns();
+            ProcessLeaderboards(gameIDs);
+        }
+
+        public void ProcessPlatforms()
+        {
+            try
+            {
+                _logger.Information("Started ProcessPlatforms");
+                var newImportDate = DateTime.UtcNow;
+                var platforms = _platformService.GetAllPlatforms();
+                var platformEntities = platforms.Select(i => i.ConvertToEntity()).ToList();
+
+                if (platformEntities.Any())
+                {
+                    _platformRepo.CopyPlatformTables();
+                    _platformRepo.InsertPlatforms(platformEntities);
+                    _platformRepo.RenameAndDropPlatformTables();
+                }
+
+                var platformSetting = _settingService.GetSetting("PlatformLastImportDate");
+                platformSetting.Dte = newImportDate;
+                _settingService.UpdateSetting(platformSetting);
+                _logger.Information("Completed ProcessPlatforms");
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "ProcessPlatforms");
             }
         }
 
@@ -183,14 +212,16 @@ namespace SpeedRunAppImport
             }
         }
 
-        public void ProcessSpeedRuns()
+        public IEnumerable<string> ProcessSpeedRuns()
         {
+            var gameIDs = new List<string>();
             try
             {
                 _logger.Information("Started ProcessSpeedRuns");
                 var newImportDate = DateTime.UtcNow;
                 var runs = _speedRunService.GetSpeedRuns(SpeedRunLastImportDate, IsFullImport);
                 var runEntities = runs.Select(i => i.ConvertToEntity()).ToList();
+                gameIDs = runEntities.Select(i => i.GameID).Distinct().ToList();
                 var variableValueEntities = runs.SelectMany(i => i.VariableValueMappings.Select(g => new SpeedRunVariableValueEntity() { SpeedRunID = i.ID, VariableID = g.VariableID, VariableValueID = g.VariableValueID })).ToList();
                 var playerEntities = runs.SelectMany(i => i.Players.Select(g => new SpeedRunPlayerEntity() { SpeedRunID = i.ID, IsUser = g.IsUser, UserID = g.UserID, GuestName = g.GuestName } )).ToList();
                 var videoEntities = runs.Where(i => i.Videos?.Links != null && i.Videos.Links.Any(g => g != null))
@@ -238,65 +269,43 @@ namespace SpeedRunAppImport
             {
                 _logger.Error(ex, "ProcessSpeedRuns");
             }
+
+            return gameIDs;
         }
 
-        public void ProcessPlatforms()
-        {
-            try
-            {
-                _logger.Information("Started ProcessPlatforms");
-                var newImportDate = DateTime.UtcNow;
-                var platforms = _platformService.GetAllPlatforms();
-                var platformEntities = platforms.Select(i => i.ConvertToEntity()).ToList();
-
-                if (platformEntities.Any())
-                {
-                    _platformRepo.CopyPlatformTables();
-                    _platformRepo.InsertPlatforms(platformEntities);
-                    _platformRepo.RenameAndDropPlatformTables();
-                }
-
-                var platformSetting = _settingService.GetSetting("PlatformLastImportDate");
-                platformSetting.Dte = newImportDate;
-                _settingService.UpdateSetting(platformSetting);
-                _logger.Information("Completed ProcessPlatforms");
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "ProcessPlatforms");
-            }
-        }
-
-        private void ProcessLeaderboards(List<string> gameIDs)
+        private void ProcessLeaderboards(IEnumerable<string> gameIDs)
         {
             try
             {
                 _logger.Information("Started ProcessLeaderboards");
-                var newImportDate = DateTime.UtcNow;
-                var games = _gameRepo.GetGameViews(i => gameIDs.Contains(i.ID));
-                var leaderboards = _leaderboardService.GetLeaderboards(games);
-                var leaderboardEntities = leaderboards.Select(i => i.ConvertToEntity()).ToList();
-
-                if (IsFullImport)
+                if (gameIDs.Any())
                 {
-                    if (leaderboardEntities.Any())
-                    {
-                        _leaderboardRepo.CopyLeaderboardTables();
-                        _leaderboardRepo.InsertLeaderboards(leaderboardEntities);
-                        _leaderboardRepo.RenameAndDropLeaderboardTables();
-                    }
-                }
-                else
-                {
-                    if (leaderboardEntities.Any())
-                    {
-                        _leaderboardRepo.InsertLeaderboards(leaderboardEntities);
-                    }
-                }
+                    var newImportDate = DateTime.UtcNow;
+                    var games = _gameRepo.GetGameViews(i => gameIDs.Contains(i.ID));
+                    var leaderboards = _leaderboardService.GetLeaderboards(games);
+                    var leaderboardEntities = leaderboards.SelectMany(i => i.Records.Select(g => new LeaderboardEntity { GameID = i.GameID, CategoryID = i.CategoryID, LevelID = i.LevelID, Rank = g.Rank, SpeedRunID = g.ID }));
 
-                var leaderboardSetting = _settingService.GetSetting("LeaderboardLastImportDate");
-                leaderboardSetting.Dte = newImportDate;
-                _settingService.UpdateSetting(leaderboardSetting);
+                    if (IsFullImport)
+                    {
+                        if (leaderboardEntities.Any())
+                        {
+                            _leaderboardRepo.CopyLeaderboardTables();
+                            _leaderboardRepo.InsertLeaderboards(leaderboardEntities);
+                            _leaderboardRepo.RenameAndDropLeaderboardTables();
+                        }
+                    }
+                    else
+                    {
+                        if (leaderboardEntities.Any())
+                        {
+                            _leaderboardRepo.InsertLeaderboards(leaderboardEntities);
+                        }
+                    }
+
+                    var leaderboardSetting = _settingService.GetSetting("LeaderboardLastImportDate");
+                    leaderboardSetting.Dte = newImportDate;
+                    _settingService.UpdateSetting(leaderboardSetting);
+                }
                 _logger.Information("Completed ProcessLeaderboards");
             }
             catch (Exception ex)

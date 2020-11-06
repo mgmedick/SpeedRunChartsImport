@@ -11,6 +11,7 @@ namespace SpeedRunAppImport.Repository
         public DataMappings(bool isFullImport)
         {
             For<SettingEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_Setting");
+            For<GameView>().PrimaryKey("ID", false).TableName("dbo.vw_Game");
 
             if (isFullImport)
             {
@@ -27,6 +28,8 @@ namespace SpeedRunAppImport.Repository
                 For<SpeedRunVariableValueEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_SpeedRun_VariableValue_Full");
                 For<SpeedRunPlayerEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_SpeedRun_Player_Full");
                 For<SpeedRunVideoEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_SpeedRun_Video_Full");
+                For<LeaderboardEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_Leaderboard_Full").Columns(i => { i.Column(g => g.ImportedDate).Ignore(); });
+                For<PlatformEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_Platform_Full").Columns(i => { i.Column(g => g.ImportedDate).Ignore(); });
             }
             else
             {
@@ -43,6 +46,8 @@ namespace SpeedRunAppImport.Repository
                 For<SpeedRunVariableValueEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_SpeedRun_VariableValue");
                 For<SpeedRunPlayerEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_SpeedRun_Player");
                 For<SpeedRunVideoEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_SpeedRun_Video");
+                For<LeaderboardEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_Leaderboard").Columns(i => { i.Column(g => g.ImportedDate).Ignore(); });
+                For<PlatformEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_Platform").Columns(i => { i.Column(g => g.ImportedDate).Ignore(); });
             }
         }  
     }

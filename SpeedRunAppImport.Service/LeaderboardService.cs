@@ -24,28 +24,35 @@ namespace SpeedRunAppImport.Service
 
         public IEnumerable<Leaderboard> GetLeaderboards(IEnumerable<GameView> games)
         {
+            _logger.Information("Started GetLeaderboards: {@gameCount}", games.Count());
             var results = new List<Leaderboard>();
+
 
             foreach (var game in games)
             {
-                foreach (var category in game.Categories)
+                var categoryIDs = game.CategoryIDs.Split(",");
+                var categoryTypeIDs = game.CategoryTypeIDs.Split(",");
+                for (int i = 0; i < categoryIDs.Length; i++)
                 {
-                    if (category.CategoryTypeID == (int)CategoryType.PerLevel)
+                    if (categoryTypeIDs[i] == ((int)CategoryType.PerLevel).ToString())
                     {
-                        foreach (var level in game.Levels)
+                        var levelIDs = game.LevelIDs.Split(",");
+                        foreach (var levelID in levelIDs)
                         {
-                            var leaderboard = GetLeaderboardWithRetry(game.ID, category.ID, level.ID);
+                            var leaderboard = GetLeaderboardWithRetry(game.ID, categoryIDs[i], levelID);
+                            _logger.Information("Puled leaderboards: {@Total}", results.Count);
                             results.Add(leaderboard);
                         }
                     }
                     else
                     {
-                        var leaderboard = GetLeaderboardWithRetry(game.ID, category.ID);
+                        var leaderboard = GetLeaderboardWithRetry(game.ID, categoryIDs[i]);
                         results.Add(leaderboard);
                     }
                 }
             }
 
+            _logger.Information("Completed GetLeaderboards");
             return results;
         }
 

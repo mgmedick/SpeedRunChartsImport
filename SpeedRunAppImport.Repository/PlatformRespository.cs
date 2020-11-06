@@ -9,7 +9,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace SpeedRunAppImport.Repository
 {
-    public class PlatformRespository : BaseRepository//, IUserRepository
+    public class PlatformRespository : BaseRepository, IPlatformRepository
     {
         private readonly ILogger _logger;
 

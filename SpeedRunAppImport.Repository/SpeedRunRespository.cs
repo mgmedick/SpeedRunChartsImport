@@ -8,6 +8,7 @@ using SpeedRunApp.Model;
 using SpeedRunApp.Model.Entity;
 using SpeedRunAppImport.Interfaces.Repositories;
 using Microsoft.Extensions.Configuration;
+using System.Linq.Expressions;
 
 namespace SpeedRunAppImport.Repository
 {
@@ -160,6 +161,14 @@ namespace SpeedRunAppImport.Repository
             catch (Exception ex)
             {
                 _logger.Error(ex, "UpdateSpeedRunStatusAndRejectReason");
+            }
+        }
+
+        public IEnumerable<SpeedRunEntity> GetSpeedRuns(Expression<Func<SpeedRunEntity, bool>> predicate)
+        {
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                return db.Query<SpeedRunEntity>().Where(predicate).ToList();
             }
         }
     }

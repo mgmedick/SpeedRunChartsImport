@@ -30,7 +30,7 @@ namespace SpeedRunAppImport.Service
 
             do
             {
-                platforms = GetPlatformsWithRetry(MaxElementsPerPage, results.Count, PlatformsOrdering.YearOfReleaseDescending).ToList();
+                platforms = GetPlatformsWithRetry(MaxElementsPerPage, results.Count, PlatformsOrdering.YearOfRelease).ToList();
                 results.AddRange(platforms);
                 _logger.Information("Pulled platforms: {@New}, total platforms: {@Total}", platforms.Count, results.Count);
                 Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
@@ -53,6 +53,7 @@ namespace SpeedRunAppImport.Service
             {
                 if (retryCount <= MaxRetryCount)
                 {
+                    Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.ErrorPullDelayMS));
                     GetPlatformsWithRetry(elementsPerPage, elementsOffset, orderBy, retryCount++);
                 }
                 else

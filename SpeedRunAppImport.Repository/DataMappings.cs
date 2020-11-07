@@ -23,6 +23,7 @@ namespace SpeedRunAppImport.Repository
                 For<GamePlatformEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_Game_Platform_Full");
                 For<GameRegionEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_Game_Region_Full");
                 For<GameModeratorEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_Game_Moderator_Full");
+                For<GameTimingMethodEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_Game_TimingMethod_Full");
                 For<UserEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_User_Full").Columns(i => { i.Column(g => g.ImportedDate).Ignore(); });
                 For<SpeedRunEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_SpeedRun_Full").Columns(i => { i.Column(g => g.ImportedDate).Ignore(); });
                 For<SpeedRunVariableValueEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_SpeedRun_VariableValue_Full");
@@ -41,6 +42,7 @@ namespace SpeedRunAppImport.Repository
                 For<GamePlatformEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_Game_Platform");
                 For<GameRegionEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_Game_Region");
                 For<GameModeratorEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_Game_Moderator");
+                For<GameTimingMethodEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_Game_TimingMethod");
                 For<UserEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_User").Columns(i => { i.Column(g => g.ImportedDate).Ignore(); });
                 For<SpeedRunEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_SpeedRun").Columns(i => { i.Column(g => g.ImportedDate).Ignore(); });
                 For<SpeedRunVariableValueEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_SpeedRun_VariableValue");

@@ -6,6 +6,7 @@ using System.Linq;
 using SpeedRunApp.Model.Entity;
 using SpeedRunAppImport.Interfaces.Repositories;
 using Microsoft.Extensions.Configuration;
+using System.Linq.Expressions;
 
 namespace SpeedRunAppImport.Repository
 {
@@ -77,6 +78,14 @@ namespace SpeedRunAppImport.Repository
                 batchCount += MaxBulkRows;
             }
             _logger.Information("Completed InsertLeaderboards");
+        }
+
+        public IEnumerable<LeaderboardEntity> GetLeaderboards(Expression<Func<LeaderboardEntity, bool>> predicate)
+        {
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                return db.Query<LeaderboardEntity>().Where(predicate).ToList();
+            }
         }
     }
 }

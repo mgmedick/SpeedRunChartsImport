@@ -81,6 +81,7 @@ namespace SpeedRunAppImport
                 BaseService.MaxElementsPerPage = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxElementsPerPage").Value);
                 BaseService.MaxRetryCount = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxRetryCount").Value);
                 BaseService.PullDelayMS = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("PullDelayMS").Value);
+                BaseService.ErrorPullDelayMS = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("ErrorPullDelayMS").Value);
                 _logger.Information("Completed Init");
             }
             catch (Exception ex)
@@ -100,8 +101,8 @@ namespace SpeedRunAppImport
 
             ProcessGames();
             ProcessUsers();
-            var gameIDs = ProcessSpeedRuns();
-            ProcessLeaderboards(gameIDs);
+            ProcessSpeedRuns();
+            ProcessLeaderboards();
         }
 
         public void ProcessPlatforms()
@@ -146,13 +147,15 @@ namespace SpeedRunAppImport
                 var gamePlatformEntities = games.SelectMany(i => i.PlatformIDs.Select(g => new GamePlatformEntity { GameID = i.ID, PlatformID = g })).ToList();
                 var gameRegionEntities = games.SelectMany(i => i.RegionIDs.Select(g => new GameRegionEntity { GameID = i.ID, RegionID = g })).ToList();
                 var gameModeratorEntities = games.SelectMany(i => i.Moderators.Select(g => new GameModeratorEntity { GameID = i.ID, UserID = g.UserID })).ToList();
+                var gameRulesetEntities = games.Select(i => new GameRulesetEntity { GameID = i.ID, ShowMilliseconds = i.Ruleset.ShowMilliseconds, RequiresVerification = i.Ruleset.RequiresVerification, RequiresVideo = i.Ruleset.RequiresVideo, DefaultTimingMethodID = (int)i.Ruleset.DefaultTimingMethod, EmulatorsAllowed = i.Ruleset.EmulatorsAllowed }).ToList();
+                var gameTimingMethodEntities = games.SelectMany(i => i.Ruleset.TimingMethods.Select(g => new GameTimingMethodEntity { GameID = i.ID, TimingMethodID = (int)g })).ToList();
 
                 if (IsFullImport)
                 {
                     if (gameEntities.Any())
                     {
                         _gameRepo.CopyGameTables();
-                        _gameRepo.InsertGames(gameEntities, levelEntities, categoryEntities, variableEntities, variableValueEntities, gamePlatformEntities, gameRegionEntities, gameModeratorEntities);
+                        _gameRepo.InsertGames(gameEntities, levelEntities, categoryEntities, variableEntities, variableValueEntities, gamePlatformEntities, gameRegionEntities, gameModeratorEntities, gameRulesetEntities, gameTimingMethodEntities);
                         _gameRepo.RenameAndDropGameTables();
                     }
                 }
@@ -160,7 +163,7 @@ namespace SpeedRunAppImport
                 {
                     if (gameEntities.Any())
                     {
-                        _gameRepo.InsertGames(gameEntities, levelEntities, categoryEntities, variableEntities, variableValueEntities, gamePlatformEntities, gameRegionEntities, gameModeratorEntities);
+                        _gameRepo.InsertGames(gameEntities, levelEntities, categoryEntities, variableEntities, variableValueEntities, gamePlatformEntities, gameRegionEntities, gameModeratorEntities, gameRulesetEntities, gameTimingMethodEntities);
                     }
                 }
 
@@ -212,16 +215,14 @@ namespace SpeedRunAppImport
             }
         }
 
-        public IEnumerable<string> ProcessSpeedRuns()
+        public void ProcessSpeedRuns()
         {
-            var gameIDs = new List<string>();
             try
             {
                 _logger.Information("Started ProcessSpeedRuns");
                 var newImportDate = DateTime.UtcNow;
                 var runs = _speedRunService.GetSpeedRuns(SpeedRunLastImportDate, IsFullImport);
                 var runEntities = runs.Select(i => i.ConvertToEntity()).ToList();
-                gameIDs = runEntities.Select(i => i.GameID).Distinct().ToList();
                 var variableValueEntities = runs.SelectMany(i => i.VariableValueMappings.Select(g => new SpeedRunVariableValueEntity() { SpeedRunID = i.ID, VariableID = g.VariableID, VariableValueID = g.VariableValueID })).ToList();
                 var playerEntities = runs.SelectMany(i => i.Players.Select(g => new SpeedRunPlayerEntity() { SpeedRunID = i.ID, IsUser = g.IsUser, UserID = g.UserID, GuestName = g.GuestName } )).ToList();
                 var videoEntities = runs.Where(i => i.Videos?.Links != null && i.Videos.Links.Any(g => g != null))
@@ -269,15 +270,16 @@ namespace SpeedRunAppImport
             {
                 _logger.Error(ex, "ProcessSpeedRuns");
             }
-
-            return gameIDs;
         }
 
-        private void ProcessLeaderboards(IEnumerable<string> gameIDs)
+        private void ProcessLeaderboards()
         {
             try
             {
                 _logger.Information("Started ProcessLeaderboards");
+                var speedRuns = _speedRunRepo.GetSpeedRuns(i => (i.ModifiedDate ?? i.ImportedDate) >= SpeedRunLastImportDate && i.StatusTypeID == (int)RunStatusType.Verified).ToList();
+                var gameIDs = speedRuns.Select(i => i.GameID).Distinct();
+
                 if (gameIDs.Any())
                 {
                     var newImportDate = DateTime.UtcNow;

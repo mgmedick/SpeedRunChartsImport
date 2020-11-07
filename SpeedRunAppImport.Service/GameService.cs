@@ -32,10 +32,11 @@ namespace SpeedRunAppImport.Service
             var results = new List<Game>();
             List<Game> games = null;
             var gameEmbeds = new GameEmbeds { EmbedCategories = true, EmbedLevels = true, EmbedModerators = false, EmbedPlatforms = false, EmbedVariables = true };
+            GamesOrdering orderBy = isFullImport ? GamesOrdering.CreationDate : GamesOrdering.CreationDateDescending;
 
             do
             {
-                games = GetGamesWithRetry(MaxElementsPerPage, results.Count, gameEmbeds, GamesOrdering.CreationDateDescending).ToList();
+                games = GetGamesWithRetry(MaxElementsPerPage, results.Count, gameEmbeds, orderBy).ToList();
                 results.AddRange(games);
                 _logger.Information("Pulled games: {@New}, total games: {@Total}", games.Count, results.Count);
                 Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
@@ -64,6 +65,7 @@ namespace SpeedRunAppImport.Service
             {
                 if (retryCount <= MaxRetryCount)
                 {
+                    Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.ErrorPullDelayMS));
                     GetGamesWithRetry(elementsPerPage, elementsOffset, embeds, orderBy, retryCount++);
                 }
                 else

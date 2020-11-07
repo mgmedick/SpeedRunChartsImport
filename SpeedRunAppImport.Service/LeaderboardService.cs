@@ -27,7 +27,6 @@ namespace SpeedRunAppImport.Service
             _logger.Information("Started GetLeaderboards: {@gameCount}", games.Count());
             var results = new List<Leaderboard>();
 
-
             foreach (var game in games)
             {
                 var categoryIDs = game.CategoryIDs.Split(",");
@@ -75,6 +74,7 @@ namespace SpeedRunAppImport.Service
             {
                 if (retryCount <= MaxRetryCount)
                 {
+                    Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.ErrorPullDelayMS));
                     GetLeaderboardWithRetry(gameID, categoryID, levelID, retryCount++);
                 }
                 else

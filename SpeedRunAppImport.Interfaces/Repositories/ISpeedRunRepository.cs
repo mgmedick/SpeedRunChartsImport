@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using SpeedRunApp.Model;
 using SpeedRunApp.Model.Entity;
 using System.Threading.Tasks;
+using System.Linq.Expressions;
 
 namespace SpeedRunAppImport.Interfaces.Repositories
 {
@@ -13,6 +14,7 @@ namespace SpeedRunAppImport.Interfaces.Repositories
         void UpdateSpeedRunStatusAndRejectReason(IEnumerable<SpeedRunEntity> speedRuns);
         void CopySpeedRunTables();
         void RenameAndDropSpeedRunTables();
+        IEnumerable<SpeedRunEntity> GetSpeedRuns(Expression<Func<SpeedRunEntity, bool>> predicate);
     }
 }
 

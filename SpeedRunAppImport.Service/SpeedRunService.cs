@@ -31,11 +31,19 @@ namespace SpeedRunAppImport.Service
             _logger.Information("Started GetGames: {@lastImportDate}, {@isFullImport}, {@statusType}", lastImportDate, isFullImport, statusType);
             var results = new List<SpeedRun>();           
             List<SpeedRun> runs = null;
-            var ordering = (statusType == RunStatusType.Verified) ? RunsOrdering.VerifyDateDescending : RunsOrdering.DateSubmittedDescending;
+            RunsOrdering orderBy;
+            if (isFullImport)
+            {
+                orderBy = (statusType == RunStatusType.Verified) ? RunsOrdering.VerifyDate : RunsOrdering.DateSubmitted;
+            }
+            else
+            {
+                orderBy = (statusType == RunStatusType.Verified) ? RunsOrdering.VerifyDateDescending : RunsOrdering.DateSubmittedDescending;
+            }
 
             do
             {
-                runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count, ordering, statusType).ToList();
+                runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count, orderBy, statusType).ToList();
                 results.AddRange(runs);
                 Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
             }
@@ -71,6 +79,7 @@ namespace SpeedRunAppImport.Service
             {
                 if (retryCount <= MaxRetryCount)
                 {
+                    Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.ErrorPullDelayMS));
                     GetSpeedRunsWithRetry(elementsPerPage, elementsOffset, orderBy, statusType, retryCount++);
                 }
                 else

@@ -31,10 +31,11 @@ namespace SpeedRunAppImport.Service
             _logger.Information("Started GetUsers: {@lastImportDate}, {@isFullImport}", lastImportDate, isFullImport);
             var results = new List<User>();
             List<User> users = null;
+            UsersOrdering orderBy = isFullImport ? UsersOrdering.SignUpDate : UsersOrdering.SignUpDateDescending;
 
             do
             {
-                users = GetUsersWithRetry(MaxElementsPerPage, results.Count, UsersOrdering.SignUpDateDescending).ToList();
+                users = GetUsersWithRetry(MaxElementsPerPage, results.Count, orderBy).ToList();
                 results.AddRange(users);
                 _logger.Information("Pulled users: {@New}, total users: {@Total}", users.Count, results.Count);
                 Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
@@ -63,6 +64,7 @@ namespace SpeedRunAppImport.Service
             {
                 if (retryCount <= MaxRetryCount)
                 {
+                    Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.ErrorPullDelayMS));
                     GetUsersWithRetry(elementsPerPage, elementsOffset, orderBy, retryCount++);
                 }
                 else

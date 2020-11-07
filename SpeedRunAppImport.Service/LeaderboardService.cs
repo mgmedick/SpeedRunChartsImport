@@ -22,6 +22,7 @@ namespace SpeedRunAppImport.Service
             _logger = logger;
         }
 
+        /*
         public IEnumerable<Leaderboard> GetLeaderboards(IEnumerable<GameView> games)
         {
             _logger.Information("Started GetLeaderboards: {@gameCount}", games.Count());
@@ -53,6 +54,19 @@ namespace SpeedRunAppImport.Service
 
             _logger.Information("Completed GetLeaderboards");
             return results;
+        }
+        */
+
+        public IEnumerable<Leaderboard> GetLeaderboards(IEnumerable<SpeedRunEntity> speedRuns)
+        {
+            List<Leaderboard> leaderboards = new List<Leaderboard>();
+            foreach (var speedRun in speedRuns)
+            {
+                var leaderboard = GetLeaderboardWithRetry(speedRun.GameID, speedRun.CategoryID, speedRun.LevelID);
+                leaderboards.Add(leaderboard);
+            }
+
+            return leaderboards;
         }
 
         private Leaderboard GetLeaderboardWithRetry(string gameID, string categoryID, string levelID = null, int retryCount = 0)

@@ -277,7 +277,33 @@ namespace SpeedRunAppImport
             try
             {
                 _logger.Information("Started ProcessLeaderboards");
+                var newImportDate = DateTime.UtcNow;
                 var speedRuns = _speedRunRepo.GetSpeedRuns(i => (i.ModifiedDate ?? i.ImportedDate) >= SpeedRunLastImportDate && i.StatusTypeID == (int)RunStatusType.Verified).ToList();
+                var leaderboards = _leaderboardService.GetLeaderboards(speedRuns);
+                var leaderboardEntities = leaderboards.SelectMany(i => i.Records.Select(g => new LeaderboardEntity { GameID = i.GameID, CategoryID = i.CategoryID, LevelID = i.LevelID, Rank = g.Rank, SpeedRunID = g.ID }));
+
+                if (IsFullImport)
+                {
+                    if (leaderboardEntities.Any())
+                    {
+                        _leaderboardRepo.CopyLeaderboardTables();
+                        _leaderboardRepo.InsertLeaderboards(leaderboardEntities);
+                        _leaderboardRepo.RenameAndDropLeaderboardTables();
+                    }
+                }
+                else
+                {
+                    if (leaderboardEntities.Any())
+                    {
+                        _leaderboardRepo.InsertLeaderboards(leaderboardEntities);
+                    }
+                }
+
+                var leaderboardSetting = _settingService.GetSetting("LeaderboardLastImportDate");
+                leaderboardSetting.Dte = newImportDate;
+                _settingService.UpdateSetting(leaderboardSetting);
+
+                /*
                 var gameIDs = speedRuns.Select(i => i.GameID).Distinct();
 
                 if (gameIDs.Any())
@@ -308,6 +334,7 @@ namespace SpeedRunAppImport
                     leaderboardSetting.Dte = newImportDate;
                     _settingService.UpdateSetting(leaderboardSetting);
                 }
+                */
                 _logger.Information("Completed ProcessLeaderboards");
             }
             catch (Exception ex)

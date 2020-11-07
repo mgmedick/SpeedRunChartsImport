@@ -80,6 +80,33 @@ namespace SpeedRunAppImport.Repository
             _logger.Information("Completed InsertLeaderboards");
         }
 
+        public void UpdateLeaderboards(IEnumerable<LeaderboardEntity> leaderboards)
+        {
+            _logger.Information("Started InsertLeaderboards");
+            int batchCount = 0;
+            var leaderboardsList = leaderboards.ToList();
+            while (batchCount < leaderboardsList.Count)
+            {
+                var leaderboardsBatch = leaderboardsList.Skip(batchCount).Take(MaxBulkRows).ToList();
+                var leaderboardsToDelete = leaderboardsBatch.Select(g => new { g.GameID, g.CategoryID, g.LevelID }).Distinct();
+
+                using (IDatabase db = DBFactory.GetDatabase())
+                {
+                    using (var tran = db.GetTransaction())
+                    {
+                        db.DeleteMany<LeaderboardEntity>().Where(i => leaderboardsToDelete.Any(g => g.GameID == i.GameID && g.CategoryID == i.CategoryID && g.LevelID == i.LevelID));
+                        db.InsertBulk<LeaderboardEntity>(leaderboardsBatch);
+                        tran.Complete();
+                    }
+                }
+
+                _logger.Information("Saved users {@Count} / {@Total}", leaderboardsBatch.Count, leaderboardsList.Count);
+                batchCount += MaxBulkRows;
+            }
+            _logger.Information("Completed InsertLeaderboards");
+        }
+
+
         public IEnumerable<LeaderboardEntity> GetLeaderboards(Expression<Func<LeaderboardEntity, bool>> predicate)
         {
             using (IDatabase db = DBFactory.GetDatabase())

@@ -12,6 +12,7 @@ namespace SpeedRunAppImport.Interfaces.Repositories
         void CopyLeaderboardTables();
         void RenameAndDropLeaderboardTables();
         IEnumerable<LeaderboardEntity> GetLeaderboards(Expression<Func<LeaderboardEntity, bool>> predicate);
+        void UpdateLeaderboards(IEnumerable<LeaderboardEntity> leaderboards);
     }
 }
 

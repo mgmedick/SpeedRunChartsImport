@@ -82,13 +82,13 @@ namespace SpeedRunAppImport.Repository
 
         public void UpdateLeaderboards(IEnumerable<LeaderboardEntity> leaderboards)
         {
-            _logger.Information("Started InsertLeaderboards");
+            _logger.Information("Started UpdateLeaderboards");
             int batchCount = 0;
             var leaderboardsList = leaderboards.ToList();
             while (batchCount < leaderboardsList.Count)
             {
                 var leaderboardsBatch = leaderboardsList.Skip(batchCount).Take(MaxBulkRows).ToList();
-                var leaderboardsToDelete = leaderboardsBatch.Select(g => new { g.GameID, g.CategoryID, g.LevelID }).Distinct();
+                var leaderboardsToDelete = leaderboardsBatch.Select(g => new { g.GameID, g.CategoryID, g.LevelID }).Distinct().ToList();
 
                 using (IDatabase db = DBFactory.GetDatabase())
                 {
@@ -103,7 +103,7 @@ namespace SpeedRunAppImport.Repository
                 _logger.Information("Saved users {@Count} / {@Total}", leaderboardsBatch.Count, leaderboardsList.Count);
                 batchCount += MaxBulkRows;
             }
-            _logger.Information("Completed InsertLeaderboards");
+            _logger.Information("Completed UpdateLeaderboards");
         }
 
 

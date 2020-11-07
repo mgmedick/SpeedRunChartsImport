@@ -295,7 +295,7 @@ namespace SpeedRunAppImport
                 {
                     if (leaderboardEntities.Any())
                     {
-                        _leaderboardRepo.InsertLeaderboards(leaderboardEntities);
+                        _leaderboardRepo.UpdateLeaderboards(leaderboardEntities);
                     }
                 }
 

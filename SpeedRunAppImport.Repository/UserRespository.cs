@@ -29,8 +29,9 @@ namespace SpeedRunAppImport.Repository
                                
                                 SELECT TOP 0 * INTO dbo.tbl_User_Full FROM dbo.tbl_User
 
-                                ALTER TABLE [dbo].[tbl_User_Full] ADD CONSTRAINT [PK_tbl_User_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                ALTER TABLE [dbo].[tbl_User_Full] ADD CONSTRAINT [DF_tbl_User_Full_ImportedDate] DEFAULT GETDATE() FOR [ImportedDate]");
+                                ALTER TABLE [dbo].[tbl_User_Full] ADD CONSTRAINT [PK_tbl_User_Full] PRIMARY KEY CLUSTERED ([IDX]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                ALTER TABLE [dbo].[tbl_User_Full] ADD CONSTRAINT [DF_tbl_User_Full_ImportedDate] DEFAULT GETDATE() FOR [ImportedDate]
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_User_Full_ID] ON [dbo].[tbl_User_Full] ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]");
                     tran.Complete();
                 }
             }
@@ -49,7 +50,8 @@ namespace SpeedRunAppImport.Repository
                                 DROP TABLE dbo.tbl_User_ToRemove
 
                                 EXEC sp_rename 'dbo.PK_tbl_User_Full', 'PK_tbl_User'
-                                EXEC sp_rename 'dbo.DF_tbl_User_Full_ImportedDate', 'DF_tbl_User_ImportedDate'");
+                                EXEC sp_rename 'dbo.DF_tbl_User_Full_ImportedDate', 'DF_tbl_User_ImportedDate'
+                                EXEC sp_rename 'dbo.tbl_User.IDX_tbl_User_Full_ID', 'IDX_tbl_User_ID', 'INDEX'");
                     tran.Complete();
                 }
             }
@@ -57,7 +59,7 @@ namespace SpeedRunAppImport.Repository
 
         public void InsertUsers(IEnumerable<UserEntity> users)
         {
-            _logger.Information("Started InsertGames");
+            _logger.Information("Started InsertUsers");
             int batchCount = 0;
             var usersList = users.ToList();
             while (batchCount < usersList.Count)
@@ -76,7 +78,7 @@ namespace SpeedRunAppImport.Repository
                 _logger.Information("Saved users {@Count} / {@Total}", usersBatch.Count, usersList.Count);
                 batchCount += MaxBulkRows;
             }
-            _logger.Information("Completed InsertGames");
+            _logger.Information("Completed InsertUsers");
         }
     }
 }

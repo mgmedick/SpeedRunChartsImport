@@ -41,7 +41,8 @@ namespace SpeedRunAppImport.Service
                 _logger.Information("Pulled games: {@New}, total games: {@Total}", games.Count, results.Count);
                 Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
             }
-            while (games.Count == MaxElementsPerPage && games.Min(i => i.CreationDate ?? DateTime.MinValue) >= lastImportDate);
+            //while (games.Count == MaxElementsPerPage && games.Min(i => i.CreationDate ?? DateTime.MinValue) >= lastImportDate);
+            while (1 == 0);
 
             if (!IsFullImport)
             {
@@ -50,7 +51,7 @@ namespace SpeedRunAppImport.Service
             }
             _logger.Information("Completed GetGames");
 
-            return results;
+            return results.OrderBy(i => i.CreationDate);
         }
 
         private IEnumerable<Game> GetGamesWithRetry(int elementsPerPage, int elementsOffset, GameEmbeds embeds, GamesOrdering orderBy, int retryCount = 0)

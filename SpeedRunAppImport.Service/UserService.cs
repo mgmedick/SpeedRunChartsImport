@@ -40,7 +40,8 @@ namespace SpeedRunAppImport.Service
                 _logger.Information("Pulled users: {@New}, total users: {@Total}", users.Count, results.Count);
                 Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
             }
-            while (users.Count == MaxElementsPerPage && users.Min(i => i.SignUpDate ?? DateTime.MinValue) >= lastImportDate);
+            //while (users.Count == MaxElementsPerPage && users.Min(i => i.SignUpDate ?? DateTime.MinValue) >= lastImportDate);
+            while (1 == 0);
 
             if (!isFullImport)
             {
@@ -49,7 +50,7 @@ namespace SpeedRunAppImport.Service
             }
 
             _logger.Information("Completed GetUsers");
-            return results;
+            return results.OrderBy(i => i.SignUpDate);
         }
 
         private IEnumerable<User> GetUsersWithRetry(int elementsPerPage, int elementsOffset, UsersOrdering orderBy, int retryCount = 0)
@@ -75,7 +76,6 @@ namespace SpeedRunAppImport.Service
 
             return users;
         }
-
     }
 }
 

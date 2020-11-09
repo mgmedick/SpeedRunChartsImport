@@ -28,13 +28,13 @@ namespace SpeedRunAppImport.Service
 
         public IEnumerable<SpeedRun> GetSpeedRuns(DateTime lastImportDate, bool isFullImport, RunStatusType? statusType = null)
         {
-            _logger.Information("Started GetGames: {@lastImportDate}, {@isFullImport}, {@statusType}", lastImportDate, isFullImport, statusType);
+            _logger.Information("Started GetSpeedRuns: {@lastImportDate}, {@isFullImport}, {@statusType}", lastImportDate, isFullImport, statusType);
             var results = new List<SpeedRun>();           
             List<SpeedRun> runs = null;
             RunsOrdering orderBy;
             if (isFullImport)
             {
-                orderBy = (statusType == RunStatusType.Verified) ? RunsOrdering.VerifyDate : RunsOrdering.DateSubmitted;
+                orderBy = RunsOrdering.DateSubmitted;
             }
             else
             {
@@ -44,12 +44,15 @@ namespace SpeedRunAppImport.Service
             do
             {
                 runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count, orderBy, statusType).ToList();
+                //runs = GetSpeedRunsWithRetry(MaxElementsPerPage, 62400, orderBy, statusType).ToList();
                 results.AddRange(runs);
+                _logger.Information("Pulled speedRuns: {@New}, total speedRuns: {@Total}", runs.Count, results.Count);
                 Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
             }
             while (runs.Count == MaxElementsPerPage && ((statusType == RunStatusType.Verified && runs.Min(i => i.VerifyDate ?? DateTime.MinValue) >= lastImportDate) || (runs.Min(i => i.DateSubmitted ?? DateTime.MinValue) >= lastImportDate)));
+            //while (1 == 0);
 
-            if (!IsFullImport)
+            if (!isFullImport)
             {
                 if (statusType == RunStatusType.Verified)
                 {
@@ -63,8 +66,8 @@ namespace SpeedRunAppImport.Service
                 }
             }
 
-            _logger.Information("Completed GetGames");
-            return results;
+            _logger.Information("Completed GetSpeedRuns");
+            return results.OrderBy(i => i.DateSubmitted);
         }
 
         private IEnumerable<SpeedRun> GetSpeedRunsWithRetry(int elementsPerPage, int elementsOffset, RunsOrdering orderBy, RunStatusType? statusType = null, int retryCount = 0)
@@ -77,14 +80,16 @@ namespace SpeedRunAppImport.Service
             }
             catch (Exception ex)
             {
+                Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.ErrorPullDelayMS));
+
                 if (retryCount <= MaxRetryCount)
                 {
-                    Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.ErrorPullDelayMS));
                     GetSpeedRunsWithRetry(elementsPerPage, elementsOffset, orderBy, statusType, retryCount++);
                 }
                 else
                 {
-                    throw ex;
+                    _logger.Error(ex, "GetSpeedRunsWithRetry");
+                    GetSpeedRunsWithRetry(elementsPerPage, elementsOffset + MaxElementsPerPage, orderBy, statusType, retryCount++);
                 }
             }
 

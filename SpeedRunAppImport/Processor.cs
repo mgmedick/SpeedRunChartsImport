@@ -96,13 +96,13 @@ namespace SpeedRunAppImport
 
             if (IsFullImport)
             {
-                ProcessPlatforms();
+                //ProcessPlatforms();
             }
 
-            ProcessGames();
-            ProcessUsers();
+            //ProcessGames();
+            //ProcessUsers();
             ProcessSpeedRuns();
-            ProcessLeaderboards();
+            //ProcessLeaderboards();
         }
 
         public void ProcessPlatforms()
@@ -138,7 +138,7 @@ namespace SpeedRunAppImport
             {
                 _logger.Information("Started ProcessGames");
                 var newImportDate = DateTime.UtcNow;
-                var games = _gameService.GetGames(GameLastImportDate, IsFullImport);
+                var games = _gameService.GetGames(GameLastImportDate, IsFullImport).OrderBy(i => i.YearOfRelease);
                 var gameEntities = games.Select(i => i.ConvertToEntity()).ToList();
                 var levelEntities = games.SelectMany(i => i.Levels.Select(i => i.ConvertToEntity())).ToList();
                 var categoryEntities = games.SelectMany(i => i.Categories.Select(i => i.ConvertToEntity())).ToList();

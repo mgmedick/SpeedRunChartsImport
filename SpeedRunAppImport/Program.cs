@@ -23,6 +23,7 @@ namespace SpeedRunAppImport
     {
         static void Main(string[] args)
         {
+            //Serilog.Sinks.SystemConsole.Themes.SystemConsoleTheme
             var host = CreateHostBuilder(args).Build();
             Serilog.Debugging.SelfLog.Enable(Console.WriteLine);
             using (var serviceScope = host.Services.CreateScope())

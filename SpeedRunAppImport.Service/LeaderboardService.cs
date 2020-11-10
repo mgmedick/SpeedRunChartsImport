@@ -57,13 +57,17 @@ namespace SpeedRunAppImport.Service
         }
         */
 
-        public IEnumerable<Leaderboard> GetLeaderboards(IEnumerable<SpeedRunEntity> speedRuns)
+        public IEnumerable<Leaderboard> GetLeaderboards(IEnumerable<LeaderboardKeyEntity> leaderboardKeys)
         {
             List<Leaderboard> leaderboards = new List<Leaderboard>();
-            foreach (var speedRun in speedRuns)
+            var leaderboardKeysList = leaderboardKeys.ToList();
+            var keys = leaderboardKeys.Take(10);
+            foreach (var leaderboardKey in leaderboardKeys.Take(10))
             {
-                var leaderboard = GetLeaderboardWithRetry(speedRun.GameID, speedRun.CategoryID, speedRun.LevelID);
+                var leaderboard = GetLeaderboardWithRetry(leaderboardKey.GameID, leaderboardKey.CategoryID, leaderboardKey.LevelID);
                 leaderboards.Add(leaderboard);
+                _logger.Information("Pulled {@Count} / {@Total} leaderboards", leaderboards.Count, leaderboardKeysList.Count);
+                Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
             }
 
             return leaderboards;

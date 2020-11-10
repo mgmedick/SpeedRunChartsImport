@@ -74,7 +74,7 @@ namespace SpeedRunAppImport.Repository
                     }
                 }
 
-                _logger.Information("Saved users {@Count} / {@Total}", leaderboardsBatch.Count, leaderboardsList.Count);
+                _logger.Information("Saved leaderboards {@Count} / {@Total}", leaderboardsBatch.Count, leaderboardsList.Count);
                 batchCount += MaxBulkRows;
             }
             _logger.Information("Completed InsertLeaderboards");
@@ -100,18 +100,22 @@ namespace SpeedRunAppImport.Repository
                     }
                 }
 
-                _logger.Information("Saved users {@Count} / {@Total}", leaderboardsBatch.Count, leaderboardsList.Count);
+                _logger.Information("Saved users {@Count} / {@Total}", batchCount, leaderboardsList.Count);
                 batchCount += MaxBulkRows;
             }
             _logger.Information("Completed UpdateLeaderboards");
         }
 
-
-        public IEnumerable<LeaderboardEntity> GetLeaderboards(Expression<Func<LeaderboardEntity, bool>> predicate)
+        public IEnumerable<LeaderboardKeyEntity> GetLeaderboardKeys(DateTime lastImportedDate, int statusID)
         {
             using (IDatabase db = DBFactory.GetDatabase())
             {
-                return db.Query<LeaderboardEntity>().Where(predicate).ToList();
+                return db.Query<LeaderboardKeyEntity>("SELECT GameID, CategoryID, LevelID " +
+                                                    "FROM dbo.tbl_SpeedRun rn " +
+                                                    "WHERE ISNULL(rn.ModifiedDate, rn.ImportedDate) >= @0 " +
+                                                    "AND rn.StatusTypeID = @1 " +
+                                                    "GROUP BY GameID, CategoryID, LevelID " +
+                                                    "ORDER BY GameID, CategoryID, LevelID", lastImportedDate, statusID).ToList();
             }
         }
     }

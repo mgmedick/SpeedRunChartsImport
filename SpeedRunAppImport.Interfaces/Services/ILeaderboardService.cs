@@ -8,7 +8,7 @@ namespace SpeedRunAppImport.Interfaces.Services
 {
     public interface ILeaderboardService
     {
-        IEnumerable<Leaderboard> GetLeaderboards(IEnumerable<SpeedRunEntity> speedRuns);
+        IEnumerable<Leaderboard> GetLeaderboards(IEnumerable<LeaderboardKeyEntity> leaderboardKeys);
     }
 } 
 

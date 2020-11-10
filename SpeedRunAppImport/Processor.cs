@@ -17,6 +17,7 @@ using SpeedRunApp.Model;
 using SpeedRunApp.Model.Data;
 using SpeedRunAppImport.Service;
 using SpeedRunApp.Model.Entity;
+using System.Data.SqlTypes;
 
 namespace SpeedRunAppImport
 {
@@ -65,17 +66,17 @@ namespace SpeedRunAppImport
 
                 if (IsFullImport)
                 {
-                    GameLastImportDate = DateTime.MinValue;
-                    UserLastImportDate = DateTime.MinValue;
-                    PlatformLastImportDate = DateTime.MinValue;
-                    SpeedRunLastImportDate = DateTime.MinValue;
+                    GameLastImportDate = (DateTime)SqlDateTime.MinValue;
+                    UserLastImportDate = (DateTime)SqlDateTime.MinValue;
+                    PlatformLastImportDate = (DateTime)SqlDateTime.MinValue;
+                    SpeedRunLastImportDate = (DateTime)SqlDateTime.MinValue;
                 }
                 else
                 {
-                    GameLastImportDate = _settingService.GetSetting("GameLastImportDate")?.Dte ?? DateTime.MinValue;
-                    UserLastImportDate = _settingService.GetSetting("UserLastImportDate")?.Dte ?? DateTime.MinValue;
-                    PlatformLastImportDate = _settingService.GetSetting("PlatformLastImportDate")?.Dte ?? DateTime.MinValue;
-                    SpeedRunLastImportDate = _settingService.GetSetting("SpeedRunLastImportDate")?.Dte ?? DateTime.MinValue;
+                    GameLastImportDate = _settingService.GetSetting("GameLastImportDate")?.Dte ?? (DateTime)SqlDateTime.MinValue;
+                    UserLastImportDate = _settingService.GetSetting("UserLastImportDate")?.Dte ?? (DateTime)SqlDateTime.MinValue;
+                    PlatformLastImportDate = _settingService.GetSetting("PlatformLastImportDate")?.Dte ?? (DateTime)SqlDateTime.MinValue;
+                    SpeedRunLastImportDate = _settingService.GetSetting("SpeedRunLastImportDate")?.Dte ?? (DateTime)SqlDateTime.MinValue;
                 }
 
                 BaseService.MaxElementsPerPage = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxElementsPerPage").Value);
@@ -101,8 +102,8 @@ namespace SpeedRunAppImport
 
             //ProcessGames();
             //ProcessUsers();
-            ProcessSpeedRuns();
-            //ProcessLeaderboards();
+            //ProcessSpeedRuns();
+            ProcessLeaderboards();
         }
 
         public void ProcessPlatforms()
@@ -227,6 +228,7 @@ namespace SpeedRunAppImport
                 var playerEntities = runs.SelectMany(i => i.Players.Select(g => new SpeedRunPlayerEntity() { SpeedRunID = i.ID, IsUser = g.IsUser, UserID = g.UserID, GuestName = g.GuestName } )).ToList();
                 var videoEntities = runs.Where(i => i.Videos?.Links != null && i.Videos.Links.Any(g => g != null))
                                         .SelectMany(i => i.Videos?.Links?.Select((g, n) => new SpeedRunVideoEntity() { SpeedRunID = i.ID, VideoLinkUrl = g?.ToString(), VideoLinkEmbededUrl = i.Videos?.EmbededLinks?.ToArray()[n]?.ToString() }))
+                                        .Where(i => !string.IsNullOrWhiteSpace(i.VideoLinkUrl))
                                         .ToList();
 
                 if (IsFullImport)
@@ -278,8 +280,8 @@ namespace SpeedRunAppImport
             {
                 _logger.Information("Started ProcessLeaderboards");
                 var newImportDate = DateTime.UtcNow;
-                var speedRuns = _speedRunRepo.GetSpeedRuns(i => (i.ModifiedDate ?? i.ImportedDate) >= SpeedRunLastImportDate && i.StatusTypeID == (int)RunStatusType.Verified).ToList();
-                var leaderboards = _leaderboardService.GetLeaderboards(speedRuns);
+                var leaderboardKeys = _leaderboardRepo.GetLeaderboardKeys(SpeedRunLastImportDate, (int)RunStatusType.Verified);
+                var leaderboards = _leaderboardService.GetLeaderboards(leaderboardKeys);
                 var leaderboardEntities = leaderboards.SelectMany(i => i.Records.Select(g => new LeaderboardEntity { GameID = i.GameID, CategoryID = i.CategoryID, LevelID = i.LevelID, Rank = g.Rank, SpeedRunID = g.ID }));
 
                 if (IsFullImport)

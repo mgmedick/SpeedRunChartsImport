@@ -41,8 +41,7 @@ namespace SpeedRunAppImport.Service
                 _logger.Information("Pulled games: {@New}, total games: {@Total}", games.Count, results.Count);
                 Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
             }
-            //while (games.Count == MaxElementsPerPage && games.Min(i => i.CreationDate ?? DateTime.MinValue) >= lastImportDate);
-            while (1 == 0);
+            while (games.Count == MaxElementsPerPage && games.Min(i => i.CreationDate ?? DateTime.MinValue) >= lastImportDate);
 
             if (!IsFullImport)
             {

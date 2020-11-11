@@ -40,8 +40,7 @@ namespace SpeedRunAppImport.Service
                 _logger.Information("Pulled users: {@New}, total users: {@Total}", users.Count, results.Count);
                 Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
             }
-            //while (users.Count == MaxElementsPerPage && users.Min(i => i.SignUpDate ?? DateTime.MinValue) >= lastImportDate);
-            while (1 == 0);
+            while (users.Count == MaxElementsPerPage && users.Min(i => i.SignUpDate ?? DateTime.MinValue) >= lastImportDate);
 
             if (!isFullImport)
             {

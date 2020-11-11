@@ -97,12 +97,12 @@ namespace SpeedRunAppImport
 
             if (IsFullImport)
             {
-                //ProcessPlatforms();
+                ProcessPlatforms();
             }
 
-            //ProcessGames();
-            //ProcessUsers();
-            //ProcessSpeedRuns();
+            ProcessGames();
+            ProcessUsers();
+            ProcessSpeedRuns();
             ProcessLeaderboards();
         }
 

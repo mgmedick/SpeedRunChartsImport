@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\SpeedRunApp\SpeedRunApp.Model\SpeedRunApp.Model.csproj" />
+    <ProjectReference Include="..\SpeedRunAppImport.Model\SpeedRunAppImport.Model.csproj" />
   </ItemGroup>
 
 </Project>

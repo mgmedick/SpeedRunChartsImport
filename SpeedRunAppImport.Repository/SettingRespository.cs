@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using NPoco;
 using System.Linq;
-using SpeedRunApp.Model.Entity;
+using SpeedRunAppImport.Model.Entity;
 using SpeedRunAppImport.Interfaces.Repositories;
 using Microsoft.Extensions.Configuration;
 

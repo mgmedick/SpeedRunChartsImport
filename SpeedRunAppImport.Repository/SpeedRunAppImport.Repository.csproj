@@ -9,8 +9,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\SpeedRunApp\SpeedRunApp.Model\SpeedRunApp.Model.csproj" />
-    <ProjectReference Include="..\..\SpeedRunApp\SpeedRunCommon\SpeedRunCommon.csproj" />
     <ProjectReference Include="..\SpeedRunAppImport.Interfaces\SpeedRunAppImport.Interfaces.csproj" />
   </ItemGroup>
 

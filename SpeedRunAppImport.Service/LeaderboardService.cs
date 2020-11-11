@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using SpeedRunApp.Client;
-using SpeedRunApp.Model;
-using SpeedRunApp.Model.Data;
-using SpeedRunApp.Model.Entity;
+using SpeedRunAppImport.Client;
+using SpeedRunAppImport.Model;
+using SpeedRunAppImport.Model.Data;
+using SpeedRunAppImport.Model.Entity;
 using SpeedRunAppImport.Interfaces.Services;
 using SpeedRunAppImport.Interfaces.Repositories;
 using Microsoft.Extensions.Configuration;

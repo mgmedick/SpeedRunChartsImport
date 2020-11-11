@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using SpeedRunApp.Model;
-using SpeedRunApp.Model.Data;
-using SpeedRunApp.Model.Entity;
+using SpeedRunAppImport.Model;
+using SpeedRunAppImport.Model.Data;
+using SpeedRunAppImport.Model.Entity;
 using System.Threading.Tasks;
 
 namespace SpeedRunAppImport.Interfaces.Services

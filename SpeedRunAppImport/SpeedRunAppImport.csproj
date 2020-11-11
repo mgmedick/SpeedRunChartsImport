@@ -26,8 +26,6 @@
   <ItemGroup>
     <ProjectReference Include="..\SpeedRunAppImport.Service\SpeedRunAppImport.Service.csproj" />
     <ProjectReference Include="..\SpeedRunAppImport.Interfaces\SpeedRunAppImport.Interfaces.csproj" />
-    <ProjectReference Include="..\..\SpeedRunApp\SpeedRunApp.Model\SpeedRunApp.Model.csproj" />
-    <ProjectReference Include="..\..\SpeedRunApp\SpeedRunCommon\SpeedRunCommon.csproj" />
     <ProjectReference Include="..\SpeedRunAppImport.Repository\SpeedRunAppImport.Repository.csproj" />
   </ItemGroup>
     

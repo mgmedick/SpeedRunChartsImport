@@ -13,10 +13,10 @@ using SpeedRunAppImport.Interfaces.Repositories;
 using SpeedRunAppImport.Interfaces;
 using SpeedRunAppImport.Repository.Configuration;
 using System.Threading;
-using SpeedRunApp.Model;
-using SpeedRunApp.Model.Data;
+using SpeedRunAppImport.Model;
+using SpeedRunAppImport.Model.Data;
 using SpeedRunAppImport.Service;
-using SpeedRunApp.Model.Entity;
+using SpeedRunAppImport.Model.Entity;
 using System.Data.SqlTypes;
 
 namespace SpeedRunAppImport

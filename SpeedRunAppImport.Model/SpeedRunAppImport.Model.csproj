@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Data\Games\" />
+    <Folder Include="Data\User\" />
+    <Folder Include="Data\Common\" />
+    <Folder Include="Data\Categories\" />
+    <Folder Include="Data\Variables\" />
+    <Folder Include="Data\Levels\" />
+    <Folder Include="Data\Platforms\" />
+    <Folder Include="Data\Regions\" />
+    <Folder Include="Data\Embeds\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Common.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Text.Encodings.Web" Version="4.7.1" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SpeedRunCommon\SpeedRunCommon.csproj" />
+  </ItemGroup>
+</Project>

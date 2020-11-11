@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using NPoco.FluentMappings;
-using SpeedRunApp.Model.Entity;
+using SpeedRunAppImport.Model.Entity;
 
 namespace SpeedRunAppImport.Repository
 {

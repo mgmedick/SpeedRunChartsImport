@@ -43,8 +43,7 @@ namespace SpeedRunAppImport.Service
 
             do
             {
-                runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count, orderBy, statusType).ToList();
-                //runs = GetSpeedRunsWithRetry(MaxElementsPerPage, 62400, orderBy, statusType).ToList();
+                runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count, orderBy, statusType);
                 results.AddRange(runs);
                 _logger.Information("Pulled speedRuns: {@New}, total speedRuns: {@Total}", runs.Count, results.Count);
                 Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
@@ -69,13 +68,13 @@ namespace SpeedRunAppImport.Service
             return results.OrderBy(i => i.DateSubmitted);
         }
 
-        private IEnumerable<SpeedRun> GetSpeedRunsWithRetry(int elementsPerPage, int elementsOffset, RunsOrdering orderBy, RunStatusType? statusType = null, int retryCount = 0)
+        private List<SpeedRun> GetSpeedRunsWithRetry(int elementsPerPage, int elementsOffset, RunsOrdering orderBy, RunStatusType? statusType = null, int retryCount = 0)
         {
             ClientContainer clientContainer = new ClientContainer();
-            IEnumerable<SpeedRun> runs = null;
+            List<SpeedRun> runs = null;
             try
             {
-                runs = clientContainer.Runs.GetRuns(status: statusType, elementsPerPage: elementsPerPage, elementsOffset: elementsOffset, orderBy: orderBy);
+                runs = clientContainer.Runs.GetRuns(status: statusType, elementsPerPage: elementsPerPage, elementsOffset: elementsOffset, orderBy: orderBy).ToList();
             }
             catch (Exception ex)
             {
@@ -84,11 +83,11 @@ namespace SpeedRunAppImport.Service
                 if (retryCount <= MaxRetryCount)
                 {
                     GetSpeedRunsWithRetry(elementsPerPage, elementsOffset, orderBy, statusType, retryCount++);
+                    _logger.Information("Retrying pull speedRuns: {@New}, total speedRuns: {@Total}, retry: {@RetryCount}", elementsPerPage, elementsOffset, retryCount);
                 }
                 else
                 {
-                    _logger.Error(ex, "GetSpeedRunsWithRetry");
-                    GetSpeedRunsWithRetry(elementsPerPage, elementsOffset + MaxElementsPerPage, orderBy, statusType, retryCount++);
+                    throw ex;
                 }
             }
 

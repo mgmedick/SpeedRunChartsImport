@@ -10,6 +10,7 @@ namespace SpeedRunAppImport.Interfaces.Repositories
         void InsertPlatforms(IEnumerable<PlatformEntity> users);
         void CopyPlatformTables();
         void RenameAndDropPlatformTables();
+        IEnumerable<string> GetAllPlatformIDs();
     }
 }
 

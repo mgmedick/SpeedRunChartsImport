@@ -73,10 +73,10 @@ namespace SpeedRunAppImport
                 }
                 else
                 {
-                    GameLastImportDate = _settingService.GetSetting("GameLastImportDate")?.Dte ?? (DateTime)SqlDateTime.MinValue;
-                    UserLastImportDate = _settingService.GetSetting("UserLastImportDate")?.Dte ?? (DateTime)SqlDateTime.MinValue;
-                    PlatformLastImportDate = _settingService.GetSetting("PlatformLastImportDate")?.Dte ?? (DateTime)SqlDateTime.MinValue;
-                    SpeedRunLastImportDate = _settingService.GetSetting("SpeedRunLastImportDate")?.Dte ?? (DateTime)SqlDateTime.MinValue;
+                    GameLastImportDate = _settingService.GetSetting("GameLastImportDate")?.Dte ?? DateTime.UtcNow;
+                    UserLastImportDate = _settingService.GetSetting("UserLastImportDate")?.Dte ?? DateTime.UtcNow;
+                    PlatformLastImportDate = _settingService.GetSetting("PlatformLastImportDate")?.Dte ?? DateTime.UtcNow;
+                    SpeedRunLastImportDate = _settingService.GetSetting("SpeedRunLastImportDate")?.Dte ?? DateTime.UtcNow;
                 }
 
                 BaseService.MaxElementsPerPage = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxElementsPerPage").Value);
@@ -94,12 +94,7 @@ namespace SpeedRunAppImport
         public void RunProcesses()
         {
             Init();
-
-            if (IsFullImport)
-            {
-                ProcessPlatforms();
-            }
-
+            ProcessPlatforms();
             ProcessGames();
             ProcessUsers();
             ProcessSpeedRuns();
@@ -113,7 +108,8 @@ namespace SpeedRunAppImport
                 _logger.Information("Started ProcessPlatforms");
                 var newImportDate = DateTime.UtcNow;
                 var platforms = _platformService.GetAllPlatforms();
-                var platformEntities = platforms.Select(i => i.ConvertToEntity()).ToList();
+                var platformIDs = _platformRepo.GetAllPlatformIDs();
+                var platformEntities = platforms.Where(i => !platformIDs.Contains(i.ID)).Select(i => i.ConvertToEntity()).ToList();
 
                 if (platformEntities.Any())
                 {
@@ -304,39 +300,6 @@ namespace SpeedRunAppImport
                 var leaderboardSetting = _settingService.GetSetting("LeaderboardLastImportDate");
                 leaderboardSetting.Dte = newImportDate;
                 _settingService.UpdateSetting(leaderboardSetting);
-
-                /*
-                var gameIDs = speedRuns.Select(i => i.GameID).Distinct();
-
-                if (gameIDs.Any())
-                {
-                    var newImportDate = DateTime.UtcNow;
-                    var games = _gameRepo.GetGameViews(i => gameIDs.Contains(i.ID));
-                    var leaderboards = _leaderboardService.GetLeaderboards(games);
-                    var leaderboardEntities = leaderboards.SelectMany(i => i.Records.Select(g => new LeaderboardEntity { GameID = i.GameID, CategoryID = i.CategoryID, LevelID = i.LevelID, Rank = g.Rank, SpeedRunID = g.ID }));
-
-                    if (IsFullImport)
-                    {
-                        if (leaderboardEntities.Any())
-                        {
-                            _leaderboardRepo.CopyLeaderboardTables();
-                            _leaderboardRepo.InsertLeaderboards(leaderboardEntities);
-                            _leaderboardRepo.RenameAndDropLeaderboardTables();
-                        }
-                    }
-                    else
-                    {
-                        if (leaderboardEntities.Any())
-                        {
-                            _leaderboardRepo.InsertLeaderboards(leaderboardEntities);
-                        }
-                    }
-
-                    var leaderboardSetting = _settingService.GetSetting("LeaderboardLastImportDate");
-                    leaderboardSetting.Dte = newImportDate;
-                    _settingService.UpdateSetting(leaderboardSetting);
-                }
-                */
                 _logger.Information("Completed ProcessLeaderboards");
             }
             catch (Exception ex)

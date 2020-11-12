@@ -54,6 +54,33 @@ namespace SpeedRunAppImport
             _logger = logger;
         }
 
+        public void Run()
+        {
+            try
+            {
+                Init();
+                if (IsImportRunning)
+                {
+                    _logger.Information("Import already running");
+                }
+                else
+                {
+                    var importRunningSetting = _settingService.GetSetting("IsImportRunning");
+                    importRunningSetting.Num = 1;
+                    _settingService.UpdateSetting(importRunningSetting);
+
+                    RunProcesses();
+
+                    importRunningSetting.Num = 0;
+                    _settingService.UpdateSetting(importRunningSetting);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Run");
+            }
+        }
+
         public void Init()
         {
             try
@@ -63,6 +90,8 @@ namespace SpeedRunAppImport
                 var maxBulkRows = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxElementsPerPage").Value);
                 IsFullImport = _config.GetValue<bool>("IsFullImport");
                 NPocoBootstrapper.Configure(connString, maxBulkRows, IsFullImport);
+
+                IsImportRunning = _settingService.GetSetting("IsImportRunning")?.Num == 1;
 
                 if (IsFullImport)
                 {
@@ -93,7 +122,6 @@ namespace SpeedRunAppImport
 
         public void RunProcesses()
         {
-            Init();
             ProcessPlatforms();
             ProcessGames();
             ProcessUsers();
@@ -108,7 +136,7 @@ namespace SpeedRunAppImport
                 _logger.Information("Started ProcessPlatforms");
                 var newImportDate = DateTime.UtcNow;
                 var platforms = _platformService.GetAllPlatforms();
-                var platformIDs = _platformRepo.GetAllPlatformIDs();
+                var platformIDs = _platformRepo.GetAllPlatformIDs().ToList();
                 var platformEntities = platforms.Where(i => !platformIDs.Contains(i.ID)).Select(i => i.ConvertToEntity()).ToList();
 
                 if (platformEntities.Any())
@@ -313,5 +341,6 @@ namespace SpeedRunAppImport
         public DateTime PlatformLastImportDate { get; set; }
         public DateTime SpeedRunLastImportDate { get; set; }
         public bool IsFullImport { get; set; }
+        public bool IsImportRunning { get; set; }
     }
 }

@@ -30,7 +30,7 @@ namespace SpeedRunAppImport.Service
 
             do
             {
-                platforms = GetPlatformsWithRetry(MaxElementsPerPage, results.Count, PlatformsOrdering.YearOfRelease).ToList();
+                platforms = GetPlatformsWithRetry(MaxElementsPerPage, results.Count, PlatformsOrdering.YearOfRelease);
                 results.AddRange(platforms);
                 _logger.Information("Pulled platforms: {@New}, total platforms: {@Total}", platforms.Count, results.Count);
                 Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
@@ -41,19 +41,20 @@ namespace SpeedRunAppImport.Service
             return results;
         }
 
-        private IEnumerable<Platform> GetPlatformsWithRetry(int elementsPerPage, int elementsOffset, PlatformsOrdering orderBy, int retryCount = 0)
+        private List<Platform> GetPlatformsWithRetry(int elementsPerPage, int elementsOffset, PlatformsOrdering orderBy, int retryCount = 0)
         {
             ClientContainer clientContainer = new ClientContainer();
-            IEnumerable<Platform> platforms = null;
+            List<Platform> platforms = null;
             try
             {
-                platforms = clientContainer.Platforms.GetPlatforms(elementsPerPage: elementsPerPage, elementsOffset: elementsOffset, orderBy: orderBy);
+                platforms = clientContainer.Platforms.GetPlatforms(elementsPerPage: elementsPerPage, elementsOffset: elementsOffset, orderBy: orderBy).ToList();
             }
             catch (Exception ex)
             {
                 if (retryCount <= MaxRetryCount)
                 {
                     Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.ErrorPullDelayMS));
+                    _logger.Information("Retrying pull platforms: {@New}, total platforms: {@Total}, retry: {@RetryCount}", elementsPerPage, elementsOffset, retryCount);
                     GetPlatformsWithRetry(elementsPerPage, elementsOffset, orderBy, retryCount++);
                 }
                 else

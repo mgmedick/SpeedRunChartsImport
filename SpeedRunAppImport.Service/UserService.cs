@@ -52,19 +52,20 @@ namespace SpeedRunAppImport.Service
             return results.OrderBy(i => i.SignUpDate);
         }
 
-        private IEnumerable<User> GetUsersWithRetry(int elementsPerPage, int elementsOffset, UsersOrdering orderBy, int retryCount = 0)
+        private List<User> GetUsersWithRetry(int elementsPerPage, int elementsOffset, UsersOrdering orderBy, int retryCount = 0)
         {
             ClientContainer clientContainer = new ClientContainer();
-            IEnumerable<User> users = null;
+            List<User> users = null;
             try
             {
-                users = clientContainer.Users.GetUsers(elementsPerPage: elementsPerPage, elementsOffset: elementsOffset, orderBy: orderBy);
+                users = clientContainer.Users.GetUsers(elementsPerPage: elementsPerPage, elementsOffset: elementsOffset, orderBy: orderBy).ToList();
             }
             catch (Exception ex)
             {
                 if (retryCount <= MaxRetryCount)
                 {
                     Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.ErrorPullDelayMS));
+                    _logger.Information("Retrying pull users: {@New}, total users: {@Total}, retry: {@RetryCount}", elementsPerPage, elementsOffset, retryCount);
                     GetUsersWithRetry(elementsPerPage, elementsOffset, orderBy, retryCount++);
                 }
                 else

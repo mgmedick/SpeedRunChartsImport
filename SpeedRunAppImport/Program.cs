@@ -29,7 +29,7 @@ namespace SpeedRunAppImport
             {
                 var services = serviceScope.ServiceProvider;
                 var processor = services.GetRequiredService<Processor>();
-                processor.RunProcesses();
+                processor.Run();
                 Log.CloseAndFlush();
             }
         }

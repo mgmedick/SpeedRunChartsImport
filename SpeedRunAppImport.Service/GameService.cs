@@ -36,7 +36,7 @@ namespace SpeedRunAppImport.Service
 
             do
             {
-                games = GetGamesWithRetry(MaxElementsPerPage, results.Count, gameEmbeds, orderBy).ToList();
+                games = GetGamesWithRetry(MaxElementsPerPage, results.Count, gameEmbeds, orderBy);
                 results.AddRange(games);
                 _logger.Information("Pulled games: {@New}, total games: {@Total}", games.Count, results.Count);
                 Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
@@ -53,19 +53,20 @@ namespace SpeedRunAppImport.Service
             return results.OrderBy(i => i.CreationDate);
         }
 
-        private IEnumerable<Game> GetGamesWithRetry(int elementsPerPage, int elementsOffset, GameEmbeds embeds, GamesOrdering orderBy, int retryCount = 0)
+        private List<Game> GetGamesWithRetry(int elementsPerPage, int elementsOffset, GameEmbeds embeds, GamesOrdering orderBy, int retryCount = 0)
         {
             ClientContainer clientContainer = new ClientContainer();
-            IEnumerable<Game> games = null;
+            List<Game> games = null;
             try
             {
-                games = clientContainer.Games.GetGames(elementsPerPage: elementsPerPage, elementsOffset: elementsOffset, embeds: embeds, orderBy: orderBy);
+                games = clientContainer.Games.GetGames(elementsPerPage: elementsPerPage, elementsOffset: elementsOffset, embeds: embeds, orderBy: orderBy).ToList();
             }
             catch (Exception ex)
             {
                 if (retryCount <= MaxRetryCount)
                 {
                     Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.ErrorPullDelayMS));
+                    _logger.Information("Retrying pull games: {@New}, total games: {@Total}, retry: {@RetryCount}", elementsPerPage, elementsOffset, retryCount);
                     GetGamesWithRetry(elementsPerPage, elementsOffset, embeds, orderBy, retryCount++);
                 }
                 else

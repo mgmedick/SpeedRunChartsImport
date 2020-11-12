@@ -136,7 +136,7 @@ namespace SpeedRunAppImport
                 _logger.Information("Started ProcessPlatforms");
                 var newImportDate = DateTime.UtcNow;
                 var platforms = _platformService.GetAllPlatforms();
-                var platformIDs = _platformRepo.GetAllPlatformIDs();
+                var platformIDs = _platformRepo.GetAllPlatformIDs().ToList();
                 var platformEntities = platforms.Where(i => !platformIDs.Contains(i.ID)).Select(i => i.ConvertToEntity()).ToList();
 
                 if (platformEntities.Any())

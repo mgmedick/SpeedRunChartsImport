@@ -80,5 +80,13 @@ namespace SpeedRunAppImport.Repository
             }
             _logger.Information("Completed InsertPlatforms");
         }
+
+        public IEnumerable<string> GetAllPlatformIDs()
+        {
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                return db.Query<string>("SELECT DISTINCT ID FROM dbo.tbl_Platform").ToList();
+            }
+        }
     }
 }

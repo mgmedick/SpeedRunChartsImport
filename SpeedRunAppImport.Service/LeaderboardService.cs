@@ -29,8 +29,11 @@ namespace SpeedRunAppImport.Service
             foreach (var leaderboardKey in leaderboardKeys)
             {
                 var leaderboard = GetLeaderboardWithRetry(leaderboardKey.GameID, leaderboardKey.CategoryID, leaderboardKey.LevelID);
-                leaderboards.Add(leaderboard);
-                _logger.Information("Pulled {@Count} / {@Total} leaderboards", leaderboards.Count, leaderboardKeysList.Count);
+                if (leaderboard != null)
+                {
+                    leaderboards.Add(leaderboard);
+                    _logger.Information("Pulled {@Count} / {@Total} leaderboards", leaderboards.Count, leaderboardKeysList.Count);
+                }
                 Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
             }
 
@@ -57,8 +60,9 @@ namespace SpeedRunAppImport.Service
                 if (retryCount <= MaxRetryCount)
                 {
                     Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.ErrorPullDelayMS));
+                    retryCount++;
                     _logger.Information("Retrying pull leaderboard, gameID: {@GameID}, categoryID: {@CategoryID}, levelID: {@LevelID}, retry: {@RetryCount}", gameID, categoryID, levelID, retryCount);
-                    GetLeaderboardWithRetry(gameID, categoryID, levelID, retryCount++);
+                    leaderboard = GetLeaderboardWithRetry(gameID, categoryID, levelID, retryCount);
                 }
                 else
                 {

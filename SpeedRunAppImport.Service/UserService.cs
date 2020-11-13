@@ -35,9 +35,12 @@ namespace SpeedRunAppImport.Service
 
             do
             {
-                users = GetUsersWithRetry(MaxElementsPerPage, results.Count, orderBy).ToList();
-                results.AddRange(users);
-                _logger.Information("Pulled users: {@New}, total users: {@Total}", users.Count, results.Count);
+                users = GetUsersWithRetry(MaxElementsPerPage, results.Count, orderBy);
+                if (users != null)
+                {
+                    results.AddRange(users);
+                    _logger.Information("Pulled users: {@New}, total users: {@Total}", users.Count, results.Count);
+                }
                 Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
             }
             while (users.Count == MaxElementsPerPage && users.Min(i => i.SignUpDate ?? SqlMinDateTime) >= lastImportDate);
@@ -65,8 +68,9 @@ namespace SpeedRunAppImport.Service
                 if (retryCount <= MaxRetryCount)
                 {
                     Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.ErrorPullDelayMS));
+                    retryCount++;
                     _logger.Information("Retrying pull users: {@New}, total users: {@Total}, retry: {@RetryCount}", elementsPerPage, elementsOffset, retryCount);
-                    GetUsersWithRetry(elementsPerPage, elementsOffset, orderBy, retryCount++);
+                    users = GetUsersWithRetry(elementsPerPage, elementsOffset, orderBy, retryCount);
                 }
                 else
                 {

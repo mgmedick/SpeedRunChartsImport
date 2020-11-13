@@ -44,8 +44,11 @@ namespace SpeedRunAppImport.Service
             do
             {
                 runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count, orderBy, statusType);
-                results.AddRange(runs);
-                _logger.Information("Pulled speedRuns: {@New}, total speedRuns: {@Total}", runs.Count, results.Count);
+                if (runs != null)
+                {
+                    results.AddRange(runs);
+                    _logger.Information("Pulled speedRuns: {@New}, total speedRuns: {@Total}", runs.Count, results.Count);
+                }
                 Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
             }
             while (runs.Count == MaxElementsPerPage && ((statusType == RunStatusType.Verified && runs.Min(i => i.VerifyDate ?? SqlMinDateTime) >= lastImportDate) || (runs.Min(i => i.DateSubmitted ?? SqlMinDateTime) >= lastImportDate)));
@@ -78,12 +81,12 @@ namespace SpeedRunAppImport.Service
             }
             catch (Exception ex)
             {
-                Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.ErrorPullDelayMS));
-
                 if (retryCount <= MaxRetryCount)
                 {
-                    GetSpeedRunsWithRetry(elementsPerPage, elementsOffset, orderBy, statusType, retryCount++);
+                    Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.ErrorPullDelayMS));
+                    retryCount++;
                     _logger.Information("Retrying pull speedRuns: {@New}, total speedRuns: {@Total}, retry: {@RetryCount}", elementsPerPage, elementsOffset, retryCount);
+                    runs = GetSpeedRunsWithRetry(elementsPerPage, elementsOffset, orderBy, statusType, retryCount);
                 }
                 else
                 {

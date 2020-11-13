@@ -37,8 +37,11 @@ namespace SpeedRunAppImport.Service
             do
             {
                 games = GetGamesWithRetry(MaxElementsPerPage, results.Count, gameEmbeds, orderBy);
-                results.AddRange(games);
-                _logger.Information("Pulled games: {@New}, total games: {@Total}", games.Count, results.Count);
+                if (games != null)
+                {
+                    results.AddRange(games);
+                    _logger.Information("Pulled games: {@New}, total games: {@Total}", games.Count, results.Count);
+                }
                 Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
             }
             while (games.Count == MaxElementsPerPage && games.Min(i => i.CreationDate ?? SqlMinDateTime) >= lastImportDate);
@@ -57,6 +60,7 @@ namespace SpeedRunAppImport.Service
         {
             ClientContainer clientContainer = new ClientContainer();
             List<Game> games = null;
+
             try
             {
                 games = clientContainer.Games.GetGames(elementsPerPage: elementsPerPage, elementsOffset: elementsOffset, embeds: embeds, orderBy: orderBy).ToList();
@@ -66,8 +70,9 @@ namespace SpeedRunAppImport.Service
                 if (retryCount <= MaxRetryCount)
                 {
                     Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.ErrorPullDelayMS));
+                    retryCount++;
                     _logger.Information("Retrying pull games: {@New}, total games: {@Total}, retry: {@RetryCount}", elementsPerPage, elementsOffset, retryCount);
-                    GetGamesWithRetry(elementsPerPage, elementsOffset, embeds, orderBy, retryCount++);
+                    games = GetGamesWithRetry(elementsPerPage, elementsOffset, embeds, orderBy, retryCount);
                 }
                 else
                 {

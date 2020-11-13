@@ -59,21 +59,7 @@ namespace SpeedRunAppImport
             try
             {
                 Init();
-                if (IsImportRunning)
-                {
-                    _logger.Information("Import already running");
-                }
-                else
-                {
-                    var importRunningSetting = _settingService.GetSetting("IsImportRunning");
-                    importRunningSetting.Num = 1;
-                    _settingService.UpdateSetting(importRunningSetting);
-
-                    RunProcesses();
-
-                    importRunningSetting.Num = 0;
-                    _settingService.UpdateSetting(importRunningSetting);
-                }
+                RunProcesses();
             }
             catch (Exception ex)
             {
@@ -91,7 +77,6 @@ namespace SpeedRunAppImport
                 IsFullImport = _config.GetValue<bool>("IsFullImport");
                 NPocoBootstrapper.Configure(connString, maxBulkRows, IsFullImport);
 
-                IsImportRunning = _settingService.GetSetting("IsImportRunning")?.Num == 1;
                 var sqlMinDateTime = (DateTime)SqlDateTime.MinValue;
                 if (IsFullImport)
                 {

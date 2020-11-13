@@ -48,18 +48,18 @@ namespace SpeedRunAppImport.Service
                 _logger.Information("Pulled speedRuns: {@New}, total speedRuns: {@Total}", runs.Count, results.Count);
                 Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
             }
-            while (runs.Count == MaxElementsPerPage && ((statusType == RunStatusType.Verified && runs.Min(i => i.VerifyDate ?? DateTime.MinValue) >= lastImportDate) || (runs.Min(i => i.DateSubmitted ?? DateTime.MinValue) >= lastImportDate)));
+            while (runs.Count == MaxElementsPerPage && ((statusType == RunStatusType.Verified && runs.Min(i => i.VerifyDate ?? SqlMinDateTime) >= lastImportDate) || (runs.Min(i => i.DateSubmitted ?? SqlMinDateTime) >= lastImportDate)));
 
             if (!isFullImport)
             {
                 if (statusType == RunStatusType.Verified)
                 {
-                    var runIDsToRemove = runs.Where(i => (i.VerifyDate ?? DateTime.MinValue) < lastImportDate).Select(i => i.ID).ToList();
+                    var runIDsToRemove = runs.Where(i => (i.VerifyDate ?? SqlMinDateTime) < lastImportDate).Select(i => i.ID).ToList();
                     results.RemoveAll(i => runIDsToRemove.Contains(i.ID));
                 }
                 else
                 {
-                    var runIDsToRemove = runs.Where(i => (i.DateSubmitted ?? DateTime.MinValue) < lastImportDate).Select(i => i.ID).ToList();
+                    var runIDsToRemove = runs.Where(i => (i.DateSubmitted ?? SqlMinDateTime) < lastImportDate).Select(i => i.ID).ToList();
                     results.RemoveAll(i => runIDsToRemove.Contains(i.ID));
                 }
             }

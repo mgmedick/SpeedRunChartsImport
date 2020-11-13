@@ -92,13 +92,13 @@ namespace SpeedRunAppImport
                 NPocoBootstrapper.Configure(connString, maxBulkRows, IsFullImport);
 
                 IsImportRunning = _settingService.GetSetting("IsImportRunning")?.Num == 1;
-
+                var sqlMinDateTime = (DateTime)SqlDateTime.MinValue;
                 if (IsFullImport)
                 {
-                    GameLastImportDate = (DateTime)SqlDateTime.MinValue;
-                    UserLastImportDate = (DateTime)SqlDateTime.MinValue;
-                    PlatformLastImportDate = (DateTime)SqlDateTime.MinValue;
-                    SpeedRunLastImportDate = (DateTime)SqlDateTime.MinValue;
+                    GameLastImportDate = sqlMinDateTime;
+                    UserLastImportDate = sqlMinDateTime;
+                    PlatformLastImportDate = sqlMinDateTime;
+                    SpeedRunLastImportDate = sqlMinDateTime;
                 }
                 else
                 {
@@ -108,6 +108,7 @@ namespace SpeedRunAppImport
                     SpeedRunLastImportDate = _settingService.GetSetting("SpeedRunLastImportDate")?.Dte ?? DateTime.UtcNow;
                 }
 
+                BaseService.SqlMinDateTime = sqlMinDateTime;
                 BaseService.MaxElementsPerPage = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxElementsPerPage").Value);
                 BaseService.MaxRetryCount = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxRetryCount").Value);
                 BaseService.PullDelayMS = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("PullDelayMS").Value);

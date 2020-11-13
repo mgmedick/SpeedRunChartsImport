@@ -40,11 +40,11 @@ namespace SpeedRunAppImport.Service
                 _logger.Information("Pulled users: {@New}, total users: {@Total}", users.Count, results.Count);
                 Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
             }
-            while (users.Count == MaxElementsPerPage && users.Min(i => i.SignUpDate ?? DateTime.MinValue) >= lastImportDate);
+            while (users.Count == MaxElementsPerPage && users.Min(i => i.SignUpDate ?? SqlMinDateTime) >= lastImportDate);
 
             if (!isFullImport)
             {
-                var userIDsToRemove = users.Where(i => (i.SignUpDate ?? DateTime.MinValue) < lastImportDate).Select(i => i.ID).ToList();
+                var userIDsToRemove = users.Where(i => (i.SignUpDate ?? SqlMinDateTime) < lastImportDate).Select(i => i.ID).ToList();
                 results.RemoveAll(i => userIDsToRemove.Contains(i.ID));
             }
 

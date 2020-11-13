@@ -41,11 +41,11 @@ namespace SpeedRunAppImport.Service
                 _logger.Information("Pulled games: {@New}, total games: {@Total}", games.Count, results.Count);
                 Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
             }
-            while (games.Count == MaxElementsPerPage && games.Min(i => i.CreationDate ?? DateTime.MinValue) >= lastImportDate);
+            while (games.Count == MaxElementsPerPage && games.Min(i => i.CreationDate ?? SqlMinDateTime) >= lastImportDate);
 
             if (!IsFullImport)
             {
-                var gameIDsToRemove = games.Where(i => (i.CreationDate ?? DateTime.MinValue) < lastImportDate).Select(i => i.ID).ToList();
+                var gameIDsToRemove = games.Where(i => (i.CreationDate ?? SqlMinDateTime) < lastImportDate).Select(i => i.ID).ToList();
                 results.RemoveAll(i => gameIDsToRemove.Contains(i.ID));
             }
             _logger.Information("Completed GetGames");

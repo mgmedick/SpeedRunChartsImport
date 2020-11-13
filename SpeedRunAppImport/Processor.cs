@@ -87,7 +87,7 @@ namespace SpeedRunAppImport
             {
                 _logger.Information("Started Init");
                 var connString = _config.GetSection("ConnectionStrings").GetSection("DBConnectionString").Value;
-                var maxBulkRows = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxElementsPerPage").Value);
+                var maxBulkRows = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxBulkRows").Value);
                 IsFullImport = _config.GetValue<bool>("IsFullImport");
                 NPocoBootstrapper.Configure(connString, maxBulkRows, IsFullImport);
 

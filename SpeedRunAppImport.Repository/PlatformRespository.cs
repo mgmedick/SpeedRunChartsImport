@@ -29,9 +29,9 @@ namespace SpeedRunAppImport.Repository
                                
                                 SELECT TOP 0 * INTO dbo.tbl_Platform_Full FROM dbo.tbl_Platform
 
-                                ALTER TABLE [dbo].[tbl_Platform_Full] ADD CONSTRAINT [PK_tbl_Platform_Full] PRIMARY KEY CLUSTERED ([IDX]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                ALTER TABLE [dbo].[tbl_Platform_Full] ADD CONSTRAINT [PK_tbl_Platform_Full] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
                                 ALTER TABLE [dbo].[tbl_Platform_Full] ADD CONSTRAINT [DF_tbl_Platform_Full_ImportedDate] DEFAULT GETDATE() FOR [ImportedDate]
-                                CREATE NONCLUSTERED INDEX [IDX_tbl_Platform_Full_ID] ON [dbo].[tbl_Platform_Full] ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]");
+                                CREATE CLUSTERED INDEX [IDX_tbl_Platform_Full_OrderValue] ON [dbo].[tbl_Platform_Full] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY]");
                     tran.Complete();
                 }
             }
@@ -51,7 +51,7 @@ namespace SpeedRunAppImport.Repository
 
                                 EXEC sp_rename 'dbo.PK_tbl_Platform_Full', 'PK_tbl_Platform'
                                 EXEC sp_rename 'dbo.DF_tbl_Platform_Full_ImportedDate', 'DF_tbl_Platform_ImportedDate'
-                                EXEC sp_rename 'dbo.tbl_Platform.IDX_tbl_Platform_Full_ID', 'IDX_tbl_Platform_ID', 'INDEX'");
+                                EXEC sp_rename 'dbo.tbl_Platform.IDX_tbl_Platform_Full_OrderValue', 'IDX_tbl_Platform_OrderValue', 'INDEX'");
                     tran.Complete();
                 }
             }

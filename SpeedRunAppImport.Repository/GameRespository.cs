@@ -69,21 +69,21 @@ namespace SpeedRunAppImport.Repository
                                 SELECT TOP 0 * INTO dbo.tbl_Game_Ruleset_Full FROM dbo.tbl_Game_Ruleset
                                 SELECT TOP 0 * INTO dbo.tbl_Game_TimingMethod_Full FROM dbo.tbl_Game_TimingMethod
                                
-                                ALTER TABLE [dbo].[tbl_Game_Full] ADD CONSTRAINT [PK_tbl_Game_Full] PRIMARY KEY CLUSTERED ([IDX]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                ALTER TABLE [dbo].[tbl_Game_Full] ADD CONSTRAINT [PK_tbl_Game_Full] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
                                 ALTER TABLE [dbo].[tbl_Game_Full] ADD CONSTRAINT [DF_tbl_Game_Full_ImportedDate] DEFAULT GETDATE() FOR [ImportedDate]
-                                CREATE NONCLUSTERED INDEX [IDX_tbl_Game_Full_ID] ON [dbo].[tbl_Game_Full] ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
+                                CREATE CLUSTERED INDEX [IDX_tbl_Game_Full_OrderValue] ON [dbo].[tbl_Game_Full] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY] 
 
-                                ALTER TABLE [dbo].[tbl_Level_Full] ADD CONSTRAINT [PK_tbl_Level_Full] PRIMARY KEY CLUSTERED ([IDX]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                CREATE NONCLUSTERED INDEX [IDX_tbl_Level_Full_ID] ON [dbo].[tbl_Level_Full] ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                ALTER TABLE [dbo].[tbl_Level_Full] ADD CONSTRAINT [PK_tbl_Level_Full] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                CREATE CLUSTERED INDEX [IDX_tbl_Level_Full_OrderValue] ON [dbo].[tbl_Level_Full] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY]
 
-                                ALTER TABLE [dbo].[tbl_Category_Full] ADD CONSTRAINT [PK_tbl_Category_Full] PRIMARY KEY CLUSTERED ([IDX]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                CREATE NONCLUSTERED INDEX [IDX_tbl_Category_Full_ID] ON [dbo].[tbl_Category_Full] ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
+                                ALTER TABLE [dbo].[tbl_Category_Full] ADD CONSTRAINT [PK_tbl_Category_Full] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                CREATE CLUSTERED INDEX [IDX_tbl_Category_Full_OrderValue] ON [dbo].[tbl_Category_Full] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY] 
 
-                                ALTER TABLE [dbo].[tbl_Variable_Full] ADD CONSTRAINT [PK_tbl_Variable_Full] PRIMARY KEY CLUSTERED ([IDX]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                CREATE NONCLUSTERED INDEX [IDX_tbl_Variable_Full_ID] ON [dbo].[tbl_Variable_Full] ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
+                                ALTER TABLE [dbo].[tbl_Variable_Full] ADD CONSTRAINT [PK_tbl_Variable_Full] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                CREATE CLUSTERED INDEX [IDX_tbl_Variable_Full_OrderValue] ON [dbo].[tbl_Variable_Full] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY] 
 
-                                ALTER TABLE [dbo].[tbl_VariableValue_Full] ADD CONSTRAINT [PK_tbl_VariableValue_Full] PRIMARY KEY CLUSTERED ([IDX]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                CREATE NONCLUSTERED INDEX [IDX_tbl_VariableValue_Full_ID] ON [dbo].[tbl_VariableValue_Full] ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
+                                ALTER TABLE [dbo].[tbl_VariableValue_Full] ADD CONSTRAINT [PK_tbl_VariableValue_Full] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                CREATE CLUSTERED INDEX [IDX_tbl_VariableValue_Full_OrderValue] ON [dbo].[tbl_VariableValue_Full] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY] 
 
                                 ALTER TABLE [dbo].[tbl_Game_Platform_Full] ADD CONSTRAINT [PK_tbl_Game_Platform_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
                                 ALTER TABLE [dbo].[tbl_Game_Region_Full] ADD CONSTRAINT [PK_tbl_Game_Region_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
@@ -136,19 +136,19 @@ namespace SpeedRunAppImport.Repository
 
                                 EXEC sp_rename 'dbo.PK_tbl_Game_Full', 'PK_tbl_Game'
                                 EXEC sp_rename 'dbo.DF_tbl_Game_Full_ImportedDate', 'DF_tbl_Game_ImportedDate'
-                                EXEC sp_rename 'dbo.tbl_Game.IDX_tbl_Game_Full_ID', 'IDX_tbl_Game_ID', 'INDEX'
+                                EXEC sp_rename 'dbo.tbl_Game.IDX_tbl_Game_Full_OrderValue', 'IDX_tbl_Game_OrderValue', 'INDEX'
 
                                 EXEC sp_rename 'dbo.PK_tbl_Level_Full', 'PK_tbl_Level'
-                                EXEC sp_rename 'dbo.tbl_Level.IDX_tbl_Level_Full_ID', 'IDX_tbl_Level_ID', 'INDEX'
+                                EXEC sp_rename 'dbo.tbl_Level.IDX_tbl_Level_Full_OrderValue', 'IDX_tbl_Level_OrderValue', 'INDEX'
 
                                 EXEC sp_rename 'dbo.PK_tbl_Category_Full', 'PK_tbl_Category'
-                                EXEC sp_rename 'dbo.tbl_Category.IDX_tbl_Category_Full_ID', 'IDX_tbl_Category_ID', 'INDEX'
+                                EXEC sp_rename 'dbo.tbl_Category.IDX_tbl_Category_Full_OrderValue', 'IDX_tbl_Category_OrderValue', 'INDEX'
 
                                 EXEC sp_rename 'dbo.PK_tbl_Variable_Full', 'PK_tbl_Variable'
-                                EXEC sp_rename 'dbo.tbl_Variable.IDX_tbl_Variable_Full_ID', 'IDX_tbl_Variable_ID', 'INDEX'
+                                EXEC sp_rename 'dbo.tbl_Variable.IDX_tbl_Variable_Full_OrderValue', 'IDX_tbl_Variable_OrderValue', 'INDEX'
 
                                 EXEC sp_rename 'dbo.PK_tbl_VariableValue_Full', 'PK_tbl_VariableValue'
-                                EXEC sp_rename 'dbo.tbl_VariableValue.IDX_tbl_VariableValue_Full_ID', 'IDX_tbl_VariableValue_ID', 'INDEX'
+                                EXEC sp_rename 'dbo.tbl_VariableValue.IDX_tbl_VariableValue_Full_OrderValue', 'IDX_tbl_VariableValue_OrderValue', 'INDEX'
 
                                 EXEC sp_rename 'dbo.PK_tbl_Game_Platform_Full', 'PK_tbl_Game_Platform'
                                 EXEC sp_rename 'dbo.PK_tbl_Game_Region_Full', 'PK_tbl_Game_Region'
@@ -202,6 +202,46 @@ namespace SpeedRunAppImport.Repository
                 batchCount += MaxBulkRows;
             }
             _logger.Information("Completed InsertGames");
+        }
+
+        public void SaveGames(IEnumerable<GameEntity> games, IEnumerable<LevelEntity> levels, IEnumerable<CategoryEntity> categories, IEnumerable<VariableEntity> variables, IEnumerable<VariableValueEntity> variableValues, IEnumerable<GamePlatformEntity> gamePlatforms, IEnumerable<GameRegionEntity> gameRegions, IEnumerable<GameModeratorEntity> gameModerators, IEnumerable<GameRulesetEntity> gameRulesets, IEnumerable<GameTimingMethodEntity> gameTimingMethods)
+        {
+            int count = 1;
+            var gamesList = games.ToList();
+            foreach (var game in gamesList)
+            {
+                using (IDatabase db = DBFactory.GetDatabase())
+                {
+                    using (var tran = db.GetTransaction())
+                    {
+                        db.DeleteWhere<LevelEntity>("GameID = @gameID", new { gameID = game.ID });
+                        db.DeleteWhere<CategoryEntity>("GameID = @gameID", new { gameID = game.ID });
+                        db.DeleteWhere<VariableEntity>("GameID = @gameID", new { gameID = game.ID });
+                        db.DeleteWhere<VariableValueEntity>("GameID = @gameID", new { gameID = game.ID });
+                        db.DeleteWhere<GamePlatformEntity>("GameID = @gameID", new { gameID = game.ID });
+                        db.DeleteWhere<GameRegionEntity>("GameID = @gameID", new { gameID = game.ID });
+                        db.DeleteWhere<GameModeratorEntity>("GameID = @gameID", new { gameID = game.ID });
+                        db.DeleteWhere<GameRulesetEntity>("GameID = @gameID", new { gameID = game.ID });
+                        db.DeleteWhere<GameTimingMethodEntity>("GameID = @gameID", new { gameID = game.ID });
+
+                        db.Save<GameEntity>(game);
+                        db.InsertBulk<LevelEntity>(levels.Where(i=>i.GameID == game.ID).ToList());
+                        db.InsertBulk<CategoryEntity>(categories.Where(i => i.GameID == game.ID).ToList());
+                        db.InsertBulk<VariableEntity>(variables.Where(i => i.GameID == game.ID).ToList());
+                        db.InsertBulk<VariableValueEntity>(variableValues.Where(i => i.GameID == game.ID).ToList());
+                        db.InsertBulk<GamePlatformEntity>(gamePlatforms.Where(i => i.GameID == game.ID).ToList());
+                        db.InsertBulk<GameRegionEntity>(gameRegions.Where(i => i.GameID == game.ID).ToList());
+                        db.InsertBulk<GameModeratorEntity>(gameModerators.Where(i => i.GameID == game.ID).ToList());
+                        db.InsertBulk<GameRulesetEntity>(gameRulesets.Where(i => i.GameID == game.ID).ToList());
+                        db.InsertBulk<GameTimingMethodEntity>(gameTimingMethods.Where(i => i.GameID == game.ID).ToList());
+
+                        tran.Complete();
+                    }
+                }
+
+                _logger.Information("Saved games {@Count} / {@Total}", count, gamesList.Count);
+                count++;
+            }
         }
 
         public IEnumerable<GameView> GetGameViews(Expression<Func<GameView, bool>> predicate)

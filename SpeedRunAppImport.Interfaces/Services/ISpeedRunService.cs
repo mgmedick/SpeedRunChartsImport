@@ -9,7 +9,10 @@ namespace SpeedRunAppImport.Interfaces.Services
 {
     public interface ISpeedRunService
     {
-        IEnumerable<SpeedRun> GetSpeedRuns(DateTime lastImportDate, bool isFullImport, RunStatusType? statusType = null);
+        void ProcessSpeedRuns(DateTime lastImportDate, bool isFullImport);
+        List<SpeedRun> GetSpeedRunsWithRetry(int elementsPerPage, int elementsOffset, RunsOrdering orderBy, RunStatusType? statusType = null, int retryCount = 0);
+        void SaveSpeedRuns(IEnumerable<SpeedRun> runs, bool isFullImport);
+        void SaveSpeedRuns(IEnumerable<SpeedRunEntity> runEntities, IEnumerable<SpeedRunVariableValueEntity> variableValueEntities, IEnumerable<SpeedRunPlayerEntity> playerEntities, IEnumerable<SpeedRunVideoEntity> videoEntities, bool isFullImport);
     }
 } 
 

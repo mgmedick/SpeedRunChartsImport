@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using SpeedRunAppImport.Model;
 using SpeedRunAppImport.Model.Data;
 using SpeedRunAppImport.Model.Entity;
 using System.Threading.Tasks;
@@ -8,7 +9,8 @@ namespace SpeedRunAppImport.Interfaces.Services
 {
     public interface IGameService
     {
-        IEnumerable<Game> GetGames(DateTime lastImportDate, bool isFullImport);
+        void ProcessGames(DateTime lastImportDate, bool isFullImport);
+        List<Game> GetGamesWithRetry(int elementsPerPage, int elementsOffset, GameEmbeds embeds, GamesOrdering orderBy, int retryCount = 0);
     }
 } 
 

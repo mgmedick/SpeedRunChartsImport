@@ -79,16 +79,5 @@ namespace SpeedRunAppImport.Model.Data
         {
             return Value;
         }
-
-        public VariableValueEntity ConvertToEntity()
-        {
-            return new VariableValueEntity
-            {
-                ID = this.ID,
-                VariableID = this.VariableID,
-                Value = this.Value,
-                IsCustomValue = this.IsCustomValue
-            };
-        }
     }
 }

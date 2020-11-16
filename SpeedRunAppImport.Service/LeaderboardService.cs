@@ -10,37 +10,65 @@ using SpeedRunAppImport.Interfaces.Repositories;
 using Microsoft.Extensions.Configuration;
 using System.Threading;
 using Serilog;
+using SpeedRunCommon;
 
 namespace SpeedRunAppImport.Service
 {
     public class LeaderboardService : BaseService, ILeaderboardService
     {
+        private readonly ISettingService _settingService = null;
+        private readonly ILeaderboardRepository _leaderboardRepo = null;
+        private readonly IConfiguration _config = null;
         private readonly ILogger _logger;
 
-        public LeaderboardService(ILogger logger)
+        public LeaderboardService(ISettingService settingService, ILeaderboardRepository leaderboardRepo, IConfiguration config, ILogger logger)
         {
+            _settingService = settingService;
+            _leaderboardRepo = leaderboardRepo;
+            _config = config;
             _logger = logger;
         }
 
-        public IEnumerable<Leaderboard> GetLeaderboards(IEnumerable<LeaderboardKeyEntity> leaderboardKeys)
+        public void ProcessLeaderboards(DateTime lastImportDate, bool isFullImport)
         {
-            List<Leaderboard> leaderboards = new List<Leaderboard>();
-            var leaderboardKeysList = leaderboardKeys.ToList();
-            foreach (var leaderboardKey in leaderboardKeys)
+            try
             {
-                var leaderboard = GetLeaderboardWithRetry(leaderboardKey.GameID, leaderboardKey.CategoryID, leaderboardKey.LevelID);
-                if (leaderboard != null)
-                {
-                    leaderboards.Add(leaderboard);
-                    _logger.Information("Pulled {@Count} / {@Total} leaderboards", leaderboards.Count, leaderboardKeysList.Count);
-                }
-                Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
-            }
+                _logger.Information("Started ProcessLeaderboards: {@LastImportDate}, {@IsFullImport}", lastImportDate, isFullImport);
+                var newImportDate = DateTime.UtcNow;
+                var leaderboardKeys = _leaderboardRepo.GetLeaderboardKeys(lastImportDate, (int)RunStatusType.Verified).ToList();
+                List<Leaderboard> results = new List<Leaderboard>();
 
-            return leaderboards;
+                foreach (var leaderboardKey in leaderboardKeys)
+                {
+                    var leaderboard = GetLeaderboardWithRetry(leaderboardKey.GameID, leaderboardKey.CategoryID, leaderboardKey.LevelID);
+                    results.Add(leaderboard);
+                    _logger.Information("Pulled {@Count} / {@Total} leaderboards", results.Count, leaderboardKeys.Count);
+                    Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
+
+                    var memorySize = GC.GetTotalMemory(false);
+                    if (memorySize > MaxMemorySizeBytes)
+                    {
+                        _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
+                        SaveLeaderboards(results, isFullImport);
+                        results.ClearMemory();
+                    }
+                }
+
+                if (results.Any())
+                {
+                    SaveLeaderboards(results, isFullImport);
+                }
+
+                _settingService.UpdateSetting("LeaderboardLastImportDate", newImportDate);
+                _logger.Information("Completed ProcessLeaderboards");
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "ProcessLeaderboards");
+            }
         }
 
-        private Leaderboard GetLeaderboardWithRetry(string gameID, string categoryID, string levelID = null, int retryCount = 0)
+        public Leaderboard GetLeaderboardWithRetry(string gameID, string categoryID, string levelID = null, int retryCount = 0)
         {
             ClientContainer clientContainer = new ClientContainer();
             Leaderboard leaderboard = null;
@@ -71,6 +99,27 @@ namespace SpeedRunAppImport.Service
             }
 
             return leaderboard;
+        }
+
+        public void SaveLeaderboards(IEnumerable<Leaderboard> leaderboards, bool isFullImport)
+        {
+            var leaderboardEntities = leaderboards.SelectMany(i => i.Records.Select(g => new LeaderboardEntity { GameID = i.GameID, CategoryID = i.CategoryID, LevelID = i.LevelID, Rank = g.Rank, SpeedRunID = g.ID }));
+
+            SaveLeaderboards(leaderboardEntities, isFullImport);
+        }
+
+        public void SaveLeaderboards(IEnumerable<LeaderboardEntity> leaderboardEntities, bool isFullImport)
+        {
+            if (isFullImport)
+            {
+                _leaderboardRepo.CopyLeaderboardTables();
+                _leaderboardRepo.InsertLeaderboards(leaderboardEntities);
+                _leaderboardRepo.RenameAndDropLeaderboardTables();
+            }
+            else
+            {
+                _leaderboardRepo.SaveLeaderboards(leaderboardEntities);
+            }
         }
     }
 }

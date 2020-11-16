@@ -80,30 +80,26 @@ namespace SpeedRunAppImport.Repository
             _logger.Information("Completed InsertLeaderboards");
         }
 
-        public void UpdateLeaderboards(IEnumerable<LeaderboardEntity> leaderboards)
+        public void SaveLeaderboards(IEnumerable<LeaderboardEntity> leaderboards)
         {
-            _logger.Information("Started UpdateLeaderboards");
-            int batchCount = 0;
-            var leaderboardsList = leaderboards.ToList();
-            while (batchCount < leaderboardsList.Count)
+            int count = 1;
+            var leaderboardKeys = leaderboards.Select(g => new { g.GameID, g.CategoryID, g.LevelID }).Distinct().ToList();
+            foreach (var leaderboardKey in leaderboardKeys)
             {
-                var leaderboardsBatch = leaderboardsList.Skip(batchCount).Take(MaxBulkRows).ToList();
-                var leaderboardsToDelete = leaderboardsBatch.Select(g => new { g.GameID, g.CategoryID, g.LevelID }).Distinct().ToList();
-
                 using (IDatabase db = DBFactory.GetDatabase())
                 {
                     using (var tran = db.GetTransaction())
                     {
-                        db.DeleteMany<LeaderboardEntity>().Where(i => leaderboardsToDelete.Any(g => g.GameID == i.GameID && g.CategoryID == i.CategoryID && g.LevelID == i.LevelID));
-                        db.InsertBulk<LeaderboardEntity>(leaderboardsBatch);
+                        db.DeleteMany<LeaderboardEntity>().Where(i => i.GameID == leaderboardKey.GameID && i.CategoryID == leaderboardKey.CategoryID && i.LevelID == leaderboardKey.LevelID);
+                        db.InsertBulk<LeaderboardEntity>(leaderboards.Where(i => i.GameID == leaderboardKey.GameID && i.CategoryID == leaderboardKey.CategoryID && i.LevelID == leaderboardKey.LevelID).ToList());
+
                         tran.Complete();
                     }
                 }
 
-                _logger.Information("Saved users {@Count} / {@Total}", batchCount, leaderboardsList.Count);
-                batchCount += MaxBulkRows;
+                _logger.Information("Saved leaderboards {@Count} / {@Total}", count, leaderboardKeys.Count);
+                count++;
             }
-            _logger.Information("Completed UpdateLeaderboards");
         }
 
         public IEnumerable<LeaderboardKeyEntity> GetLeaderboardKeys(DateTime lastImportedDate, int statusID)

@@ -8,11 +8,11 @@ namespace SpeedRunAppImport.Interfaces.Repositories
 {
     public interface ILeaderboardRepository
     {
-        void InsertLeaderboards(IEnumerable<LeaderboardEntity> leaderboards);
         void CopyLeaderboardTables();
         void RenameAndDropLeaderboardTables();
         IEnumerable<LeaderboardKeyEntity> GetLeaderboardKeys(DateTime lastImportedDate, int statusID);
-        void UpdateLeaderboards(IEnumerable<LeaderboardEntity> leaderboards);
+        void InsertLeaderboards(IEnumerable<LeaderboardEntity> leaderboards);
+        void SaveLeaderboards(IEnumerable<LeaderboardEntity> leaderboards);
     }
 }
 

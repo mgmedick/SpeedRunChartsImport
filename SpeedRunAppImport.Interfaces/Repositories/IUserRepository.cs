@@ -7,9 +7,10 @@ namespace SpeedRunAppImport.Interfaces.Repositories
 {
     public interface IUserRepository
     {
-        void InsertUsers(IEnumerable<UserEntity> users);
         void CopyUserTables();
         void RenameAndDropUserTables();
+        void InsertUsers(IEnumerable<UserEntity> users);
+        void SaveUsers(IEnumerable<UserEntity> users);
     }
 }
 

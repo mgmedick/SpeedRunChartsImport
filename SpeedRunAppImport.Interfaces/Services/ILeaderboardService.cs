@@ -8,7 +8,10 @@ namespace SpeedRunAppImport.Interfaces.Services
 {
     public interface ILeaderboardService
     {
-        IEnumerable<Leaderboard> GetLeaderboards(IEnumerable<LeaderboardKeyEntity> leaderboardKeys);
+        void ProcessLeaderboards(DateTime lastImportDate, bool isFullImport);
+        Leaderboard GetLeaderboardWithRetry(string gameID, string categoryID, string levelID = null, int retryCount = 0);
+        void SaveLeaderboards(IEnumerable<Leaderboard> leaderboards, bool isFullImport);
+        void SaveLeaderboards(IEnumerable<LeaderboardEntity> leaderboardEntities, bool isFullImport);
     }
 } 
 

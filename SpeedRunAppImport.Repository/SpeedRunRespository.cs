@@ -44,9 +44,9 @@ namespace SpeedRunAppImport.Repository
                                 SELECT TOP 0 * INTO dbo.tbl_SpeedRun_VariableValue_Full FROM dbo.tbl_SpeedRun_VariableValue
                                 SELECT TOP 0 * INTO dbo.tbl_SpeedRun_Video_Full FROM dbo.tbl_SpeedRun_Video
 
-                                ALTER TABLE [dbo].[tbl_SpeedRun_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_Full] PRIMARY KEY CLUSTERED ([IDX]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                ALTER TABLE [dbo].[tbl_SpeedRun_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_Full] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
                                 ALTER TABLE [dbo].[tbl_SpeedRun_Full] ADD CONSTRAINT [DF_tbl_SpeedRun_Full_ImportedDate] DEFAULT GETDATE() FOR [ImportedDate]
-                                CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_Full_ID] ON [dbo].[tbl_SpeedRun_Full] ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
+                                CREATE CLUSTERED INDEX [IDX_tbl_SpeedRun_Full_OrderValue] ON [dbo].[tbl_SpeedRun_Full] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY] 
 
                                 ALTER TABLE [dbo].[tbl_SpeedRun_Player_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_Player_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
                                 ALTER TABLE [dbo].[tbl_SpeedRun_VariableValue_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_VariableValue_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
@@ -79,7 +79,7 @@ namespace SpeedRunAppImport.Repository
 
                                 EXEC sp_rename 'dbo.PK_tbl_SpeedRun_Full', 'PK_tbl_SpeedRun'
                                 EXEC sp_rename 'dbo.DF_tbl_SpeedRun_Full_ImportedDate', 'DF_tbl_SpeedRun_ImportedDate'
-                                EXEC sp_rename 'dbo.tbl_SpeedRun.IDX_tbl_SpeedRun_Full_ID', 'IDX_tbl_SpeedRun_ID', 'INDEX'
+                                EXEC sp_rename 'dbo.tbl_SpeedRun.IDX_tbl_SpeedRun_Full_OrderValue', 'IDX_tbl_SpeedRun_OrderValue', 'INDEX'
 
                                 EXEC sp_rename 'dbo.PK_tbl_SpeedRun_Player_Full', 'PK_tbl_SpeedRun_Player'
                                 EXEC sp_rename 'dbo.PK_tbl_SpeedRun_VariableValue_Full', 'PK_tbl_SpeedRun_VariableValue'
@@ -114,12 +114,41 @@ namespace SpeedRunAppImport.Repository
                     }
                 }
 
-                _logger.Information("Saved games {@Count} / {@Total}", runsBatch.Count, speedRunsList.Count);
+                _logger.Information("Saved speedRuns {@Count} / {@Total}", runsBatch.Count, speedRunsList.Count);
                 batchCount += MaxBulkRows;
             }
             _logger.Information("Completed InsertSpeedRuns");
         }
 
+        public void SaveSpeedRuns(IEnumerable<SpeedRunEntity> speedRuns, IEnumerable<SpeedRunVariableValueEntity> variableValues, IEnumerable<SpeedRunPlayerEntity> players, IEnumerable<SpeedRunVideoEntity> videos)
+        {
+            int count = 1;
+            var speedRunsList = speedRuns.ToList();
+            foreach (var speedRun in speedRuns)
+            {
+                using (IDatabase db = DBFactory.GetDatabase())
+                {
+                    using (var tran = db.GetTransaction())
+                    {
+                        db.DeleteWhere<SpeedRunVariableValueEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
+                        db.DeleteWhere<SpeedRunPlayerEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
+                        db.DeleteWhere<SpeedRunVideoEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
+
+                        db.Save<SpeedRunEntity>(speedRun);
+                        db.InsertBulk<SpeedRunVariableValueEntity>(variableValues.Where(i => i.SpeedRunID == speedRun.ID).ToList());
+                        db.InsertBulk<SpeedRunPlayerEntity>(players.Where(i => i.SpeedRunID == speedRun.ID).ToList());
+                        db.InsertBulk<SpeedRunVideoEntity>(videos.Where(i => i.SpeedRunID == speedRun.ID).ToList());
+
+                        tran.Complete();
+                    }
+                }
+
+                _logger.Information("Saved speedRuns {@Count} / {@Total}", count, speedRunsList.Count);
+                count++;
+            }
+        }
+
+        /*
         public void UpdateSpeedRunStatus(IEnumerable<SpeedRunEntity> speedRuns, RunStatusType statusType)
         {
             try
@@ -167,6 +196,7 @@ namespace SpeedRunAppImport.Repository
                 _logger.Error(ex, "UpdateSpeedRunStatusAndRejectReason");
             }
         }
+        */
 
         public IEnumerable<SpeedRunEntity> GetSpeedRuns(Expression<Func<SpeedRunEntity, bool>> predicate)
         {

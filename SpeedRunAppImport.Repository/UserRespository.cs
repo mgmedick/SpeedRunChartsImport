@@ -29,9 +29,9 @@ namespace SpeedRunAppImport.Repository
                                
                                 SELECT TOP 0 * INTO dbo.tbl_User_Full FROM dbo.tbl_User
 
-                                ALTER TABLE [dbo].[tbl_User_Full] ADD CONSTRAINT [PK_tbl_User_Full] PRIMARY KEY CLUSTERED ([IDX]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                ALTER TABLE [dbo].[tbl_User_Full] ADD CONSTRAINT [PK_tbl_User_Full] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
                                 ALTER TABLE [dbo].[tbl_User_Full] ADD CONSTRAINT [DF_tbl_User_Full_ImportedDate] DEFAULT GETDATE() FOR [ImportedDate]
-                                CREATE NONCLUSTERED INDEX [IDX_tbl_User_Full_ID] ON [dbo].[tbl_User_Full] ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]");
+                                CREATE CLUSTERED INDEX [IDX_tbl_User_Full_OrderValue] ON [dbo].[tbl_User_Full] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY]");
                     tran.Complete();
                 }
             }
@@ -51,7 +51,7 @@ namespace SpeedRunAppImport.Repository
 
                                 EXEC sp_rename 'dbo.PK_tbl_User_Full', 'PK_tbl_User'
                                 EXEC sp_rename 'dbo.DF_tbl_User_Full_ImportedDate', 'DF_tbl_User_ImportedDate'
-                                EXEC sp_rename 'dbo.tbl_User.IDX_tbl_User_Full_ID', 'IDX_tbl_User_ID', 'INDEX'");
+                                EXEC sp_rename 'dbo.tbl_User.IDX_tbl_User_Full_OrderValue', 'IDX_tbl_User_OrderValue', 'INDEX'");
                     tran.Complete();
                 }
             }
@@ -79,6 +79,22 @@ namespace SpeedRunAppImport.Repository
                 batchCount += MaxBulkRows;
             }
             _logger.Information("Completed InsertUsers");
+        }
+
+        public void SaveUsers(IEnumerable<UserEntity> users)
+        {
+            int count = 1;
+            var usersList = users.ToList();
+            foreach (var user in usersList)
+            {
+                using (IDatabase db = DBFactory.GetDatabase())
+                {
+                    db.Save<UserEntity>(user);
+                }
+
+                _logger.Information("Saved users {@Count} / {@Total}", count, usersList.Count);
+                count++;
+            }
         }
     }
 }

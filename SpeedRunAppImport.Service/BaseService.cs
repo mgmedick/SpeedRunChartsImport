@@ -15,8 +15,10 @@ namespace SpeedRunAppImport.Service
     {
         public static int MaxElementsPerPage { get; set; }
         public static int MaxRetryCount { get; set; }
+        public static long MaxMemorySizeBytes { get; set; }
         public static int PullDelayMS { get; set; }
         public static int ErrorPullDelayMS { get; set; }
+        public static int RejectedDaysBack { get; set; }
         public static bool IsFullImport { get; set; }
         public static DateTime SqlMinDateTime { get; set; }
     }

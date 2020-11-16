@@ -213,4 +213,11 @@ namespace SpeedRunAppImport.Model
         Verified = 1,
         Rejected = 2
     }
+
+    public enum SettingType
+    {
+        Str = 0,
+        Num = 1,
+        Dte = 2
+    }
 }

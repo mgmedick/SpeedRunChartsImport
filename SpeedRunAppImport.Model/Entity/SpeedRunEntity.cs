@@ -6,7 +6,7 @@ namespace SpeedRunAppImport.Model.Entity
 {
     public class SpeedRunEntity
     {
-        public int IDX { get; set; }
+        public int OrderValue { get; set; }
         public string ID { get; set; }
         public int StatusTypeID { get; set; }
         public string GameID { get; set; }

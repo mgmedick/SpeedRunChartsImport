@@ -84,20 +84,24 @@ namespace SpeedRunAppImport
                     UserLastImportDate = sqlMinDateTime;
                     PlatformLastImportDate = sqlMinDateTime;
                     SpeedRunLastImportDate = sqlMinDateTime;
+                    LeaderboardLastImportDate = sqlMinDateTime;
                 }
                 else
                 {
+                    PlatformLastImportDate = _settingService.GetSetting("PlatformLastImportDate")?.Dte ?? DateTime.UtcNow;
                     GameLastImportDate = _settingService.GetSetting("GameLastImportDate")?.Dte ?? DateTime.UtcNow;
                     UserLastImportDate = _settingService.GetSetting("UserLastImportDate")?.Dte ?? DateTime.UtcNow;
-                    PlatformLastImportDate = _settingService.GetSetting("PlatformLastImportDate")?.Dte ?? DateTime.UtcNow;
                     SpeedRunLastImportDate = _settingService.GetSetting("SpeedRunLastImportDate")?.Dte ?? DateTime.UtcNow;
+                    LeaderboardLastImportDate = _settingService.GetSetting("LeaderboardLastImportDate")?.Dte ?? DateTime.UtcNow;
                 }
 
                 BaseService.SqlMinDateTime = sqlMinDateTime;
                 BaseService.MaxElementsPerPage = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxElementsPerPage").Value);
                 BaseService.MaxRetryCount = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxRetryCount").Value);
+                BaseService.MaxMemorySizeBytes = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxMemorySizeBytes").Value);
                 BaseService.PullDelayMS = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("PullDelayMS").Value);
                 BaseService.ErrorPullDelayMS = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("ErrorPullDelayMS").Value);
+                BaseService.RejectedDaysBack = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("RejectedDaysBack").Value);
                 _logger.Information("Completed Init");
             }
             catch (Exception ex)
@@ -108,13 +112,14 @@ namespace SpeedRunAppImport
 
         public void RunProcesses()
         {
-            ProcessPlatforms();
-            ProcessGames();
-            ProcessUsers();
-            ProcessSpeedRuns();
-            ProcessLeaderboards();
+            _platformService.ProcessPlatforms(IsFullImport);
+            _gameService.ProcessGames(GameLastImportDate, IsFullImport);
+            _userService.ProcessUsers(UserLastImportDate, IsFullImport);
+            _speedRunService.ProcessSpeedRuns(SpeedRunLastImportDate, IsFullImport);
+            _leaderboardService.ProcessLeaderboards(LeaderboardLastImportDate, IsFullImport);
         }
 
+        /*
         public void ProcessPlatforms()
         {
             try
@@ -321,11 +326,13 @@ namespace SpeedRunAppImport
                 _logger.Error(ex, "ProcessLeaderboards");
             }
         }
+        */
 
+        public DateTime PlatformLastImportDate { get; set; }
         public DateTime GameLastImportDate { get; set; }
         public DateTime UserLastImportDate { get; set; }
-        public DateTime PlatformLastImportDate { get; set; }
         public DateTime SpeedRunLastImportDate { get; set; }
+        public DateTime LeaderboardLastImportDate { get; set; }
         public bool IsFullImport { get; set; }
         public bool IsImportRunning { get; set; }
     }

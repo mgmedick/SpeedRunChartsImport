@@ -112,11 +112,11 @@ namespace SpeedRunAppImport
 
         public void RunProcesses()
         {
-            //_platformService.ProcessPlatforms(IsFullImport);
-            //_gameService.ProcessGames(GameLastImportDate, IsFullImport);
-            //_userService.ProcessUsers(UserLastImportDate, IsFullImport);
+            _platformService.ProcessPlatforms(IsFullImport);
+            _gameService.ProcessGames(GameLastImportDate, IsFullImport);
+            _userService.ProcessUsers(UserLastImportDate, IsFullImport);
             _speedRunService.ProcessSpeedRuns(SpeedRunLastImportDate, IsFullImport);
-            //_leaderboardService.ProcessLeaderboards(LeaderboardLastImportDate, IsFullImport);
+            _leaderboardService.ProcessLeaderboards(LeaderboardLastImportDate, IsFullImport);
         }
 
         /*

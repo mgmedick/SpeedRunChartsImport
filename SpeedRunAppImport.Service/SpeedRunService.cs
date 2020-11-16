@@ -36,15 +36,15 @@ namespace SpeedRunAppImport.Service
                 _logger.Information("Started ProcessSpeedRuns: {@LastImportDate}, {@IsFullImport}", lastImportDate, isFullImport);
                 var newImportDate = DateTime.UtcNow;
                 RunsOrdering orderBy = isFullImport ? RunsOrdering.DateSubmitted : RunsOrdering.DateSubmittedDescending;
-                var results = GetSpeedRunsWithRetry(MaxElementsPerPage, 0, orderBy);
-                _logger.Information("Pulled runs: {@New}, total runs: {@Total}", results.Count, results.Count);
+                var results = new List<SpeedRun>();
+                var runs = new List<SpeedRun>();
 
-                while (results.Count == MaxElementsPerPage && results.Min(i => i.DateSubmitted ?? SqlMinDateTime) >= lastImportDate)
+                do
                 {
-                    Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
-                    var runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count, orderBy);
+                    runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count, orderBy);
                     results.AddRange(runs);
                     _logger.Information("Pulled runs: {@New}, total runs: {@Total}", runs.Count, results.Count);
+                    Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
 
                     var memorySize = GC.GetTotalMemory(false);
                     if (memorySize > MaxMemorySizeBytes)
@@ -54,60 +54,70 @@ namespace SpeedRunAppImport.Service
                         results.ClearMemory();
                     }
                 }
+                while (runs.Count == MaxElementsPerPage && runs.Min(i => i.DateSubmitted ?? SqlMinDateTime) >= lastImportDate);
 
                 if (results.Any())
                 {
+                    if (!isFullImport)
+                    {
+                        results.RemoveAll(i => (i.DateSubmitted ?? SqlMinDateTime) < lastImportDate);
+                    }
+
                     SaveSpeedRuns(results, isFullImport);
                 }
 
                 if (!isFullImport)
                 {
-                    var verifiedResults = GetSpeedRunsWithRetry(MaxElementsPerPage, 0, RunsOrdering.VerifyDateDescending, RunStatusType.Verified);
-                    _logger.Information("Pulled verified runs: {@New}, total runs: {@Total}", verifiedResults.Count, verifiedResults.Count);
+                    var verifiedResults = new List<SpeedRun>();
+                    var verifiedRuns = new List<SpeedRun>();
 
-                    while (verifiedResults.Count == MaxElementsPerPage && verifiedResults.Min(i => i.VerifyDate ?? SqlMinDateTime) >= lastImportDate)
+                    do
                     {
+                        verifiedRuns = GetSpeedRunsWithRetry(MaxElementsPerPage, verifiedResults.Count, RunsOrdering.VerifyDateDescending, RunStatusType.Verified);
+                        verifiedResults.AddRange(verifiedRuns);
+                        _logger.Information("Pulled verified runs: {@New}, total runs: {@Total}", verifiedRuns.Count, verifiedResults.Count);
                         Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
-                        var runs = GetSpeedRunsWithRetry(MaxElementsPerPage, verifiedResults.Count, RunsOrdering.VerifyDateDescending, RunStatusType.Verified);
-                        verifiedResults.AddRange(runs);
-                        _logger.Information("Pulled verified runs: {@New}, total runs: {@Total}", runs.Count, verifiedResults.Count);
 
                         var memorySize = GC.GetTotalMemory(false);
                         if (memorySize > MaxMemorySizeBytes)
                         {
-                            _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
+                            _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", verifiedResults.Count, memorySize);
                             SaveSpeedRuns(verifiedResults, isFullImport);
                             verifiedResults.ClearMemory();
                         }
                     }
+                    while (verifiedRuns.Count == MaxElementsPerPage && verifiedRuns.Min(i => i.VerifyDate ?? SqlMinDateTime) >= lastImportDate);
 
                     if (verifiedResults.Any())
                     {
+                        verifiedResults.RemoveAll(i => (i.VerifyDate ?? SqlMinDateTime) < lastImportDate);
                         SaveSpeedRuns(verifiedResults, isFullImport);
                     }
 
                     var rejectedDate = lastImportDate.AddDays(RejectedDaysBack);
-                    var rejectedResults = GetSpeedRunsWithRetry(MaxElementsPerPage, 0, RunsOrdering.DateSubmittedDescending, RunStatusType.Rejected);
-                    _logger.Information("Pulled rejected runs: {@New}, total runs: {@Total}", rejectedResults.Count, rejectedResults.Count);
+                    var rejectedResults = new List<SpeedRun>();
+                    var rejectedRuns = new List<SpeedRun>();
 
-                    while (rejectedResults.Count == MaxElementsPerPage && rejectedResults.Min(i => i.DateSubmitted ?? SqlMinDateTime) >= rejectedDate)
+                    do
                     {
+                        rejectedRuns = GetSpeedRunsWithRetry(MaxElementsPerPage, rejectedResults.Count, RunsOrdering.DateSubmittedDescending, RunStatusType.Rejected);
+                        rejectedResults.AddRange(rejectedRuns);
+                        _logger.Information("Pulled rejected runs: {@New}, total runs: {@Total}", rejectedRuns.Count, rejectedResults.Count);
                         Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
-                        var runs = GetSpeedRunsWithRetry(MaxElementsPerPage, rejectedResults.Count, RunsOrdering.DateSubmittedDescending, RunStatusType.Rejected);
-                        rejectedResults.AddRange(runs);
-                        _logger.Information("Pulled rejected runs: {@New}, total runs: {@Total}", runs.Count, rejectedResults.Count);
 
                         var memorySize = GC.GetTotalMemory(false);
                         if (memorySize > MaxMemorySizeBytes)
                         {
-                            _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
+                            _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", rejectedResults.Count, memorySize);
                             SaveSpeedRuns(rejectedResults, isFullImport);
                             rejectedResults.ClearMemory();
                         }
                     }
+                    while (rejectedRuns.Count == MaxElementsPerPage && rejectedRuns.Min(i => i.DateSubmitted ?? SqlMinDateTime) >= rejectedDate);
 
                     if (rejectedResults.Any())
                     {
+                        rejectedResults.RemoveAll(i => (i.DateSubmitted ?? SqlMinDateTime) < rejectedDate);
                         SaveSpeedRuns(rejectedResults, isFullImport);
                     }
                 }

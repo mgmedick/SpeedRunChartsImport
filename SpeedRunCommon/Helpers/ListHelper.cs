@@ -15,3 +15,4 @@ namespace SpeedRunCommon
         }
     }
 }
+

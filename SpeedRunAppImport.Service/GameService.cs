@@ -37,16 +37,15 @@ namespace SpeedRunAppImport.Service
                 var newImportDate = DateTime.UtcNow;
                 GamesOrdering orderBy = isFullImport ? GamesOrdering.CreationDate : GamesOrdering.CreationDateDescending;
                 var gameEmbeds = new GameEmbeds { EmbedCategories = true, EmbedLevels = true, EmbedModerators = false, EmbedPlatforms = false, EmbedVariables = true };
-                var results = GetGamesWithRetry(MaxElementsPerPage, 0, gameEmbeds, orderBy);
-                _logger.Information("Pulled games: {@New}, total games: {@Total}", results.Count, results.Count);
+                var results = new List<Game>();
+                var games = new List<Game>();
 
-                //while (results.Count == MaxElementsPerPage && results.Min(i => i.CreationDate ?? SqlMinDateTime) >= lastImportDate)
-                while (results.Count <= 200)
+                do
                 {
-                    Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
-                    var games = GetGamesWithRetry(MaxElementsPerPage, results.Count, gameEmbeds, orderBy);
+                    games = GetGamesWithRetry(MaxElementsPerPage, results.Count, gameEmbeds, orderBy);
                     results.AddRange(games);
                     _logger.Information("Pulled games: {@New}, total games: {@Total}", games.Count, results.Count);
+                    Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
 
                     var memorySize = GC.GetTotalMemory(false);
                     if (memorySize > MaxMemorySizeBytes)
@@ -54,11 +53,17 @@ namespace SpeedRunAppImport.Service
                         _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
                         SaveGames(results.OrderBy(i => i.CreationDate), isFullImport);
                         results.ClearMemory();
-                    }                    
+                    }
                 }
+                while (games.Count == MaxElementsPerPage && games.Min(i => i.CreationDate ?? SqlMinDateTime) >= lastImportDate);
 
                 if (results.Any())
                 {
+                    if (!isFullImport)
+                    {
+                        results.RemoveAll(i => (i.CreationDate ?? SqlMinDateTime) < lastImportDate);
+                    }
+
                     SaveGames(results, isFullImport);
                 }
 

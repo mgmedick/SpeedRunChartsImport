@@ -36,16 +36,15 @@ namespace SpeedRunAppImport.Service
                 _logger.Information("Started ProcessUsers: {@LastImportDate}, {@IsFullImport}", lastImportDate, isFullImport);
                 var newImportDate = DateTime.UtcNow;
                 UsersOrdering orderBy = isFullImport ? UsersOrdering.SignUpDate : UsersOrdering.SignUpDateDescending;
-                var results = GetUsersWithRetry(MaxElementsPerPage, 0, orderBy);
-                _logger.Information("Pulled users: {@New}, total users: {@Total}", results.Count, results.Count);
+                var results = new List<User>();
+                var users = new List<User>();
 
-                //while (results.Count == MaxElementsPerPage && results.Min(i => i.SignUpDate ?? SqlMinDateTime) >= lastImportDate)
-                while (results.Count <= 200)
+                do
                 {
-                    Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
-                    var users = GetUsersWithRetry(MaxElementsPerPage, results.Count, orderBy);
+                    users = GetUsersWithRetry(MaxElementsPerPage, results.Count, orderBy);
                     results.AddRange(users);
                     _logger.Information("Pulled users: {@New}, total users: {@Total}", users.Count, results.Count);
+                    Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
 
                     var memorySize = GC.GetTotalMemory(false);
                     if (memorySize > MaxMemorySizeBytes)
@@ -55,9 +54,15 @@ namespace SpeedRunAppImport.Service
                         results.ClearMemory();
                     }
                 }
+                while (users.Count == MaxElementsPerPage && users.Min(i => i.SignUpDate ?? SqlMinDateTime) >= lastImportDate);
 
                 if (results.Any())
                 {
+                    if (!isFullImport)
+                    {
+                        results.RemoveAll(i => (i.SignUpDate ?? SqlMinDateTime) < lastImportDate);
+                    }
+
                     SaveUsers(results, isFullImport);
                 }
 

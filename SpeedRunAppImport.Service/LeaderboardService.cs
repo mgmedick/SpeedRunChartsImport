@@ -40,10 +40,10 @@ namespace SpeedRunAppImport.Service
 
                 foreach (var leaderboardKey in leaderboardKeys)
                 {
-                    Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
                     var leaderboard = GetLeaderboardWithRetry(leaderboardKey.GameID, leaderboardKey.CategoryID, leaderboardKey.LevelID);
                     results.Add(leaderboard);
                     _logger.Information("Pulled {@Count} / {@Total} leaderboards", results.Count, leaderboardKeys.Count);
+                    Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
 
                     var memorySize = GC.GetTotalMemory(false);
                     if (memorySize > MaxMemorySizeBytes)

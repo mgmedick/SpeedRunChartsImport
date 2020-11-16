@@ -36,16 +36,15 @@ namespace SpeedRunAppImport.Service
                 _logger.Information("Started ProcessPlatforms: {@IsFullImport}", isFullImport);
                 var newImportDate = DateTime.UtcNow;
                 var orderBy = PlatformsOrdering.YearOfRelease;
-                var platformIDs = _platformRepo.GetAllPlatformIDs().ToList();
-                var results = GetPlatformsWithRetry(MaxElementsPerPage, 0, PlatformsOrdering.YearOfRelease);
-                _logger.Information("Pulled platforms: {@New}, total platforms: {@Total}", results.Count, results.Count);
+                var results = new List<Platform>();
+                var platforms = new List<Platform>();
 
-                while (results.Count == MaxElementsPerPage)
+                do
                 {
-                    Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
-                    var platforms = GetPlatformsWithRetry(MaxElementsPerPage, results.Count, orderBy);
+                    platforms = GetPlatformsWithRetry(MaxElementsPerPage, results.Count, orderBy);
                     results.AddRange(platforms);
                     _logger.Information("Pulled platforms: {@New}, total platforms: {@Total}", platforms.Count, results.Count);
+                    Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
 
                     var memorySize = GC.GetTotalMemory(false);
                     if (memorySize > MaxMemorySizeBytes)
@@ -55,10 +54,13 @@ namespace SpeedRunAppImport.Service
                         results.ClearMemory();
                     }
                 }
+                while (platforms.Count == MaxElementsPerPage);
 
                 if (results.Any())
                 {
-                    SavePlatforms(results, isFullImport);
+                    var platformIDs = _platformRepo.GetAllPlatformIDs().ToList();
+                    var newPlatforms = results.Where(i => !platformIDs.Contains(i.ID)).ToList();
+                    SavePlatforms(newPlatforms, isFullImport);
                 }
 
                 _settingService.UpdateSetting("PlatformLastImportDate", newImportDate);
@@ -104,17 +106,15 @@ namespace SpeedRunAppImport.Service
 
         public void SavePlatforms(IEnumerable<PlatformEntity> platformsEntities, bool isFullImport)
         {
-            var platformIDs = _platformRepo.GetAllPlatformIDs().ToList();
-            var newPlatforms = platformsEntities.Where(i => !platformIDs.Contains(i.ID)).ToList();
             if (isFullImport)
             {
                 _platformRepo.CopyPlatformTables();
-                _platformRepo.InsertPlatforms(newPlatforms);
+                _platformRepo.InsertPlatforms(platformsEntities);
                 _platformRepo.RenameAndDropPlatformTables();
             }
             else
             {
-                _platformRepo.InsertPlatforms(newPlatforms);
+                _platformRepo.InsertPlatforms(platformsEntities);
             }
         }
     }

@@ -61,6 +61,7 @@ namespace SpeedRunAppImport.Service
                     var platformIDs = _platformRepo.GetAllPlatformIDs().ToList();
                     var newPlatforms = results.Where(i => !platformIDs.Contains(i.ID)).ToList();
                     SavePlatforms(newPlatforms, isFullImport);
+                    results.ClearMemory();
                 }
 
                 _settingService.UpdateSetting("PlatformLastImportDate", newImportDate);

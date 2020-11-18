@@ -65,6 +65,7 @@ namespace SpeedRunAppImport.Service
                     }
 
                     SaveGames(results, isFullImport);
+                    results.ClearMemory();
                 }
 
                 _settingService.UpdateSetting("GameLastImportDate", newImportDate);

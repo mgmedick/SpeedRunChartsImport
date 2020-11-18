@@ -64,6 +64,7 @@ namespace SpeedRunAppImport.Service
                     }
 
                     SaveSpeedRuns(results, isFullImport);
+                    results.ClearMemory();
                 }
 
                 if (!isFullImport)
@@ -92,6 +93,7 @@ namespace SpeedRunAppImport.Service
                     {
                         verifiedResults.RemoveAll(i => (i.VerifyDate ?? SqlMinDateTime) < lastImportDate);
                         SaveSpeedRuns(verifiedResults, isFullImport);
+                        results.ClearMemory();
                     }
 
                     var rejectedDate = lastImportDate.AddDays(RejectedDaysBack);
@@ -119,6 +121,7 @@ namespace SpeedRunAppImport.Service
                     {
                         rejectedResults.RemoveAll(i => (i.DateSubmitted ?? SqlMinDateTime) < rejectedDate);
                         SaveSpeedRuns(rejectedResults, isFullImport);
+                        results.ClearMemory();
                     }
                 }
                 

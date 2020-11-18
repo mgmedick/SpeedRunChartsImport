@@ -57,6 +57,7 @@ namespace SpeedRunAppImport.Service
                 if (results.Any())
                 {
                     SaveLeaderboards(results, isFullImport);
+                    results.ClearMemory();
                 }
 
                 _settingService.UpdateSetting("LeaderboardLastImportDate", newImportDate);

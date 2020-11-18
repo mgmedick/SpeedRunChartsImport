@@ -64,6 +64,7 @@ namespace SpeedRunAppImport.Service
                     }
 
                     SaveUsers(results, isFullImport);
+                    results.ClearMemory();
                 }
 
                 _settingService.UpdateSetting("UserLastImportDate", newImportDate);

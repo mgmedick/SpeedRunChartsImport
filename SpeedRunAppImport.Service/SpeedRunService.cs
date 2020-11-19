@@ -38,17 +38,19 @@ namespace SpeedRunAppImport.Service
                 RunsOrdering orderBy = isFullImport ? RunsOrdering.DateSubmitted : RunsOrdering.DateSubmittedDescending;
                 var results = new List<SpeedRun>();
                 var runs = new List<SpeedRun>();
+                var prevTotal = 0;
 
                 do
                 {
-                    runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count, orderBy);
+                    runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count + prevTotal, orderBy);
                     results.AddRange(runs);
-                    _logger.Information("Pulled runs: {@New}, total runs: {@Total}", runs.Count, results.Count);
+                    _logger.Information("Pulled runs: {@New}, total runs: {@Total}", runs.Count, results.Count + prevTotal);
                     Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
 
                     var memorySize = GC.GetTotalMemory(false);
                     if (memorySize > MaxMemorySizeBytes)
                     {
+                        prevTotal = results.Count;
                         _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
                         SaveSpeedRuns(results, isFullImport);
                         results.ClearMemory();
@@ -71,17 +73,19 @@ namespace SpeedRunAppImport.Service
                 {
                     var verifiedResults = new List<SpeedRun>();
                     var verifiedRuns = new List<SpeedRun>();
+                    var verifiedPrevTotal = 0;
 
                     do
                     {
-                        verifiedRuns = GetSpeedRunsWithRetry(MaxElementsPerPage, verifiedResults.Count, RunsOrdering.VerifyDateDescending, RunStatusType.Verified);
+                        verifiedRuns = GetSpeedRunsWithRetry(MaxElementsPerPage, verifiedResults.Count + verifiedPrevTotal, RunsOrdering.VerifyDateDescending, RunStatusType.Verified);
                         verifiedResults.AddRange(verifiedRuns);
-                        _logger.Information("Pulled verified runs: {@New}, total runs: {@Total}", verifiedRuns.Count, verifiedResults.Count);
+                        _logger.Information("Pulled verified runs: {@New}, total runs: {@Total}", verifiedRuns.Count, verifiedResults.Count + verifiedPrevTotal);
                         Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
 
                         var memorySize = GC.GetTotalMemory(false);
                         if (memorySize > MaxMemorySizeBytes)
                         {
+                            verifiedPrevTotal = verifiedResults.Count;
                             _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", verifiedResults.Count, memorySize);
                             SaveSpeedRuns(verifiedResults, isFullImport);
                             verifiedResults.ClearMemory();
@@ -99,17 +103,19 @@ namespace SpeedRunAppImport.Service
                     var rejectedDate = lastImportDate.AddDays(RejectedDaysBack);
                     var rejectedResults = new List<SpeedRun>();
                     var rejectedRuns = new List<SpeedRun>();
+                    var rejectedPrevTotal = 0;
 
                     do
                     {
-                        rejectedRuns = GetSpeedRunsWithRetry(MaxElementsPerPage, rejectedResults.Count, RunsOrdering.DateSubmittedDescending, RunStatusType.Rejected);
+                        rejectedRuns = GetSpeedRunsWithRetry(MaxElementsPerPage, rejectedResults.Count + rejectedPrevTotal, RunsOrdering.DateSubmittedDescending, RunStatusType.Rejected);
                         rejectedResults.AddRange(rejectedRuns);
-                        _logger.Information("Pulled rejected runs: {@New}, total runs: {@Total}", rejectedRuns.Count, rejectedResults.Count);
+                        _logger.Information("Pulled rejected runs: {@New}, total runs: {@Total}", rejectedRuns.Count, rejectedResults.Count + rejectedPrevTotal);
                         Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
 
                         var memorySize = GC.GetTotalMemory(false);
                         if (memorySize > MaxMemorySizeBytes)
                         {
+                            rejectedPrevTotal = rejectedResults.Count;
                             _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", rejectedResults.Count, memorySize);
                             SaveSpeedRuns(rejectedResults, isFullImport);
                             rejectedResults.ClearMemory();

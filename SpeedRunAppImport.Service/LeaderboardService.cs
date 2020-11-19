@@ -37,17 +37,19 @@ namespace SpeedRunAppImport.Service
                 var newImportDate = DateTime.UtcNow;
                 var leaderboardKeys = _leaderboardRepo.GetLeaderboardKeys(lastImportDate, (int)RunStatusType.Verified).ToList();
                 List<Leaderboard> results = new List<Leaderboard>();
+                var prevTotal = 0;
 
                 foreach (var leaderboardKey in leaderboardKeys)
                 {
                     var leaderboard = GetLeaderboardWithRetry(leaderboardKey.GameID, leaderboardKey.CategoryID, leaderboardKey.LevelID);
                     results.Add(leaderboard);
-                    _logger.Information("Pulled {@Count} / {@Total} leaderboards", results.Count, leaderboardKeys.Count);
+                    _logger.Information("Pulled {@Count} / {@Total} leaderboards", results.Count + prevTotal, leaderboardKeys.Count);
                     Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
 
                     var memorySize = GC.GetTotalMemory(false);
                     if (memorySize > MaxMemorySizeBytes)
                     {
+                        prevTotal = results.Count;
                         _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
                         SaveLeaderboards(results, isFullImport);
                         results.ClearMemory();

@@ -39,17 +39,19 @@ namespace SpeedRunAppImport.Service
                 var gameEmbeds = new GameEmbeds { EmbedCategories = true, EmbedLevels = true, EmbedModerators = false, EmbedPlatforms = false, EmbedVariables = true };
                 var results = new List<Game>();
                 var games = new List<Game>();
+                var prevTotal = 0;
 
                 do
                 {
-                    games = GetGamesWithRetry(MaxElementsPerPage, results.Count, gameEmbeds, orderBy);
+                    games = GetGamesWithRetry(MaxElementsPerPage, results.Count + prevTotal, gameEmbeds, orderBy);
                     results.AddRange(games);
-                    _logger.Information("Pulled games: {@New}, total games: {@Total}", games.Count, results.Count);
+                    _logger.Information("Pulled games: {@New}, total games: {@Total}", games.Count, results.Count + prevTotal);
                     Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
 
                     var memorySize = GC.GetTotalMemory(false);
                     if (memorySize > MaxMemorySizeBytes)
                     {
+                        prevTotal = results.Count;
                         _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
                         SaveGames(results.OrderBy(i => i.CreationDate), isFullImport);
                         results.ClearMemory();

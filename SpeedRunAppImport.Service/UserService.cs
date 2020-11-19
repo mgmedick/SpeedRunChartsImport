@@ -38,17 +38,19 @@ namespace SpeedRunAppImport.Service
                 UsersOrdering orderBy = isFullImport ? UsersOrdering.SignUpDate : UsersOrdering.SignUpDateDescending;
                 var results = new List<User>();
                 var users = new List<User>();
+                var prevTotal = 0;
 
                 do
                 {
-                    users = GetUsersWithRetry(MaxElementsPerPage, results.Count, orderBy);
+                    users = GetUsersWithRetry(MaxElementsPerPage, results.Count + prevTotal, orderBy);
                     results.AddRange(users);
-                    _logger.Information("Pulled users: {@New}, total users: {@Total}", users.Count, results.Count);
+                    _logger.Information("Pulled users: {@New}, total users: {@Total}", users.Count, results.Count + prevTotal);
                     Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
 
                     var memorySize = GC.GetTotalMemory(false);
                     if (memorySize > MaxMemorySizeBytes)
                     {
+                        prevTotal = results.Count;
                         _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
                         SaveUsers(results, isFullImport);
                         results.ClearMemory();

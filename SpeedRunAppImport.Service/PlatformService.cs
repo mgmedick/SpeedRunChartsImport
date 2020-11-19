@@ -38,17 +38,19 @@ namespace SpeedRunAppImport.Service
                 var orderBy = PlatformsOrdering.YearOfRelease;
                 var results = new List<Platform>();
                 var platforms = new List<Platform>();
+                var prevTotal = 0;
 
                 do
                 {
-                    platforms = GetPlatformsWithRetry(MaxElementsPerPage, results.Count, orderBy);
+                    platforms = GetPlatformsWithRetry(MaxElementsPerPage, results.Count + prevTotal, orderBy);
                     results.AddRange(platforms);
-                    _logger.Information("Pulled platforms: {@New}, total platforms: {@Total}", platforms.Count, results.Count);
+                    _logger.Information("Pulled platforms: {@New}, total platforms: {@Total}", platforms.Count, results.Count + prevTotal);
                     Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
 
                     var memorySize = GC.GetTotalMemory(false);
                     if (memorySize > MaxMemorySizeBytes)
                     {
+                        prevTotal = results.Count;
                         _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
                         SavePlatforms(results, isFullImport);
                         results.ClearMemory();

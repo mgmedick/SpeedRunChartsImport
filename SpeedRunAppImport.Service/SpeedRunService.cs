@@ -50,7 +50,7 @@ namespace SpeedRunAppImport.Service
                     var memorySize = GC.GetTotalMemory(false);
                     if (memorySize > MaxMemorySizeBytes)
                     {
-                        prevTotal = results.Count;
+                        prevTotal += results.Count;
                         _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
                         SaveSpeedRuns(results, isFullImport);
                         results.ClearMemory();
@@ -85,7 +85,7 @@ namespace SpeedRunAppImport.Service
                         var memorySize = GC.GetTotalMemory(false);
                         if (memorySize > MaxMemorySizeBytes)
                         {
-                            verifiedPrevTotal = verifiedResults.Count;
+                            verifiedPrevTotal += verifiedResults.Count;
                             _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", verifiedResults.Count, memorySize);
                             SaveSpeedRuns(verifiedResults, isFullImport);
                             verifiedResults.ClearMemory();
@@ -115,7 +115,7 @@ namespace SpeedRunAppImport.Service
                         var memorySize = GC.GetTotalMemory(false);
                         if (memorySize > MaxMemorySizeBytes)
                         {
-                            rejectedPrevTotal = rejectedResults.Count;
+                            rejectedPrevTotal += rejectedResults.Count;
                             _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", rejectedResults.Count, memorySize);
                             SaveSpeedRuns(rejectedResults, isFullImport);
                             rejectedResults.ClearMemory();

@@ -50,7 +50,7 @@ namespace SpeedRunAppImport.Service
                     var memorySize = GC.GetTotalMemory(false);
                     if (memorySize > MaxMemorySizeBytes)
                     {
-                        prevTotal = results.Count;
+                        prevTotal += results.Count;
                         _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
                         SavePlatforms(results, isFullImport);
                         results.ClearMemory();

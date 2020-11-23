@@ -97,7 +97,7 @@ namespace SpeedRunAppImport.Service
             }
             catch (Exception ex)
             {
-                if (ex.InnerException is APIException && ((APIException)ex).Message.Contains("could not be found"))
+                if (ex is APIException && ((APIException)ex).Message.Contains("could not be found"))
                 {
                     leaderboard = null;
                     _logger.Error(ex, "GetLeaderboardWithRetry");

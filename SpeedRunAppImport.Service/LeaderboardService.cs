@@ -42,8 +42,17 @@ namespace SpeedRunAppImport.Service
                 foreach (var leaderboardKey in leaderboardKeys)
                 {
                     var leaderboard = GetLeaderboardWithRetry(leaderboardKey.GameID, leaderboardKey.CategoryID, leaderboardKey.LevelID);
-                    results.Add(leaderboard);
-                    _logger.Information("Pulled {@Count} / {@Total} leaderboards", results.Count + prevTotal, leaderboardKeys.Count);
+                    if (leaderboard != null)
+                    {
+                        results.Add(leaderboard);
+                        _logger.Information("Pulled {@Count} / {@Total} leaderboards", results.Count + prevTotal, leaderboardKeys.Count);
+                    }
+                    else
+                    {
+                        prevTotal += 1;
+                        _logger.Information("Skipped {@Count} / {@Total} leaderboards", 1, leaderboardKeys.Count);
+                    }
+
                     Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
 
                     var memorySize = GC.GetTotalMemory(false);
@@ -77,7 +86,7 @@ namespace SpeedRunAppImport.Service
             Leaderboard leaderboard = null;
             try
             {
-                if(string.IsNullOrWhiteSpace(levelID))
+                if (string.IsNullOrWhiteSpace(levelID))
                 {
                     leaderboard = clientContainer.Leaderboards.GetLeaderboardForFullGameCategory(gameId: gameID, categoryId: categoryID);
                 }
@@ -88,7 +97,12 @@ namespace SpeedRunAppImport.Service
             }
             catch (Exception ex)
             {
-                if (retryCount <= MaxRetryCount)
+                if (ex.InnerException is APIException && ((APIException)ex).Message.Contains("could not be found"))
+                {
+                    leaderboard = null;
+                    _logger.Error(ex, "GetLeaderboardWithRetry");
+                }
+                else if (retryCount <= MaxRetryCount)
                 {
                     Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.ErrorPullDelayMS));
                     retryCount++;

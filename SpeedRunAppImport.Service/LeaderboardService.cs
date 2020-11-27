@@ -100,7 +100,7 @@ namespace SpeedRunAppImport.Service
                 if (ex is APIException && ((APIException)ex).Message.Contains("could not be found"))
                 {
                     leaderboard = null;
-                    _logger.Error(ex, "GetLeaderboardWithRetry");
+                    _logger.Information(ex, "GetLeaderboardWithRetry");
                 }
                 else if (retryCount <= MaxRetryCount)
                 {

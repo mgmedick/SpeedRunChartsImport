@@ -90,9 +90,8 @@ namespace SpeedRunAppImport.Repository
                 {
                     using (var tran = db.GetTransaction())
                     {
-                        db.DeleteMany<LeaderboardEntity>().Where(i => i.GameID == leaderboardKey.GameID && i.CategoryID == leaderboardKey.CategoryID && i.LevelID == leaderboardKey.LevelID);
+                        db.DeleteWhere<LeaderboardEntity>("GameID = @GameID AND CategoryID = @CategoryID AND ISNULL(LevelID,'') = ISNULL(@LevelID,'')", new { GameID = leaderboardKey.GameID, CategoryID = leaderboardKey.CategoryID, LevelID = leaderboardKey.LevelID });
                         db.InsertBulk<LeaderboardEntity>(leaderboards.Where(i => i.GameID == leaderboardKey.GameID && i.CategoryID == leaderboardKey.CategoryID && i.LevelID == leaderboardKey.LevelID).ToList());
-
                         tran.Complete();
                     }
                 }

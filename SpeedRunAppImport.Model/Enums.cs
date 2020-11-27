@@ -220,4 +220,14 @@ namespace SpeedRunAppImport.Model
         Num = 1,
         Dte = 2
     }
+
+    public enum ImportProcess
+    {
+        All = 0,
+        Platform = 1,
+        Game = 2,
+        User = 3,
+        SpeedRun = 4,
+        Leaderboard = 5
+    }
 }

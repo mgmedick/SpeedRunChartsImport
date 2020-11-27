@@ -77,10 +77,10 @@ namespace SpeedRunAppImport
                 IsFullImport = _config.GetValue<bool>("IsFullImport");
                 NPocoBootstrapper.Configure(connString, maxBulkRows, IsFullImport);
 
-                ImportProcessIDs = _config.GetValue<string>("ImportProcessIDs").Split(",").Select(i => Convert.ToInt32(i)).ToList();
-                if (ImportProcessIDs.Contains(((int)ImportProcess.All)))
+                Processes = _config.GetValue<string>("ProcessIDs").Split(",").Select(i => (ImportProcess)Convert.ToInt32(i)).ToList();
+                if (Processes.Contains(ImportProcess.All))
                 {
-                    ImportProcessIDs.RemoveAll(i => i != (int)ImportProcess.All);
+                    Processes.RemoveAll(i => i != ImportProcess.All);
                 }
 
                 var sqlMinDateTime = (DateTime)SqlDateTime.MinValue;
@@ -118,27 +118,27 @@ namespace SpeedRunAppImport
 
         public void RunProcesses()
         {
-            if(ImportProcessIDs.Contains((int)ImportProcess.All) || ImportProcessIDs.Contains((int)ImportProcess.Platform))
+            if(Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Platform))
             {
                 _platformService.ProcessPlatforms(IsFullImport);
             }
 
-            if (ImportProcessIDs.Contains((int)ImportProcess.All) || ImportProcessIDs.Contains((int)ImportProcess.Game))
+            if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Game))
             {
                 _gameService.ProcessGames(GameLastImportDate, IsFullImport);
             }
 
-            if (ImportProcessIDs.Contains((int)ImportProcess.All) || ImportProcessIDs.Contains((int)ImportProcess.User))
+            if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.User))
             {
                 _userService.ProcessUsers(UserLastImportDate, IsFullImport);
             }
 
-            if (ImportProcessIDs.Contains((int)ImportProcess.All) || ImportProcessIDs.Contains((int)ImportProcess.SpeedRun))
+            if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.SpeedRun))
             {
                 _speedRunService.ProcessSpeedRuns(SpeedRunLastImportDate, IsFullImport);
             }
 
-            if (ImportProcessIDs.Contains((int)ImportProcess.All) || ImportProcessIDs.Contains((int)ImportProcess.Leaderboard))
+            if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Leaderboard))
             {
                 _leaderboardService.ProcessLeaderboards(LeaderboardLastImportDate, IsFullImport);
             }
@@ -151,6 +151,6 @@ namespace SpeedRunAppImport
         public DateTime LeaderboardLastImportDate { get; set; }
         public bool IsFullImport { get; set; }
         public bool IsImportRunning { get; set; }
-        public List<int> ImportProcessIDs { get; set; }
+        public List<ImportProcess> Processes { get; set; }
     }
 }

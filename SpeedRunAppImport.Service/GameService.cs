@@ -41,6 +41,11 @@ namespace SpeedRunAppImport.Service
                 var games = new List<Game>();
                 var prevTotal = 0;
 
+                if (isFullImport)
+                {
+                    _gameRepo.CopyGameTables();
+                }
+
                 do
                 {
                     games = GetGamesWithRetry(MaxElementsPerPage, results.Count + prevTotal, gameEmbeds, orderBy);
@@ -68,6 +73,11 @@ namespace SpeedRunAppImport.Service
 
                     SaveGames(results, isFullImport);
                     results.ClearMemory();
+                }
+
+                if (isFullImport)
+                {
+                    _gameRepo.RenameAndDropGameTables();
                 }
 
                 _settingService.UpdateSetting("GameLastImportDate", newImportDate);
@@ -126,9 +136,7 @@ namespace SpeedRunAppImport.Service
         {
             if (isFullImport)
             {
-                _gameRepo.CopyGameTables();
                 _gameRepo.InsertGames(games, levels, categories, variables, variableValues, gamePlatforms, gameRegions, gameModerators, gameRulesets, gameTimingMethods);
-                _gameRepo.RenameAndDropGameTables();
             }
             else
             {

@@ -40,6 +40,11 @@ namespace SpeedRunAppImport.Service
                 var runs = new List<SpeedRun>();
                 var prevTotal = 0;
 
+                if (isFullImport)
+                {
+                    _speedRunRepo.CopySpeedRunTables();
+                }
+
                 do
                 {
                     runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count + prevTotal, orderBy);
@@ -69,66 +74,13 @@ namespace SpeedRunAppImport.Service
                     results.ClearMemory();
                 }
 
-                if (!isFullImport)
+                if (isFullImport)
                 {
-                    var verifiedResults = new List<SpeedRun>();
-                    var verifiedRuns = new List<SpeedRun>();
-                    var verifiedPrevTotal = 0;
-
-                    do
-                    {
-                        verifiedRuns = GetSpeedRunsWithRetry(MaxElementsPerPage, verifiedResults.Count + verifiedPrevTotal, RunsOrdering.VerifyDateDescending, RunStatusType.Verified);
-                        verifiedResults.AddRange(verifiedRuns);
-                        _logger.Information("Pulled verified runs: {@New}, total runs: {@Total}", verifiedRuns.Count, verifiedResults.Count + verifiedPrevTotal);
-                        Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
-
-                        var memorySize = GC.GetTotalMemory(false);
-                        if (memorySize > MaxMemorySizeBytes)
-                        {
-                            verifiedPrevTotal += verifiedResults.Count;
-                            _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", verifiedResults.Count, memorySize);
-                            SaveSpeedRuns(verifiedResults, isFullImport);
-                            verifiedResults.ClearMemory();
-                        }
-                    }
-                    while (verifiedRuns.Count == MaxElementsPerPage && verifiedRuns.Min(i => i.VerifyDate ?? SqlMinDateTime) >= lastImportDate);
-
-                    if (verifiedResults.Any())
-                    {
-                        verifiedResults.RemoveAll(i => (i.VerifyDate ?? SqlMinDateTime) < lastImportDate);
-                        SaveSpeedRuns(verifiedResults, isFullImport);
-                        results.ClearMemory();
-                    }
-
-                    var rejectedDate = lastImportDate.AddDays(RejectedDaysBack);
-                    var rejectedResults = new List<SpeedRun>();
-                    var rejectedRuns = new List<SpeedRun>();
-                    var rejectedPrevTotal = 0;
-
-                    do
-                    {
-                        rejectedRuns = GetSpeedRunsWithRetry(MaxElementsPerPage, rejectedResults.Count + rejectedPrevTotal, RunsOrdering.DateSubmittedDescending, RunStatusType.Rejected);
-                        rejectedResults.AddRange(rejectedRuns);
-                        _logger.Information("Pulled rejected runs: {@New}, total runs: {@Total}", rejectedRuns.Count, rejectedResults.Count + rejectedPrevTotal);
-                        Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
-
-                        var memorySize = GC.GetTotalMemory(false);
-                        if (memorySize > MaxMemorySizeBytes)
-                        {
-                            rejectedPrevTotal += rejectedResults.Count;
-                            _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", rejectedResults.Count, memorySize);
-                            SaveSpeedRuns(rejectedResults, isFullImport);
-                            rejectedResults.ClearMemory();
-                        }
-                    }
-                    while (rejectedRuns.Count == MaxElementsPerPage && rejectedRuns.Min(i => i.DateSubmitted ?? SqlMinDateTime) >= rejectedDate);
-
-                    if (rejectedResults.Any())
-                    {
-                        rejectedResults.RemoveAll(i => (i.DateSubmitted ?? SqlMinDateTime) < rejectedDate);
-                        SaveSpeedRuns(rejectedResults, isFullImport);
-                        results.ClearMemory();
-                    }
+                    _speedRunRepo.RenameAndDropSpeedRunTables();
+                }
+                else
+                {
+                    ProcessSpeedRunUpdates(lastImportDate, isFullImport);
                 }
                 
                 _settingService.UpdateSetting("SpeedRunLastImportDate", newImportDate);
@@ -137,6 +89,68 @@ namespace SpeedRunAppImport.Service
             catch (Exception ex)
             {
                 _logger.Error(ex, "ProcessSpeedRuns");
+            }
+        }
+
+        public void ProcessSpeedRunUpdates(DateTime lastImportDate, bool isFullImport)
+        {
+            var verifiedResults = new List<SpeedRun>();
+            var verifiedRuns = new List<SpeedRun>();
+            var verifiedPrevTotal = 0;
+
+            do
+            {
+                verifiedRuns = GetSpeedRunsWithRetry(MaxElementsPerPage, verifiedResults.Count + verifiedPrevTotal, RunsOrdering.VerifyDateDescending, RunStatusType.Verified);
+                verifiedResults.AddRange(verifiedRuns);
+                _logger.Information("Pulled verified runs: {@New}, total runs: {@Total}", verifiedRuns.Count, verifiedResults.Count + verifiedPrevTotal);
+                Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
+
+                var memorySize = GC.GetTotalMemory(false);
+                if (memorySize > MaxMemorySizeBytes)
+                {
+                    verifiedPrevTotal += verifiedResults.Count;
+                    _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", verifiedResults.Count, memorySize);
+                    SaveSpeedRuns(verifiedResults, isFullImport);
+                    verifiedResults.ClearMemory();
+                }
+            }
+            while (verifiedRuns.Count == MaxElementsPerPage && verifiedRuns.Min(i => i.VerifyDate ?? SqlMinDateTime) >= lastImportDate);
+
+            if (verifiedResults.Any())
+            {
+                verifiedResults.RemoveAll(i => (i.VerifyDate ?? SqlMinDateTime) < lastImportDate);
+                SaveSpeedRuns(verifiedResults, isFullImport);
+                verifiedResults.ClearMemory();
+            }
+
+            var rejectedDate = lastImportDate.AddDays(RejectedDaysBack);
+            var rejectedResults = new List<SpeedRun>();
+            var rejectedRuns = new List<SpeedRun>();
+            var rejectedPrevTotal = 0;
+
+            do
+            {
+                rejectedRuns = GetSpeedRunsWithRetry(MaxElementsPerPage, rejectedResults.Count + rejectedPrevTotal, RunsOrdering.DateSubmittedDescending, RunStatusType.Rejected);
+                rejectedResults.AddRange(rejectedRuns);
+                _logger.Information("Pulled rejected runs: {@New}, total runs: {@Total}", rejectedRuns.Count, rejectedResults.Count + rejectedPrevTotal);
+                Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
+
+                var memorySize = GC.GetTotalMemory(false);
+                if (memorySize > MaxMemorySizeBytes)
+                {
+                    rejectedPrevTotal += rejectedResults.Count;
+                    _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", rejectedResults.Count, memorySize);
+                    SaveSpeedRuns(rejectedResults, isFullImport);
+                    rejectedResults.ClearMemory();
+                }
+            }
+            while (rejectedRuns.Count == MaxElementsPerPage && rejectedRuns.Min(i => i.DateSubmitted ?? SqlMinDateTime) >= rejectedDate);
+
+            if (rejectedResults.Any())
+            {
+                rejectedResults.RemoveAll(i => (i.DateSubmitted ?? SqlMinDateTime) < rejectedDate);
+                SaveSpeedRuns(rejectedResults, isFullImport);
+                rejectedResults.ClearMemory();
             }
         }
 
@@ -211,9 +225,7 @@ namespace SpeedRunAppImport.Service
         {
             if (isFullImport)
             {
-                _speedRunRepo.CopySpeedRunTables();
                 _speedRunRepo.InsertSpeedRuns(runEntities, variableValueEntities, playerEntities, videoEntities);
-                _speedRunRepo.RenameAndDropSpeedRunTables();
             }
             else
             {

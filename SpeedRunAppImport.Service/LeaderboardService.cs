@@ -39,6 +39,11 @@ namespace SpeedRunAppImport.Service
                 List<Leaderboard> results = new List<Leaderboard>();
                 var prevTotal = 0;
 
+                if (isFullImport)
+                {
+                    _leaderboardRepo.CopyLeaderboardTables();
+                }
+
                 foreach (var leaderboardKey in leaderboardKeys)
                 {
                     var leaderboard = GetLeaderboardWithRetry(leaderboardKey.GameID, leaderboardKey.CategoryID, leaderboardKey.LevelID);
@@ -69,6 +74,11 @@ namespace SpeedRunAppImport.Service
                 {
                     SaveLeaderboards(results, isFullImport);
                     results.ClearMemory();
+                }
+
+                if (isFullImport)
+                {
+                    _leaderboardRepo.RenameAndDropLeaderboardTables();
                 }
 
                 _settingService.UpdateSetting("LeaderboardLastImportDate", newImportDate);
@@ -129,9 +139,7 @@ namespace SpeedRunAppImport.Service
         {
             if (isFullImport)
             {
-                _leaderboardRepo.CopyLeaderboardTables();
                 _leaderboardRepo.InsertLeaderboards(leaderboardEntities);
-                _leaderboardRepo.RenameAndDropLeaderboardTables();
             }
             else
             {

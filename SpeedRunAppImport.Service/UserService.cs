@@ -40,6 +40,11 @@ namespace SpeedRunAppImport.Service
                 var users = new List<User>();
                 var prevTotal = 0;
 
+                if (isFullImport)
+                {
+                    _userRepo.CopyUserTables();
+                }
+
                 do
                 {
                     users = GetUsersWithRetry(MaxElementsPerPage, results.Count + prevTotal, orderBy);
@@ -67,6 +72,11 @@ namespace SpeedRunAppImport.Service
 
                     SaveUsers(results, isFullImport);
                     results.ClearMemory();
+                }
+
+                if (isFullImport)
+                {
+                    _userRepo.RenameAndDropUserTables();
                 }
 
                 _settingService.UpdateSetting("UserLastImportDate", newImportDate);
@@ -114,9 +124,7 @@ namespace SpeedRunAppImport.Service
         {
             if (isFullImport)
             {
-                _userRepo.CopyUserTables();
                 _userRepo.InsertUsers(userEntities);
-                _userRepo.RenameAndDropUserTables();
             }
             else
             {

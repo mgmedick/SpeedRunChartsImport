@@ -40,6 +40,11 @@ namespace SpeedRunAppImport.Service
                 var platforms = new List<Platform>();
                 var prevTotal = 0;
 
+                if (isFullImport)
+                {
+                    _platformRepo.CopyPlatformTables();
+                }
+
                 do
                 {
                     platforms = GetPlatformsWithRetry(MaxElementsPerPage, results.Count + prevTotal, orderBy);
@@ -60,10 +65,13 @@ namespace SpeedRunAppImport.Service
 
                 if (results.Any())
                 {
-                    var platformIDs = _platformRepo.GetAllPlatformIDs().ToList();
-                    var newPlatforms = results.Where(i => !platformIDs.Contains(i.ID)).ToList();
-                    SavePlatforms(newPlatforms, isFullImport);
+                    SavePlatforms(results, isFullImport);
                     results.ClearMemory();
+                }
+
+                if (isFullImport)
+                {
+                    _platformRepo.RenameAndDropPlatformTables();
                 }
 
                 _settingService.UpdateSetting("PlatformLastImportDate", newImportDate);
@@ -107,18 +115,15 @@ namespace SpeedRunAppImport.Service
             SavePlatforms(platformEntities, isFullImport);
         }
 
-        public void SavePlatforms(IEnumerable<PlatformEntity> platformsEntities, bool isFullImport)
+        public void SavePlatforms(IEnumerable<PlatformEntity> platformEntities, bool isFullImport)
         {
-            if (isFullImport)
+            if (!isFullImport)
             {
-                _platformRepo.CopyPlatformTables();
-                _platformRepo.InsertPlatforms(platformsEntities);
-                _platformRepo.RenameAndDropPlatformTables();
+                var platformIDs = _platformRepo.GetAllPlatformIDs().ToList();
+                platformEntities = platformEntities.Where(i => !platformIDs.Contains(i.ID)).ToList();
             }
-            else
-            {
-                _platformRepo.InsertPlatforms(platformsEntities);
-            }
+
+            _platformRepo.InsertPlatforms(platformEntities);
         }
     }
 }

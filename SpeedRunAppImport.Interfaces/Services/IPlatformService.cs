@@ -12,7 +12,7 @@ namespace SpeedRunAppImport.Interfaces.Services
         void ProcessPlatforms(bool isFullImport);
         List<Platform> GetPlatformsWithRetry(int elementsPerPage, int elementsOffset, PlatformsOrdering orderBy, int retryCount = 0);
         void SavePlatforms(IEnumerable<Platform> platforms, bool isFullImport);
-        void SavePlatforms(IEnumerable<PlatformEntity> platformsEntities, bool isFullImport);
+        void SavePlatforms(IEnumerable<PlatformEntity> platformEntities, bool isFullImport);
     }
 } 
 

@@ -243,13 +243,5 @@ namespace SpeedRunAppImport.Repository
                 count++;
             }
         }
-
-        public IEnumerable<GameView> GetGameViews(Expression<Func<GameView, bool>> predicate)
-        {
-            using (IDatabase db = DBFactory.GetDatabase())
-            {
-                return db.Query<GameView>().Where(predicate).ToList();
-            }
-        }
     }
 }

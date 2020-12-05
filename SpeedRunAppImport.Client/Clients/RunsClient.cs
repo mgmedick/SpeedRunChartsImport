@@ -129,11 +129,15 @@ namespace SpeedRunAppImport.Client
 
             var runDate = runElement.date;
             if (!string.IsNullOrWhiteSpace(runDate))
-                run.Date = DateTime.Parse(runDate, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
+            {
+                //run.Date = DateTime.Parse(runDate, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
+                run.Date = DateTime.Parse(runDate).ToUniversalTime();
+            }
 
             if (runElement.submitted != null)
             {
                 run.DateSubmitted = runElement.submitted;
+                //run.DateSubmitted = ((DateTime)runElement.submitted).ToUniversalTime();
             }
 
             run.Times = ParseRunTimes(runElement.times) as SpeedRunTimes;

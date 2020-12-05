@@ -13,5 +13,6 @@ namespace SpeedRunAppImport.Model.Entity
         public int VariableScopeTypeID { get; set; }
         public string CategoryID { get; set; }
         public string LevelID { get; set; }
+        public bool IsSubCategory { get; set; }
     }
 } 

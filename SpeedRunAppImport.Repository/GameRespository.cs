@@ -75,21 +75,34 @@ namespace SpeedRunAppImport.Repository
 
                                 ALTER TABLE [dbo].[tbl_Level_Full] ADD CONSTRAINT [PK_tbl_Level_Full] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
                                 CREATE CLUSTERED INDEX [IDX_tbl_Level_Full_OrderValue] ON [dbo].[tbl_Level_Full] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_Level_Full_GameID] ON [dbo].[tbl_Level_Full] ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
 
                                 ALTER TABLE [dbo].[tbl_Category_Full] ADD CONSTRAINT [PK_tbl_Category_Full] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
                                 CREATE CLUSTERED INDEX [IDX_tbl_Category_Full_OrderValue] ON [dbo].[tbl_Category_Full] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY] 
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_Category_Full_GameID] ON [dbo].[tbl_Category_Full] ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
 
                                 ALTER TABLE [dbo].[tbl_Variable_Full] ADD CONSTRAINT [PK_tbl_Variable_Full] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
                                 CREATE CLUSTERED INDEX [IDX_tbl_Variable_Full_OrderValue] ON [dbo].[tbl_Variable_Full] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY] 
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_Variable_Full_GameID] ON [dbo].[tbl_Variable_Full] ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
 
                                 ALTER TABLE [dbo].[tbl_VariableValue_Full] ADD CONSTRAINT [PK_tbl_VariableValue_Full] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
                                 CREATE CLUSTERED INDEX [IDX_tbl_VariableValue_Full_OrderValue] ON [dbo].[tbl_VariableValue_Full] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY] 
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_VariableValue_Full_GameID] ON [dbo].[tbl_VariableValue_Full] ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
 
                                 ALTER TABLE [dbo].[tbl_Game_Platform_Full] ADD CONSTRAINT [PK_tbl_Game_Platform_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_Game_Platform_Full_GameID] ON [dbo].[tbl_Game_Platform_Full] ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
+
                                 ALTER TABLE [dbo].[tbl_Game_Region_Full] ADD CONSTRAINT [PK_tbl_Game_Region_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_Game_Region_Full_GameID] ON [dbo].[tbl_Game_Region_Full] ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
+
                                 ALTER TABLE [dbo].[tbl_Game_Moderator_Full] ADD CONSTRAINT [PK_tbl_Game_Moderator_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_Game_Moderator_Full_GameID] ON [dbo].[tbl_Game_Moderator_Full] ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
+
                                 ALTER TABLE [dbo].[tbl_Game_Ruleset_Full] ADD CONSTRAINT [PK_tbl_Game_Ruleset_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                ALTER TABLE [dbo].[tbl_Game_TimingMethod_Full] ADD CONSTRAINT [PK_tbl_Game_TimingMethod_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]");
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_Game_Ruleset_Full_GameID] ON [dbo].[tbl_Game_Ruleset_Full] ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
+
+                                ALTER TABLE [dbo].[tbl_Game_TimingMethod_Full] ADD CONSTRAINT [PK_tbl_Game_TimingMethod_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_Game_TimingMethod_Full_GameID] ON [dbo].[tbl_Game_TimingMethod_Full] ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY]");
                     tran.Complete();
                 }
             }
@@ -140,21 +153,35 @@ namespace SpeedRunAppImport.Repository
 
                                 EXEC sp_rename 'dbo.PK_tbl_Level_Full', 'PK_tbl_Level'
                                 EXEC sp_rename 'dbo.tbl_Level.IDX_tbl_Level_Full_OrderValue', 'IDX_tbl_Level_OrderValue', 'INDEX'
+                                EXEC sp_rename 'dbo.tbl_Level.IDX_tbl_Level_Full_GameID', 'IDX_tbl_Level_GameID', 'INDEX'
 
                                 EXEC sp_rename 'dbo.PK_tbl_Category_Full', 'PK_tbl_Category'
                                 EXEC sp_rename 'dbo.tbl_Category.IDX_tbl_Category_Full_OrderValue', 'IDX_tbl_Category_OrderValue', 'INDEX'
+                                EXEC sp_rename 'dbo.tbl_Category.IDX_tbl_Category_Full_GameID', 'IDX_tbl_Category_GameID', 'INDEX'
 
                                 EXEC sp_rename 'dbo.PK_tbl_Variable_Full', 'PK_tbl_Variable'
                                 EXEC sp_rename 'dbo.tbl_Variable.IDX_tbl_Variable_Full_OrderValue', 'IDX_tbl_Variable_OrderValue', 'INDEX'
+                                EXEC sp_rename 'dbo.tbl_Variable.IDX_tbl_Variable_Full_GameID', 'IDX_tbl_Variable_GameID', 'INDEX'
 
                                 EXEC sp_rename 'dbo.PK_tbl_VariableValue_Full', 'PK_tbl_VariableValue'
                                 EXEC sp_rename 'dbo.tbl_VariableValue.IDX_tbl_VariableValue_Full_OrderValue', 'IDX_tbl_VariableValue_OrderValue', 'INDEX'
+                                EXEC sp_rename 'dbo.tbl_VariableValue.IDX_tbl_VariableValue_Full_GameID', 'IDX_tbl_VariableValue_GameID', 'INDEX'
 
                                 EXEC sp_rename 'dbo.PK_tbl_Game_Platform_Full', 'PK_tbl_Game_Platform'
+                                EXEC sp_rename 'dbo.tbl_Game_Platform.IDX_tbl_Game_Platform_Full_GameID', 'IDX_tbl_Game_Platform_GameID', 'INDEX'
+
                                 EXEC sp_rename 'dbo.PK_tbl_Game_Region_Full', 'PK_tbl_Game_Region'
+                                EXEC sp_rename 'dbo.tbl_Game_Region.IDX_tbl_Game_Region_Full_GameID', 'IDX_tbl_Game_Region_GameID', 'INDEX'
+
                                 EXEC sp_rename 'dbo.PK_tbl_Game_Moderator_Full', 'PK_tbl_Game_Moderator'
+                                EXEC sp_rename 'dbo.tbl_Game_Moderator.IDX_tbl_Game_Moderator_Full_GameID', 'IDX_tbl_Game_Moderator_GameID', 'INDEX'
+
                                 EXEC sp_rename 'dbo.PK_tbl_Game_Ruleset_Full', 'PK_tbl_Game_Ruleset'
-                                EXEC sp_rename 'dbo.PK_tbl_Game_TimingMethod_Full', 'PK_tbl_Game_TimingMethod'");
+                                EXEC sp_rename 'dbo.tbl_Game_Ruleset.IDX_tbl_Game_Ruleset_Full_GameID', 'IDX_tbl_Game_Ruleset_GameID', 'INDEX'
+
+                                EXEC sp_rename 'dbo.PK_tbl_Game_TimingMethod_Full', 'PK_tbl_Game_TimingMethod'
+                                EXEC sp_rename 'dbo.tbl_Game_TimingMethod.IDX_tbl_Game_TimingMethod_Full_GameID', 'IDX_tbl_Game_TimingMethod_GameID', 'INDEX'");
+
                     tran.Complete();
                 }
             }

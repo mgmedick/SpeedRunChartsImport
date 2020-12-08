@@ -32,6 +32,7 @@ namespace SpeedRunAppImport.Repository
 
                                 ALTER TABLE [dbo].[tbl_Leaderboard_Full] ADD CONSTRAINT [PK_tbl_Leaderboard_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
                                 ALTER TABLE [dbo].[tbl_Leaderboard_Full] ADD CONSTRAINT [DF_tbl_Leaderboard_Full_ImportedDate] DEFAULT GETDATE() FOR [ImportedDate]
+
                                 CREATE NONCLUSTERED INDEX [IDX_tbl_Leaderboard_Full_SpeedRunID] ON [dbo].[tbl_Leaderboard_Full] ([SpeedRunID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
                                 CREATE NONCLUSTERED INDEX [IDX_tbl_Leaderboard_Full_GameID_PlusInclude] ON [dbo].[tbl_Leaderboard_Full] ([GameID]) INCLUDE ([CategoryID], [LevelID]) WITH (FILLFACTOR=90) ON [PRIMARY]");
                     tran.Complete();
@@ -51,8 +52,8 @@ namespace SpeedRunAppImport.Repository
 
                                 DROP TABLE dbo.tbl_Leaderboard_ToRemove
 
-                                EXEC sp_rename 'dbo.PK_tbl_Leaderboard_Full', 'PK_tbl_Leaderboard_Full'
-                                EXEC sp_rename 'dbo.DF_tbl_Leaderboard_Full_ImportedDate', 'DF_tbl_Leaderboard_Full_ImportedDate'
+                                EXEC sp_rename 'dbo.PK_tbl_Leaderboard_Full', 'PK_tbl_Leaderboard'
+                                EXEC sp_rename 'dbo.DF_tbl_Leaderboard_Full_ImportedDate', 'DF_tbl_Leaderboard_ImportedDate'
                                 EXEC sp_rename 'dbo.IDX_tbl_Leaderboard_Full_SpeedRunID', 'IDX_tbl_Leaderboard_SpeedRunID'
                                 EXEC sp_rename 'dbo.IDX_tbl_Leaderboard_Full_GameID_PlusInclude', 'IDX_tbl_Leaderboard_GameID_PlusInclude'");
                     tran.Complete();

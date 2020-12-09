@@ -138,10 +138,12 @@ namespace SpeedRunAppImport
                 _speedRunService.ProcessSpeedRuns(SpeedRunLastImportDate, IsFullImport);
             }
 
+            /*
             if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Leaderboard))
             {
                 _leaderboardService.ProcessLeaderboards(LeaderboardLastImportDate, IsFullImport);
             }
+            */
         }
 
         public DateTime PlatformLastImportDate { get; set; }

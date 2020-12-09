@@ -35,7 +35,7 @@ namespace SpeedRunAppImport.Service
             {
                 _logger.Information("Started ProcessLeaderboards: {@LastImportDate}, {@IsFullImport}", lastImportDate, isFullImport);
                 var newImportDate = DateTime.UtcNow;
-                var leaderboardKeys = _leaderboardRepo.GetLeaderboardKeys(lastImportDate, (int)RunStatusType.Verified).ToList();
+                var leaderboardKeys = _leaderboardRepo.GetLeaderboardKeys(lastImportDate.ToLocalTime(), (int)RunStatusType.Verified).ToList();
                 List<Leaderboard> results = new List<Leaderboard>();
                 var prevTotal = 0;
 

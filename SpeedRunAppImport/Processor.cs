@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using SpeedRunAppImport.Interfaces.Services;
@@ -28,27 +28,19 @@ namespace SpeedRunAppImport
         private readonly ISpeedRunService _speedRunService;
         private readonly IPlatformService _platformService;
         private readonly ILeaderboardService _leaderboardService;
-        private readonly IGameRepository _gameRepo;
-        private readonly IUserRepository _userRepo;
         private readonly ISpeedRunRepository _speedRunRepo;
-        private readonly IPlatformRepository _platformRepo;
-        private readonly ILeaderboardRepository _leaderboardRepo;
         private readonly ISettingService _settingService;
         private readonly IConfiguration _config;
         private readonly ILogger _logger;
 
-        public Processor(IGameService gameService, IUserService userService, ISpeedRunService speedRunService, IPlatformService platformService, ILeaderboardService leaderboardService, IGameRepository gameRepo, IUserRepository userRepo, ISpeedRunRepository speedRunRepo, IPlatformRepository platformRepo, ILeaderboardRepository leaderboardRepo, ISettingService settingService, IConfiguration config, ILogger logger)
+        public Processor(IGameService gameService, IUserService userService, ISpeedRunService speedRunService, IPlatformService platformService, ILeaderboardService leaderboardService, ISpeedRunRepository speedRunRepo, ISettingService settingService, IConfiguration config, ILogger logger)
         {
             _gameService = gameService;
             _userService = userService;
             _speedRunService = speedRunService;
             _platformService = platformService;
             _leaderboardService = leaderboardService;
-            _gameRepo = gameRepo;
-            _userRepo = userRepo;
             _speedRunRepo = speedRunRepo;
-            _platformRepo = platformRepo;
-            _leaderboardRepo = leaderboardRepo;
             _settingService = settingService;
             _config = config;
             _logger = logger;
@@ -118,7 +110,7 @@ namespace SpeedRunAppImport
 
         public void RunProcesses()
         {
-            if(Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Platform))
+            if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Platform))
             {
                 _platformService.ProcessPlatforms(IsFullImport);
             }
@@ -138,11 +130,11 @@ namespace SpeedRunAppImport
                 _speedRunService.ProcessSpeedRuns(SpeedRunLastImportDate, IsFullImport);
             }
 
-            /*
-            if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Leaderboard))
+            if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Game) || Processes.Contains(ImportProcess.SpeedRun))
             {
-                _leaderboardService.ProcessLeaderboards(LeaderboardLastImportDate, IsFullImport);
-            }*/
+                var lastImportDate = (SpeedRunLastImportDate > GameLastImportDate ? SpeedRunLastImportDate : GameLastImportDate);
+                _speedRunRepo.UpdateSpeedRunsRank(lastImportDate);
+            }
         }
 
         public DateTime PlatformLastImportDate { get; set; }

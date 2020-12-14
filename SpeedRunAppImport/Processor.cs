@@ -133,7 +133,7 @@ namespace SpeedRunAppImport
             if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Game) || Processes.Contains(ImportProcess.SpeedRun))
             {
                 var lastImportDate = (SpeedRunLastImportDate > GameLastImportDate ? SpeedRunLastImportDate : GameLastImportDate);
-                _speedRunRepo.UpdateSpeedRunsRank(lastImportDate);
+                _speedRunRepo.UpdateSpeedRunsRank(lastImportDate.ToLocalTime());
             }
         }
 

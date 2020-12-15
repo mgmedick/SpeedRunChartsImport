@@ -142,7 +142,8 @@ namespace SpeedRunAppImport.Model.Data
                 GameID = this.GameID,
                 VariableScopeTypeID = (int)this.Scope.Type,
                 CategoryID = this.CategoryID,
-                LevelID = this.Scope.LevelID
+                LevelID = this.Scope.LevelID,
+                IsSubCategory = this.IsSubCategory
             };
         }
     }

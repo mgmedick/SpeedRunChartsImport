@@ -47,6 +47,7 @@ namespace SpeedRunAppImport.Repository
                                 ALTER TABLE [dbo].[tbl_SpeedRun_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_Full] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
                                 ALTER TABLE [dbo].[tbl_SpeedRun_Full] ADD CONSTRAINT [DF_tbl_SpeedRun_Full_ImportedDate] DEFAULT GETDATE() FOR [ImportedDate]
                                 CREATE CLUSTERED INDEX [IDX_tbl_SpeedRun_Full_OrderValue] ON [dbo].[tbl_SpeedRun_Full] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY] 
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_Full_StatusTypeID_GameID_CategoryID_PrimaryTime_PlusInclude] ON [dbo].[tbl_SpeedRun_Full] ([StatusTypeID],[GameID],[CategoryID],[PrimaryTime]) INCLUDE ([ID],[LevelID])
 
                                 ALTER TABLE [dbo].[tbl_SpeedRun_Player_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_Player_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
                                 CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_Player_Full_SpeedRunID] ON [dbo].[tbl_SpeedRun_Player_Full] ([SpeedRunID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
@@ -85,6 +86,7 @@ namespace SpeedRunAppImport.Repository
                                 EXEC sp_rename 'dbo.PK_tbl_SpeedRun_Full', 'PK_tbl_SpeedRun'
                                 EXEC sp_rename 'dbo.DF_tbl_SpeedRun_Full_ImportedDate', 'DF_tbl_SpeedRun_ImportedDate'
                                 EXEC sp_rename 'dbo.tbl_SpeedRun.IDX_tbl_SpeedRun_Full_OrderValue', 'IDX_tbl_SpeedRun_OrderValue', 'INDEX'
+                                EXEC sp_rename 'dbo.tbl_SpeedRun.IDX_tbl_SpeedRun_Full_StatusTypeID_GameID_CategoryID_PrimaryTime_PlusInclude', 'IDX_tbl_SpeedRun_StatusTypeID_GameID_CategoryID_PrimaryTime_PlusInclude', 'INDEX'
 
                                 EXEC sp_rename 'dbo.PK_tbl_SpeedRun_Player_Full', 'PK_tbl_SpeedRun_Player'
                                 EXEC sp_rename 'dbo.tbl_SpeedRun_Player.IDX_tbl_SpeedRun_Player_Full_SpeedRunID', 'IDX_tbl_SpeedRun_Player_SpeedRunID', 'INDEX'
@@ -140,9 +142,13 @@ namespace SpeedRunAppImport.Repository
                 {
                     using (var tran = db.GetTransaction())
                     {
-                        db.DeleteWhere<SpeedRunVariableValueEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
-                        db.DeleteWhere<SpeedRunPlayerEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
-                        db.DeleteWhere<SpeedRunVideoEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
+                        if (db.Exists<SpeedRunEntity>(speedRun.ID))
+                        {
+                            speedRun.ModifiedDate = DateTime.Now;
+                            db.DeleteWhere<SpeedRunVariableValueEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
+                            db.DeleteWhere<SpeedRunPlayerEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
+                            db.DeleteWhere<SpeedRunVideoEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
+                        }
 
                         db.Save<SpeedRunEntity>(speedRun);
                         db.InsertBulk<SpeedRunVariableValueEntity>(variableValues.Where(i => i.SpeedRunID == speedRun.ID).ToList());
@@ -214,6 +220,19 @@ namespace SpeedRunAppImport.Repository
             {
                 return db.Query<SpeedRunEntity>().Where(predicate).ToList();
             }
+        }
+
+        public void UpdateSpeedRunRanks(int importProcessID, DateTime lastImportDate)
+        {
+            _logger.Information("Started UpdateSpeedRunRanks: {@ImportProcessID}, {@LastImportDate}", importProcessID, lastImportDate);
+
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                db.OneTimeCommandTimeout = 32767;
+                db.ExecuteScalar<int>("EXEC dbo.UpdateSpeedRunRanks @0, @1", importProcessID, lastImportDate);
+            }
+
+            _logger.Information("Completed UpdateSpeedRunRanks");
         }
     }
 }

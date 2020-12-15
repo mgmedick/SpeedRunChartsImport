@@ -241,15 +241,19 @@ namespace SpeedRunAppImport.Repository
                 {
                     using (var tran = db.GetTransaction())
                     {
-                        db.DeleteWhere<LevelEntity>("GameID = @gameID", new { gameID = game.ID });
-                        db.DeleteWhere<CategoryEntity>("GameID = @gameID", new { gameID = game.ID });
-                        db.DeleteWhere<VariableEntity>("GameID = @gameID", new { gameID = game.ID });
-                        db.DeleteWhere<VariableValueEntity>("GameID = @gameID", new { gameID = game.ID });
-                        db.DeleteWhere<GamePlatformEntity>("GameID = @gameID", new { gameID = game.ID });
-                        db.DeleteWhere<GameRegionEntity>("GameID = @gameID", new { gameID = game.ID });
-                        db.DeleteWhere<GameModeratorEntity>("GameID = @gameID", new { gameID = game.ID });
-                        db.DeleteWhere<GameRulesetEntity>("GameID = @gameID", new { gameID = game.ID });
-                        db.DeleteWhere<GameTimingMethodEntity>("GameID = @gameID", new { gameID = game.ID });
+                        if (db.Exists<GameEntity>(game.ID))
+                        {
+                            game.ModifiedDate = DateTime.Now;
+                            db.DeleteWhere<LevelEntity>("GameID = @gameID", new { gameID = game.ID });
+                            db.DeleteWhere<CategoryEntity>("GameID = @gameID", new { gameID = game.ID });
+                            db.DeleteWhere<VariableEntity>("GameID = @gameID", new { gameID = game.ID });
+                            db.DeleteWhere<VariableValueEntity>("GameID = @gameID", new { gameID = game.ID });
+                            db.DeleteWhere<GamePlatformEntity>("GameID = @gameID", new { gameID = game.ID });
+                            db.DeleteWhere<GameRegionEntity>("GameID = @gameID", new { gameID = game.ID });
+                            db.DeleteWhere<GameModeratorEntity>("GameID = @gameID", new { gameID = game.ID });
+                            db.DeleteWhere<GameRulesetEntity>("GameID = @gameID", new { gameID = game.ID });
+                            db.DeleteWhere<GameTimingMethodEntity>("GameID = @gameID", new { gameID = game.ID });
+                        }
 
                         db.Save<GameEntity>(game);
                         db.InsertBulk<LevelEntity>(levels.Where(i=>i.GameID == game.ID).ToList());

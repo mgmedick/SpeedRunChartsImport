@@ -17,5 +17,6 @@ namespace SpeedRunAppImport.Model.Entity
         public string CoverImageUrl { get; set; }
         public DateTime? CreatedDate { get; set; }
         public DateTime ImportedDate { get; set; }
+        public DateTime? ModifiedDate { get; set; }
     }
 } 

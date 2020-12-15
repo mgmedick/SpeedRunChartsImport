@@ -101,7 +101,7 @@ namespace SpeedRunAppImport.Model.Data
                 SplitsUrl = this.SplitsUri?.ToString(),
                 RunDate = this.Date,
                 DateSubmitted = this.DateSubmitted,
-                VerifyDate = this.VerifyDate
+                VerifyDate = this.Status.VerifyDate
             };
         }
     }

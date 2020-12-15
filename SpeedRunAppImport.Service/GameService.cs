@@ -49,6 +49,7 @@ namespace SpeedRunAppImport.Service
                 do
                 {
                     games = GetGamesWithRetry(MaxElementsPerPage, results.Count + prevTotal, gameEmbeds, orderBy);
+                    //games = new List<Game> { new ClientContainer().Games.GetGame("268eg076", gameEmbeds) };
                     results.AddRange(games);
                     _logger.Information("Pulled games: {@New}, total games: {@Total}", games.Count, results.Count + prevTotal);
                     Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));

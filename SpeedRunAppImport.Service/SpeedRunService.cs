@@ -82,7 +82,7 @@ namespace SpeedRunAppImport.Service
                 {
                     ProcessSpeedRunUpdates(lastImportDate, isFullImport);
                 }
-                
+
                 _settingService.UpdateSetting("SpeedRunLastImportDate", newImportDate);
                 _logger.Information("Completed ProcessSpeedRuns");
             }

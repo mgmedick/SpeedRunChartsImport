@@ -78,7 +78,7 @@ namespace SpeedRunAppImport.Model.Data
         public IEnumerable<Variable> Variables { get; set; }
         public IEnumerable<VariableValue> VariableValues { get; set; }
 
-        public SpeedRunEntity ConvertToEntity(DateTime? modifiedDate = null)
+        public SpeedRunEntity ConvertToEntity()
         {
             return new SpeedRunEntity
             {
@@ -101,8 +101,7 @@ namespace SpeedRunAppImport.Model.Data
                 SplitsUrl = this.SplitsUri?.ToString(),
                 RunDate = this.Date,
                 DateSubmitted = this.DateSubmitted,
-                VerifyDate = this.VerifyDate,
-                ModifiedDate = modifiedDate
+                VerifyDate = this.VerifyDate
             };
         }
     }

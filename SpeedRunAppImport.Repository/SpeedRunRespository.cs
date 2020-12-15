@@ -142,13 +142,9 @@ namespace SpeedRunAppImport.Repository
                 {
                     using (var tran = db.GetTransaction())
                     {
-                        if (db.Exists<SpeedRunEntity>(speedRun.ID))
-                        {
-                            speedRun.ModifiedDate = DateTime.Now;
-                            db.DeleteWhere<SpeedRunVariableValueEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
-                            db.DeleteWhere<SpeedRunPlayerEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
-                            db.DeleteWhere<SpeedRunVideoEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
-                        }
+                        db.DeleteWhere<SpeedRunVariableValueEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
+                        db.DeleteWhere<SpeedRunPlayerEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
+                        db.DeleteWhere<SpeedRunVideoEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
 
                         db.Save<SpeedRunEntity>(speedRun);
                         db.InsertBulk<SpeedRunVariableValueEntity>(variableValues.Where(i => i.SpeedRunID == speedRun.ID).ToList());
@@ -222,17 +218,12 @@ namespace SpeedRunAppImport.Repository
             }
         }
 
-        public void UpdateSpeedRunRanks(int importProcessID, DateTime lastImportDate)
+        public void UpdateSpeedRunsRank(DateTime lastImportDate)
         {
-            _logger.Information("Started UpdateSpeedRunRanks: {@ImportProcessID}, {@LastImportDate}", importProcessID, lastImportDate);
-
             using (IDatabase db = DBFactory.GetDatabase())
             {
-                db.OneTimeCommandTimeout = 32767;
-                db.ExecuteScalar<int>("EXEC dbo.UpdateSpeedRunRanks @0, @1", importProcessID, lastImportDate);
+                db.Execute("EXEC dbo.UpdateSpeedRunsRank @0", lastImportDate);
             }
-
-            _logger.Information("Completed UpdateSpeedRunRanks");
         }
     }
 }

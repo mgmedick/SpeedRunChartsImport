@@ -18,13 +18,15 @@ namespace SpeedRunAppImport.Service
     {
         private readonly ISettingService _settingService = null;
         private readonly IGameRepository _gameRepo = null;
+        private readonly ISpeedRunRepository _speedRunRepo = null;
         private readonly IConfiguration _config = null;
         private readonly ILogger _logger;
 
-        public GameService(ISettingService settingService, IGameRepository gameRepo, IConfiguration config, ILogger logger)
+        public GameService(ISettingService settingService, IGameRepository gameRepo, ISpeedRunRepository speedRunRepo, IConfiguration config, ILogger logger)
         {
             _settingService = settingService;
             _gameRepo = gameRepo;
+            _speedRunRepo = speedRunRepo;
             _config = config;
             _logger = logger;
         }
@@ -80,6 +82,8 @@ namespace SpeedRunAppImport.Service
                 {
                     _gameRepo.RenameAndDropGameTables();
                 }
+
+                _speedRunRepo.UpdateSpeedRunSubCategoryVariableValues(lastImportDate);
 
                 _settingService.UpdateSetting("GameLastImportDate", newImportDate);
                 _logger.Information("Completed ProcessGames");

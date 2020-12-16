@@ -234,5 +234,18 @@ namespace SpeedRunAppImport.Repository
 
             _logger.Information("Completed UpdateSpeedRunRanks");
         }
+
+        public void UpdateSpeedRunSubCategoryVariableValues(DateTime lastImportDate)
+        {
+            _logger.Information("Started UpdateSpeedRunSubCategoryVariableValues {@LastImportDate}", lastImportDate);
+
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                db.OneTimeCommandTimeout = 32767;
+                db.Execute("EXEC dbo.UpdateSpeedRunSubCategoryVariableValues @0", lastImportDate);
+            }
+
+            _logger.Information("Completed UpdateSpeedRunSubCategoryVariableValues");
+        }
     }
 }

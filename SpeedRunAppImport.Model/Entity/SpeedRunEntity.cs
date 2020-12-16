@@ -12,6 +12,8 @@ namespace SpeedRunAppImport.Model.Entity
         public string GameID { get; set; }
         public string CategoryID { get; set; }
         public string LevelID { get; set; }
+        public string SubCategoryVariableValues { get; set; }
+        public string PlayerIDs { get; set; }
         public string PlatformID { get; set; }
         public string RegionID { get; set; }
         public bool IsEmulated { get; set; }

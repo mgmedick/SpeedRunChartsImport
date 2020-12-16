@@ -17,6 +17,7 @@ namespace SpeedRunAppImport.Interfaces.Repositories
         void SaveSpeedRuns(IEnumerable<SpeedRunEntity> speedRuns, IEnumerable<SpeedRunVariableValueEntity> variableValues, IEnumerable<SpeedRunPlayerEntity> players, IEnumerable<SpeedRunVideoEntity> videos);
         IEnumerable<SpeedRunEntity> GetSpeedRuns(Expression<Func<SpeedRunEntity, bool>> predicate);
         void UpdateSpeedRunRanks(int importProcessID, DateTime lastImportDate);
+        void UpdateSpeedRunSubCategoryVariableValues(DateTime lastImportDate);
     }
 }
 

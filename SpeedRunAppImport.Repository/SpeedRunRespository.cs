@@ -47,7 +47,9 @@ namespace SpeedRunAppImport.Repository
                                 ALTER TABLE [dbo].[tbl_SpeedRun_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_Full] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
                                 ALTER TABLE [dbo].[tbl_SpeedRun_Full] ADD CONSTRAINT [DF_tbl_SpeedRun_Full_ImportedDate] DEFAULT GETDATE() FOR [ImportedDate]
                                 CREATE CLUSTERED INDEX [IDX_tbl_SpeedRun_Full_OrderValue] ON [dbo].[tbl_SpeedRun_Full] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-                                CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_Full_StatusTypeID_GameID_CategoryID_PrimaryTime_PlusInclude] ON [dbo].[tbl_SpeedRun_Full] ([StatusTypeID],[GameID],[CategoryID],[PrimaryTime]) INCLUDE ([ID],[LevelID])
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_Full_StatusTypeID_GameID_CategoryID_PlusInclude] ON [dbo].[tbl_SpeedRun_Full] ([StatusTypeID],[GameID],[CategoryID]) INCLUDE ([ID],[LevelID],[PrimaryTime],[SubCategoryVariableValues],[PlayerIDs])
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_Full_StatusTypeID_PlusInclude] ON [dbo].[tbl_SpeedRun_Full] ([StatusTypeID]) INCLUDE ([GameID],[CategoryID],[LevelID],[Rank],[SubCategoryVariableValues])
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_Full_StatusTypeID_GameID_CategoryID_PrimaryTime_PlusInclude] ON [dbo].[tbl_SpeedRun_Full] ([StatusTypeID],[GameID],[CategoryID],[PrimaryTime]) INCLUDE ([ID],[LevelID],[SubCategoryVariableValues])
 
                                 ALTER TABLE [dbo].[tbl_SpeedRun_Player_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_Player_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
                                 CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_Player_Full_SpeedRunID] ON [dbo].[tbl_SpeedRun_Player_Full] ([SpeedRunID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
@@ -86,6 +88,8 @@ namespace SpeedRunAppImport.Repository
                                 EXEC sp_rename 'dbo.PK_tbl_SpeedRun_Full', 'PK_tbl_SpeedRun'
                                 EXEC sp_rename 'dbo.DF_tbl_SpeedRun_Full_ImportedDate', 'DF_tbl_SpeedRun_ImportedDate'
                                 EXEC sp_rename 'dbo.tbl_SpeedRun.IDX_tbl_SpeedRun_Full_OrderValue', 'IDX_tbl_SpeedRun_OrderValue', 'INDEX'
+                                EXEC sp_rename 'dbo.tbl_SpeedRun.IDX_tbl_SpeedRun_Full_StatusTypeID_GameID_CategoryID_PlusInclude', 'IDX_tbl_SpeedRun_StatusTypeID_GameID_CategoryID_PlusInclude', 'INDEX'
+                                EXEC sp_rename 'dbo.tbl_SpeedRun.IDX_tbl_SpeedRun_Full_StatusTypeID_PlusInclude', 'IDX_tbl_SpeedRun_StatusTypeID_PlusInclude', 'INDEX'
                                 EXEC sp_rename 'dbo.tbl_SpeedRun.IDX_tbl_SpeedRun_Full_StatusTypeID_GameID_CategoryID_PrimaryTime_PlusInclude', 'IDX_tbl_SpeedRun_StatusTypeID_GameID_CategoryID_PrimaryTime_PlusInclude', 'INDEX'
 
                                 EXEC sp_rename 'dbo.PK_tbl_SpeedRun_Player_Full', 'PK_tbl_SpeedRun_Player'

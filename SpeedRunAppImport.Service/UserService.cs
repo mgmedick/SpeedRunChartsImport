@@ -7,7 +7,6 @@ using SpeedRunAppImport.Model.Data;
 using SpeedRunAppImport.Model.Entity;
 using SpeedRunAppImport.Interfaces.Services;
 using SpeedRunAppImport.Interfaces.Repositories;
-using Microsoft.Extensions.Configuration;
 using System.Threading;
 using Serilog;
 using SpeedRunCommon;
@@ -18,14 +17,12 @@ namespace SpeedRunAppImport.Service
     {
         private readonly ISettingService _settingService = null;
         private readonly IUserRepository _userRepo = null;
-        private readonly IConfiguration _config = null;
         private readonly ILogger _logger;
 
-        public UserService(ISettingService settingService, IUserRepository userRepo, IConfiguration config, ILogger logger)
+        public UserService(ISettingService settingService, IUserRepository userRepo, ILogger logger)
         {
             _settingService = settingService;
             _userRepo = userRepo;
-            _config = config;
             _logger = logger;
         }
 

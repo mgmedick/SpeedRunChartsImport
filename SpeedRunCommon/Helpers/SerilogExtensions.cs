@@ -6,7 +6,6 @@ using Serilog.Formatting;
 using Serilog.Formatting.Display;
 using Serilog.Sinks.Email;
 using Serilog.Sinks.PeriodicBatching;
-using Serilog.Settings.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Net;

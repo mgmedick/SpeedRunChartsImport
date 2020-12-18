@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using NPoco;
 using NPoco.FluentMappings;
-using Microsoft.Extensions.Configuration;
+//using Microsoft.Extensions.Configuration;
 using System.Data.SqlClient;
 
 namespace SpeedRunAppImport.Repository.Configuration

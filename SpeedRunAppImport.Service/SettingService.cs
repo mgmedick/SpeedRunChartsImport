@@ -7,7 +7,6 @@ using SpeedRunAppImport.Model.Data;
 using SpeedRunAppImport.Model.Entity;
 using SpeedRunAppImport.Interfaces.Services;
 using SpeedRunAppImport.Interfaces.Repositories;
-using Microsoft.Extensions.Configuration;
 using System.Threading;
 
 namespace SpeedRunAppImport.Service

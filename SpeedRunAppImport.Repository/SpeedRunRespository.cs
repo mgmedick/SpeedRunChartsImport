@@ -53,6 +53,7 @@ namespace SpeedRunAppImport.Repository
 
                                 ALTER TABLE [dbo].[tbl_SpeedRun_Player_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_Player_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
                                 CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_Player_Full_SpeedRunID] ON [dbo].[tbl_SpeedRun_Player_Full] ([SpeedRunID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_Player_Full_UserID] ON [dbo].[tbl_SpeedRun_Player_Full] ([UserID]) WITH (FILLFACTOR=90) ON [PRIMARY]
 
                                 ALTER TABLE [dbo].[tbl_SpeedRun_VariableValue_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_VariableValue_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
                                 CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_VariableValue_Full_SpeedRunID] ON [dbo].[tbl_SpeedRun_VariableValue_Full] ([SpeedRunID]) WITH (FILLFACTOR=90) ON [PRIMARY]
@@ -94,6 +95,7 @@ namespace SpeedRunAppImport.Repository
 
                                 EXEC sp_rename 'dbo.PK_tbl_SpeedRun_Player_Full', 'PK_tbl_SpeedRun_Player'
                                 EXEC sp_rename 'dbo.tbl_SpeedRun_Player.IDX_tbl_SpeedRun_Player_Full_SpeedRunID', 'IDX_tbl_SpeedRun_Player_SpeedRunID', 'INDEX'
+                                EXEC sp_rename 'dbo.tbl_SpeedRun_Player.IDX_tbl_SpeedRun_Player_Full_UserID', 'IDX_tbl_SpeedRun_Player_UserID', 'INDEX'
 
                                 EXEC sp_rename 'dbo.PK_tbl_SpeedRun_VariableValue_Full', 'PK_tbl_SpeedRun_VariableValue'
                                 EXEC sp_rename 'dbo.tbl_SpeedRun_VariableValue.IDX_tbl_SpeedRun_VariableValue_Full_SpeedRunID', 'IDX_tbl_SpeedRun_VariableValue_SpeedRunID', 'INDEX'

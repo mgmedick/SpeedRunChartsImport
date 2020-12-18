@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using NPoco;
-using Microsoft.Extensions.Configuration;
+//using Microsoft.Extensions.Configuration;
 using System.Data.SqlClient;
 
 namespace SpeedRunAppImport.Repository

@@ -8,7 +8,7 @@ using SpeedRunAppImport.Model.Data;
 using SpeedRunAppImport.Model.Entity;
 using SpeedRunAppImport.Interfaces.Services;
 using SpeedRunAppImport.Interfaces.Repositories;
-using Microsoft.Extensions.Configuration;
+//using Microsoft.Extensions.Configuration;
 using System.Threading;
 using SpeedRunCommon;
 
@@ -19,15 +19,13 @@ namespace SpeedRunAppImport.Service
         private readonly ISettingService _settingService = null;
         private readonly IGameRepository _gameRepo = null;
         private readonly ISpeedRunRepository _speedRunRepo = null;
-        private readonly IConfiguration _config = null;
         private readonly ILogger _logger;
 
-        public GameService(ISettingService settingService, IGameRepository gameRepo, ISpeedRunRepository speedRunRepo, IConfiguration config, ILogger logger)
+        public GameService(ISettingService settingService, IGameRepository gameRepo, ISpeedRunRepository speedRunRepo, ILogger logger)
         {
             _settingService = settingService;
             _gameRepo = gameRepo;
             _speedRunRepo = speedRunRepo;
-            _config = config;
             _logger = logger;
         }
 

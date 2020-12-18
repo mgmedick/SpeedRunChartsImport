@@ -5,7 +5,7 @@ using Serilog;
 using System.Linq;
 using SpeedRunAppImport.Model.Entity;
 using SpeedRunAppImport.Interfaces.Repositories;
-using Microsoft.Extensions.Configuration;
+//using Microsoft.Extensions.Configuration;
 using System.Linq.Expressions;
 
 namespace SpeedRunAppImport.Repository

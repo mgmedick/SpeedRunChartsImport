@@ -87,7 +87,7 @@ namespace SpeedRunAppImport.Model.Data
                 GameID = this.GameID,
                 CategoryID = this.CategoryID,
                 LevelID = this.LevelID,
-                SubCategoryVariableValues = string.Join(",", this.VariableValueMappings?.Where(i => i.Variable.IsSubCategory).Select(i => i.VariableID + "|" + i.VariableValueID)),
+                SubCategoryVariableValues = this.VariableValueMappings != null ? string.Join(",", this.VariableValueMappings?.Where(i => i.Variable.IsSubCategory).Select(i => i.VariableID + "|" + i.VariableValueID)) : string.Empty,
                 PlayerIDs = string.Join(",", this.Players.Select(i => i.UserID ?? i.GuestName).OrderBy(i => i)),
                 PlatformID = this.System.PlatformID,
                 RegionID = this.System.RegionID,

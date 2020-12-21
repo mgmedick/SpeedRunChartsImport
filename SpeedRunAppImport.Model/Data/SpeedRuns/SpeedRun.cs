@@ -78,7 +78,7 @@ namespace SpeedRunAppImport.Model.Data
         public IEnumerable<Variable> Variables { get; set; }
         public IEnumerable<VariableValue> VariableValues { get; set; }
 
-        public SpeedRunEntity ConvertToEntity()
+        public SpeedRunEntity ConvertToEntity(IEnumerable<string> subCategoryVariableIDs)
         {
             return new SpeedRunEntity
             {
@@ -87,7 +87,7 @@ namespace SpeedRunAppImport.Model.Data
                 GameID = this.GameID,
                 CategoryID = this.CategoryID,
                 LevelID = this.LevelID,
-                SubCategoryVariableValues = this.VariableValueMappings != null ? string.Join(",", this.VariableValueMappings?.Where(i => i.Variable.IsSubCategory).Select(i => i.VariableID + "|" + i.VariableValueID)) : string.Empty,
+                SubCategoryVariableValues = this.VariableValueMappings != null ? string.Join(",", this.VariableValueMappings.Where(i => subCategoryVariableIDs.Contains(i.VariableID)).Select(i => i.VariableID + "|" + i.VariableValueID)) : string.Empty,
                 PlayerIDs = string.Join(",", this.Players.Select(i => i.UserID ?? i.GuestName).OrderBy(i => i)),
                 PlatformID = this.System.PlatformID,
                 RegionID = this.System.RegionID,

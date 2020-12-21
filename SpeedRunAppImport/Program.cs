@@ -51,6 +51,7 @@ namespace SpeedRunAppImport
                 .ConfigureContainer<Lamar.ServiceRegistry>((context, services) =>
                 {
                     services.AddScoped<Processor>();
+                    services.AddMemoryCache();
                     services.Scan(s =>
                     {
                         s.TheCallingAssembly();

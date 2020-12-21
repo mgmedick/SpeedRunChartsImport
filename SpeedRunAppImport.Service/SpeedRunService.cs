@@ -17,12 +17,14 @@ namespace SpeedRunAppImport.Service
     {
         private readonly ISettingService _settingService = null;
         private readonly ISpeedRunRepository _speedRunRepo = null;
+        private readonly ICacheService _cacheService = null;
         private readonly ILogger _logger;
 
-        public SpeedRunService(ISettingService settingService, ISpeedRunRepository speedRunRepo, ILogger logger)
+        public SpeedRunService(ISettingService settingService, ISpeedRunRepository speedRunRepo, ICacheService cacheService, ILogger logger)
         {
             _settingService = settingService;
             _speedRunRepo = speedRunRepo;
+            _cacheService = cacheService;
             _logger = logger;
         }
 
@@ -31,7 +33,7 @@ namespace SpeedRunAppImport.Service
             try
             {
                 _logger.Information("Started ProcessSpeedRuns: {@LastImportDate}, {@IsFullImport}", lastImportDate, isFullImport);
-                var newImportDate = DateTime.UtcNow;
+                var newImportDate = DateTime.UtcNow;              
                 RunsOrdering orderBy = isFullImport ? RunsOrdering.DateSubmitted : RunsOrdering.DateSubmittedDescending;
                 var results = new List<SpeedRun>();
                 var runs = new List<SpeedRun>();
@@ -207,7 +209,8 @@ namespace SpeedRunAppImport.Service
 
         public void SaveSpeedRuns(IEnumerable<SpeedRun> runs, bool isFullImport)
         {
-            var runEntities = runs.Select(i => i.ConvertToEntity()).ToList();
+            var subCategoryVariableIDs = _cacheService.GetVariables().Where(i => i.IsSubCategory).Select(i => i.ID).ToList();
+            var runEntities = runs.Select(i => i.ConvertToEntity(subCategoryVariableIDs)).ToList();
             var variableValueEntities = runs.SelectMany(i => i.VariableValueMappings.Select(g => new SpeedRunVariableValueEntity() { SpeedRunID = i.ID, VariableID = g.VariableID, VariableValueID = g.VariableValueID })).ToList();
             var playerEntities = runs.SelectMany(i => i.Players.Select(g => new SpeedRunPlayerEntity() { SpeedRunID = i.ID, IsUser = g.IsUser, UserID = g.UserID, GuestName = g.GuestName })).ToList();
             var videoEntities = runs.Where(i => i.Videos?.Links != null && i.Videos.Links.Any(g => g != null))

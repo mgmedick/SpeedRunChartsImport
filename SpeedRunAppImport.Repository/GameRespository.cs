@@ -274,5 +274,13 @@ namespace SpeedRunAppImport.Repository
                 count++;
             }
         }
+
+        public IEnumerable<VariableEntity> GetVariables()
+        {
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                return db.Query<VariableEntity>().ToList();
+            }
+        }
     }
 }

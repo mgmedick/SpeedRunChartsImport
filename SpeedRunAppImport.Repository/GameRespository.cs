@@ -279,7 +279,7 @@ namespace SpeedRunAppImport.Repository
         {
             using (IDatabase db = DBFactory.GetDatabase())
             {
-                return db.Query<VariableEntity>().ToList();
+                return db.Query<VariableEntity>("SELECT OrderValue, ID, [Name], GameID, VariableScopeTypeID, CategoryID, LevelID, IsSubCategory FROM dbo.tbl_Variable ORDER BY OrderValue").ToList();
             }
         }
     }

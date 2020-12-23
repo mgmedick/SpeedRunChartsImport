@@ -52,6 +52,7 @@ namespace SpeedRunAppImport.Repository
                                 CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_Full_StatusTypeID_GameID_CategoryID_PrimaryTime_PlusInclude] ON [dbo].[tbl_SpeedRun_Full] ([StatusTypeID],[GameID],[CategoryID],[PrimaryTime]) INCLUDE ([ID],[LevelID],[SubCategoryVariableValues])
                                 CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_Full_StatusTypeID_LevelID] ON [dbo].[tbl_SpeedRun_Full] ([StatusTypeID],[LevelID]) WITH (FILLFACTOR=90) ON [PRIMARY]
                                 CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_Full_StatusTypeID_CategoryID] ON [dbo].[tbl_SpeedRun_Full] ([StatusTypeID],[CategoryID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_Full_StatusTypeID_GameID_Rank] ON [dbo].[tbl_SpeedRun_Full] ([StatusTypeID],[GameID],[Rank]) WITH (FILLFACTOR=90) ON [PRIMARY]
 
                                 ALTER TABLE [dbo].[tbl_SpeedRun_Player_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_Player_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
                                 CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_Player_Full_SpeedRunID] ON [dbo].[tbl_SpeedRun_Player_Full] ([SpeedRunID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
@@ -97,6 +98,7 @@ namespace SpeedRunAppImport.Repository
                                 EXEC sp_rename 'dbo.tbl_SpeedRun.IDX_tbl_SpeedRun_Full_StatusTypeID_GameID_CategoryID_PrimaryTime_PlusInclude', 'IDX_tbl_SpeedRun_StatusTypeID_GameID_CategoryID_PrimaryTime_PlusInclude', 'INDEX'
                                 EXEC sp_rename 'dbo.tbl_SpeedRun.IDX_tbl_SpeedRun_Full_StatusTypeID_LevelID', 'IDX_tbl_SpeedRun_StatusTypeID_LevelID', 'INDEX'
                                 EXEC sp_rename 'dbo.tbl_SpeedRun.IDX_tbl_SpeedRun_Full_StatusTypeID_CategoryID', 'IDX_tbl_SpeedRun_StatusTypeID_CategoryID', 'INDEX'
+                                EXEC sp_rename 'dbo.tbl_SpeedRun.IDX_tbl_SpeedRun_Full_StatusTypeID_GameID_Rank', 'IDX_tbl_SpeedRun_StatusTypeID_GameID_Rank', 'INDEX'
 
                                 EXEC sp_rename 'dbo.PK_tbl_SpeedRun_Player_Full', 'PK_tbl_SpeedRun_Player'
                                 EXEC sp_rename 'dbo.tbl_SpeedRun_Player.IDX_tbl_SpeedRun_Player_Full_SpeedRunID', 'IDX_tbl_SpeedRun_Player_SpeedRunID', 'INDEX'

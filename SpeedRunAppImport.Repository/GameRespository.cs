@@ -72,6 +72,7 @@ namespace SpeedRunAppImport.Repository
                                 ALTER TABLE [dbo].[tbl_Game_Full] ADD CONSTRAINT [PK_tbl_Game_Full] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
                                 ALTER TABLE [dbo].[tbl_Game_Full] ADD CONSTRAINT [DF_tbl_Game_Full_ImportedDate] DEFAULT GETDATE() FOR [ImportedDate]
                                 CREATE CLUSTERED INDEX [IDX_tbl_Game_Full_OrderValue] ON [dbo].[tbl_Game_Full] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY] 
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_Game_Full_Name] ON [dbo].[tbl_Game_Full] ([Name]) WITH (FILLFACTOR=90) ON [PRIMARY] 
 
                                 ALTER TABLE [dbo].[tbl_Level_Full] ADD CONSTRAINT [PK_tbl_Level_Full] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
                                 CREATE CLUSTERED INDEX [IDX_tbl_Level_Full_OrderValue] ON [dbo].[tbl_Level_Full] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY]
@@ -150,6 +151,7 @@ namespace SpeedRunAppImport.Repository
                                 EXEC sp_rename 'dbo.PK_tbl_Game_Full', 'PK_tbl_Game'
                                 EXEC sp_rename 'dbo.DF_tbl_Game_Full_ImportedDate', 'DF_tbl_Game_ImportedDate'
                                 EXEC sp_rename 'dbo.tbl_Game.IDX_tbl_Game_Full_OrderValue', 'IDX_tbl_Game_OrderValue', 'INDEX'
+                                EXEC sp_rename 'dbo.tbl_Game.IDX_tbl_Game_Full_Name', 'IDX_tbl_Game_Name', 'INDEX'
 
                                 EXEC sp_rename 'dbo.PK_tbl_Level_Full', 'PK_tbl_Level'
                                 EXEC sp_rename 'dbo.tbl_Level.IDX_tbl_Level_Full_OrderValue', 'IDX_tbl_Level_OrderValue', 'INDEX'

@@ -31,7 +31,8 @@ namespace SpeedRunAppImport.Repository
 
                                 ALTER TABLE [dbo].[tbl_User_Full] ADD CONSTRAINT [PK_tbl_User_Full] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
                                 ALTER TABLE [dbo].[tbl_User_Full] ADD CONSTRAINT [DF_tbl_User_Full_ImportedDate] DEFAULT GETDATE() FOR [ImportedDate]
-                                CREATE CLUSTERED INDEX [IDX_tbl_User_Full_OrderValue] ON [dbo].[tbl_User_Full] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY]");
+                                CREATE CLUSTERED INDEX [IDX_tbl_User_Full_OrderValue] ON [dbo].[tbl_User_Full] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_User_Full_Name] ON [dbo].[tbl_User_Full] ([Name]) WITH (FILLFACTOR=90) ON [PRIMARY]");
                     tran.Complete();
                 }
             }
@@ -51,7 +52,8 @@ namespace SpeedRunAppImport.Repository
 
                                 EXEC sp_rename 'dbo.PK_tbl_User_Full', 'PK_tbl_User'
                                 EXEC sp_rename 'dbo.DF_tbl_User_Full_ImportedDate', 'DF_tbl_User_ImportedDate'
-                                EXEC sp_rename 'dbo.tbl_User.IDX_tbl_User_Full_OrderValue', 'IDX_tbl_User_OrderValue', 'INDEX'");
+                                EXEC sp_rename 'dbo.tbl_User.IDX_tbl_User_Full_OrderValue', 'IDX_tbl_User_OrderValue', 'INDEX'
+                                EXEC sp_rename 'dbo.tbl_User.IDX_tbl_User_Full_Name', 'IDX_tbl_User_Name', 'INDEX'");
                     tran.Complete();
                 }
             }

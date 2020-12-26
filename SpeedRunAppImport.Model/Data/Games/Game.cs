@@ -50,9 +50,9 @@ namespace SpeedRunAppImport.Model.Data
         //private Lazy<ReadOnlyCollection<Category>> _categories { get; set; }
         //public IEnumerable<CategoryType> CategoryTypes { get { return Categories.Select(i => i.Type).OrderBy(i => i).Distinct(); } }
 
-        public GameEntity ConvertToEntity(bool isFullImport)
+        public GameEntity ConvertToEntity()
         {
-            var entity = new GameEntity
+            return new GameEntity
             {
                 ID = this.ID,
                 Name = this.Name,
@@ -64,13 +64,6 @@ namespace SpeedRunAppImport.Model.Data
                 CoverImageUrl = this.Assets?.CoverLarge?.Uri.ToString(),
                 CreatedDate = this.CreationDate
             };
-
-            if (isFullImport)
-            {
-                entity.ImportedDate = DateTime.Now;
-            }
-
-            return entity;
         }
     }
 }

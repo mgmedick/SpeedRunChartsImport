@@ -63,7 +63,8 @@ namespace SpeedRunAppImport.Service
                         results.ClearMemory();
                     }
                 }
-                while (games.Count == MaxElementsPerPage && games.Min(i => i.CreationDate ?? SqlMinDateTime) >= lastImportDate);
+                //while (games.Count == MaxElementsPerPage && games.Min(i => i.CreationDate ?? SqlMinDateTime) >= lastImportDate);
+                while (1 == 0);
 
                 if (results.Any())
                 {
@@ -80,8 +81,6 @@ namespace SpeedRunAppImport.Service
                 {
                     _gameRepo.RenameAndDropGameTables();
                 }
-
-                _speedRunRepo.UpdateSpeedRunSubCategoryVariableValues(lastImportDate);
 
                 _settingService.UpdateSetting("GameLastImportDate", newImportDate);
                 _logger.Information("Completed ProcessGames");
@@ -121,7 +120,7 @@ namespace SpeedRunAppImport.Service
 
         public void SaveGames(IEnumerable<Game> games, bool isFullImport)
         {
-            var gameEntities = games.Select(i => i.ConvertToEntity(isFullImport)).ToList();
+            var gameEntities = games.Select(i => i.ConvertToEntity()).ToList();
             var levelEntities = games.SelectMany(i => i.Levels.Select(i => i.ConvertToEntity())).ToList();
             var categoryEntities = games.SelectMany(i => i.Categories.Select(i => i.ConvertToEntity())).ToList();
             var variableEntities = games.SelectMany(i => i.Variables.Select(i => i.ConvertToEntity())).ToList();

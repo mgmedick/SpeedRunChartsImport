@@ -211,7 +211,7 @@ namespace SpeedRunAppImport.Service
         public void SaveSpeedRuns(IEnumerable<SpeedRun> runs, bool isFullImport)
         {
             var subCategoryVariableIDs = _cacheService.GetVariables().Where(i => i.IsSubCategory).Select(i => i.ID).ToList();
-            var runEntities = runs.Select(i => i.ConvertToEntity(isFullImport, subCategoryVariableIDs)).ToList();
+            var runEntities = runs.Select(i => i.ConvertToEntity(subCategoryVariableIDs)).ToList();
             var variableValueEntities = runs.SelectMany(i => i.VariableValueMappings.Select(g => new SpeedRunVariableValueEntity() { SpeedRunID = i.ID, VariableID = g.VariableID, VariableValueID = g.VariableValueID })).ToList();
             var playerEntities = runs.SelectMany(i => i.Players.Select(g => new SpeedRunPlayerEntity() { SpeedRunID = i.ID, IsUser = g.IsUser, UserID = g.UserID, GuestName = g.GuestName })).ToList();
             var videoEntities = runs.Where(i => i.Videos?.Links != null && i.Videos.Links.Any(g => g != null))

@@ -42,7 +42,9 @@ namespace SpeedRunAppImport.Repository
                                 SELECT TOP 0 * INTO dbo.tbl_SpeedRun_Full FROM dbo.tbl_SpeedRun
                                 SELECT TOP 0 * INTO dbo.tbl_SpeedRun_Player_Full FROM dbo.tbl_SpeedRun_Player
                                 SELECT TOP 0 * INTO dbo.tbl_SpeedRun_VariableValue_Full FROM dbo.tbl_SpeedRun_VariableValue
-                                SELECT TOP 0 * INTO dbo.tbl_SpeedRun_Video_Full FROM dbo.tbl_SpeedRun_Video");
+                                SELECT TOP 0 * INTO dbo.tbl_SpeedRun_Video_Full FROM dbo.tbl_SpeedRun_Video
+
+                                ALTER TABLE [dbo].[tbl_SpeedRun_Full] ADD CONSTRAINT [DF_tbl_SpeedRun_Full_ImportedDate] DEFAULT GETDATE() FOR [ImportedDate]");
                     tran.Complete();
                 }
             }
@@ -68,9 +70,10 @@ namespace SpeedRunAppImport.Repository
                                 DROP TABLE dbo.tbl_SpeedRun_Player_ToRemove
                                 DROP TABLE dbo.tbl_SpeedRun_VariableValue_ToRemove
                                 DROP TABLE dbo.tbl_SpeedRun_Video_ToRemove
-                              
+
+                                EXEC sp_rename 'dbo.DF_tbl_SpeedRun_Full_ImportedDate', 'DF_tbl_SpeedRun_ImportedDate'
+
                                 ALTER TABLE [dbo].[tbl_SpeedRun] ADD CONSTRAINT [PK_tbl_SpeedRun] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                ALTER TABLE [dbo].[tbl_SpeedRun] ADD CONSTRAINT [DF_tbl_SpeedRun_ImportedDate] DEFAULT GETDATE() FOR [ImportedDate]
                                 CREATE CLUSTERED INDEX [IDX_tbl_SpeedRun_OrderValue] ON [dbo].[tbl_SpeedRun] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY] 
                                 CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_StatusTypeID_GameID_CategoryID_PlusInclude] ON [dbo].[tbl_SpeedRun] ([StatusTypeID],[GameID],[CategoryID]) INCLUDE ([ID],[LevelID],[PrimaryTime],[SubCategoryVariableValues],[PlayerIDs])
                                 CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_StatusTypeID_PlusInclude] ON [dbo].[tbl_SpeedRun] ([StatusTypeID]) INCLUDE ([GameID],[CategoryID],[LevelID],[Rank],[SubCategoryVariableValues])

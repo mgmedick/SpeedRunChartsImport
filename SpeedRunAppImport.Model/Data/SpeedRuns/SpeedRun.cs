@@ -78,9 +78,9 @@ namespace SpeedRunAppImport.Model.Data
         public IEnumerable<Variable> Variables { get; set; }
         public IEnumerable<VariableValue> VariableValues { get; set; }
 
-        public SpeedRunEntity ConvertToEntity(bool isFullImport, IEnumerable<string> subCategoryVariableIDs)
+        public SpeedRunEntity ConvertToEntity(IEnumerable<string> subCategoryVariableIDs)
         {
-            var entity = new SpeedRunEntity
+            return new SpeedRunEntity
             {
                 ID = this.ID,
                 StatusTypeID = (int)this.Status.Type,
@@ -105,13 +105,6 @@ namespace SpeedRunAppImport.Model.Data
                 DateSubmitted = this.DateSubmitted,
                 VerifyDate = this.Status.VerifyDate
             };
-
-            if (isFullImport)
-            {
-                entity.ImportedDate = DateTime.Now;
-            }
-
-            return entity;
         }
     }
 }

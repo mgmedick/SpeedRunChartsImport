@@ -59,21 +59,14 @@ namespace SpeedRunAppImport.Model.Data
             return Name;
         }
 
-        public PlatformEntity ConvertToEntity(bool isFullImport)
+        public PlatformEntity ConvertToEntity()
         {
-            var entity = new PlatformEntity
+            return new PlatformEntity
             {
                 ID = this.ID,
                 Name = this.Name,
                 YearOfRelease = this.YearOfRelease
             };
-
-            if (isFullImport)
-            {
-                entity.ImportedDate = DateTime.Now;
-            }
-
-            return entity;
         }
     }
 }

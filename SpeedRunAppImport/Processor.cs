@@ -150,6 +150,11 @@ namespace SpeedRunAppImport
                     lastImportDate = SpeedRunLastImportDate;
                 }
 
+                if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Game))
+                {
+                    _speedRunRepo.UpdateSpeedRunSubCategoryVariableValues(GameLastImportDate);
+                }
+
                 _speedRunRepo.UpdateSpeedRunRanks((int)importProcess, lastImportDate.ToLocalTime());
             }
         }

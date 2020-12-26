@@ -113,7 +113,7 @@ namespace SpeedRunAppImport.Service
 
         public void SaveUsers(IEnumerable<User> users, bool isFullImport)
         {
-            var userEntities = users.Select(i => i.ConvertToEntity()).ToList();
+            var userEntities = users.Select(i => i.ConvertToEntity(isFullImport)).ToList();
             SaveUsers(userEntities, isFullImport);
         }
 

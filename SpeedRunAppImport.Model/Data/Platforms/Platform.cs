@@ -1,4 +1,5 @@
-﻿using SpeedRunAppImport.Model.Entity;
+﻿using System;
+using SpeedRunAppImport.Model.Entity;
 
 namespace SpeedRunAppImport.Model.Data
 {
@@ -58,14 +59,21 @@ namespace SpeedRunAppImport.Model.Data
             return Name;
         }
 
-        public PlatformEntity ConvertToEntity()
+        public PlatformEntity ConvertToEntity(bool isFullImport)
         {
-            return new PlatformEntity
+            var entity = new PlatformEntity
             {
                 ID = this.ID,
                 Name = this.Name,
                 YearOfRelease = this.YearOfRelease
             };
+
+            if (isFullImport)
+            {
+                entity.ImportedDate = DateTime.Now;
+            }
+
+            return entity;
         }
     }
 }

@@ -108,7 +108,7 @@ namespace SpeedRunAppImport.Service
 
         public void SavePlatforms(IEnumerable<Platform> platforms, bool isFullImport)
         {
-            var platformEntities = platforms.Select(i => i.ConvertToEntity()).ToList();
+            var platformEntities = platforms.Select(i => i.ConvertToEntity(isFullImport)).ToList();
             SavePlatforms(platformEntities, isFullImport);
         }
 

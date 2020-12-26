@@ -63,8 +63,7 @@ namespace SpeedRunAppImport.Service
                         results.ClearMemory();
                     }
                 }
-                //while (games.Count == MaxElementsPerPage && games.Min(i => i.CreationDate ?? SqlMinDateTime) >= lastImportDate);
-                while (1 == 0);
+                while (games.Count == MaxElementsPerPage && games.Min(i => i.CreationDate ?? SqlMinDateTime) >= lastImportDate);
 
                 if (results.Any())
                 {

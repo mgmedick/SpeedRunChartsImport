@@ -60,15 +60,14 @@ namespace SpeedRunAppImport.Service
                         results.ClearMemory();
                     }
                 }
-                //while (runs.Count == MaxElementsPerPage && runs.Min(i => i.DateSubmitted ?? SqlMinDateTime) >= lastImportDate);
-                while (1 == 0);
+                while (runs.Count == MaxElementsPerPage && runs.Min(i => i.DateSubmitted ?? SqlMinDateTime) >= lastImportDate);
 
                 if (results.Any())
                 {
-                    //if (!isFullImport)
-                    //{
-                    //    results.RemoveAll(i => (i.DateSubmitted ?? SqlMinDateTime) < lastImportDate);
-                    //}
+                    if (!isFullImport)
+                    {
+                        results.RemoveAll(i => (i.DateSubmitted ?? SqlMinDateTime) < lastImportDate);
+                    }
 
                     SaveSpeedRuns(results, isFullImport);
                     results.ClearMemory();

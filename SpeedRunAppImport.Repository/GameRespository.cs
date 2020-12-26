@@ -81,6 +81,7 @@ namespace SpeedRunAppImport.Repository
             {
                 using (var tran = db.GetTransaction())
                 {
+                    db.OneTimeCommandTimeout = 32767;
                     db.Execute(@"EXEC sp_rename 'dbo.tbl_Game', 'tbl_Game_ToRemove'
                                 EXEC sp_rename 'dbo.tbl_Level', 'tbl_Level_ToRemove'
                                 EXEC sp_rename 'dbo.tbl_Category', 'tbl_Category_ToRemove'

@@ -121,7 +121,7 @@ namespace SpeedRunAppImport.Service
 
         public void SaveGames(IEnumerable<Game> games, bool isFullImport)
         {
-            var gameEntities = games.Select(i => i.ConvertToEntity()).ToList();
+            var gameEntities = games.Select(i => i.ConvertToEntity(isFullImport)).ToList();
             var levelEntities = games.SelectMany(i => i.Levels.Select(i => i.ConvertToEntity())).ToList();
             var categoryEntities = games.SelectMany(i => i.Categories.Select(i => i.ConvertToEntity())).ToList();
             var variableEntities = games.SelectMany(i => i.Variables.Select(i => i.ConvertToEntity())).ToList();

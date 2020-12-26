@@ -50,9 +50,9 @@ namespace SpeedRunAppImport.Model.Data
         //private Lazy<Uri> _profileImageUri { get; set; }
         //public Uri ProfileImageUri { get { return _profileImageUri.Value; } }
 
-        public UserEntity ConvertToEntity()
+        public UserEntity ConvertToEntity(bool isFullImport)
         {
-            return new UserEntity
+            var entity = new UserEntity
             {
                 ID = this.ID,
                 Name = this.Name,
@@ -68,6 +68,13 @@ namespace SpeedRunAppImport.Model.Data
                 SpeedRunsLiveProfileUrl = this.SpeedRunsLiveProfile?.ToString(),
                 SignUpDate = this.SignUpDate
             };
+
+            if (isFullImport)
+            {
+                entity.ImportedDate = DateTime.Now;
+            }
+
+            return entity;
         }
     }
 }

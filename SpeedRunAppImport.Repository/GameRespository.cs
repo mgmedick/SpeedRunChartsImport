@@ -67,42 +67,7 @@ namespace SpeedRunAppImport.Repository
                                 SELECT TOP 0 * INTO dbo.tbl_Game_Region_Full FROM dbo.tbl_Game_Region
                                 SELECT TOP 0 * INTO dbo.tbl_Game_Moderator_Full FROM dbo.tbl_Game_Moderator
                                 SELECT TOP 0 * INTO dbo.tbl_Game_Ruleset_Full FROM dbo.tbl_Game_Ruleset
-                                SELECT TOP 0 * INTO dbo.tbl_Game_TimingMethod_Full FROM dbo.tbl_Game_TimingMethod
-                               
-                                ALTER TABLE [dbo].[tbl_Game_Full] ADD CONSTRAINT [PK_tbl_Game_Full] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                ALTER TABLE [dbo].[tbl_Game_Full] ADD CONSTRAINT [DF_tbl_Game_Full_ImportedDate] DEFAULT GETDATE() FOR [ImportedDate]
-                                CREATE CLUSTERED INDEX [IDX_tbl_Game_Full_OrderValue] ON [dbo].[tbl_Game_Full] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-
-                                ALTER TABLE [dbo].[tbl_Level_Full] ADD CONSTRAINT [PK_tbl_Level_Full] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                CREATE CLUSTERED INDEX [IDX_tbl_Level_Full_OrderValue] ON [dbo].[tbl_Level_Full] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                CREATE NONCLUSTERED INDEX [IDX_tbl_Level_Full_GameID] ON [dbo].[tbl_Level_Full] ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-
-                                ALTER TABLE [dbo].[tbl_Category_Full] ADD CONSTRAINT [PK_tbl_Category_Full] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                CREATE CLUSTERED INDEX [IDX_tbl_Category_Full_OrderValue] ON [dbo].[tbl_Category_Full] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-                                CREATE NONCLUSTERED INDEX [IDX_tbl_Category_Full_GameID] ON [dbo].[tbl_Category_Full] ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-
-                                ALTER TABLE [dbo].[tbl_Variable_Full] ADD CONSTRAINT [PK_tbl_Variable_Full] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                CREATE CLUSTERED INDEX [IDX_tbl_Variable_Full_OrderValue] ON [dbo].[tbl_Variable_Full] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-                                CREATE NONCLUSTERED INDEX [IDX_tbl_Variable_Full_GameID] ON [dbo].[tbl_Variable_Full] ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-
-                                ALTER TABLE [dbo].[tbl_VariableValue_Full] ADD CONSTRAINT [PK_tbl_VariableValue_Full] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                CREATE CLUSTERED INDEX [IDX_tbl_VariableValue_Full_OrderValue] ON [dbo].[tbl_VariableValue_Full] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-                                CREATE NONCLUSTERED INDEX [IDX_tbl_VariableValue_Full_GameID] ON [dbo].[tbl_VariableValue_Full] ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-
-                                ALTER TABLE [dbo].[tbl_Game_Platform_Full] ADD CONSTRAINT [PK_tbl_Game_Platform_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                CREATE NONCLUSTERED INDEX [IDX_tbl_Game_Platform_Full_GameID] ON [dbo].[tbl_Game_Platform_Full] ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-
-                                ALTER TABLE [dbo].[tbl_Game_Region_Full] ADD CONSTRAINT [PK_tbl_Game_Region_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                CREATE NONCLUSTERED INDEX [IDX_tbl_Game_Region_Full_GameID] ON [dbo].[tbl_Game_Region_Full] ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-
-                                ALTER TABLE [dbo].[tbl_Game_Moderator_Full] ADD CONSTRAINT [PK_tbl_Game_Moderator_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                CREATE NONCLUSTERED INDEX [IDX_tbl_Game_Moderator_Full_GameID] ON [dbo].[tbl_Game_Moderator_Full] ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-
-                                ALTER TABLE [dbo].[tbl_Game_Ruleset_Full] ADD CONSTRAINT [PK_tbl_Game_Ruleset_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                CREATE NONCLUSTERED INDEX [IDX_tbl_Game_Ruleset_Full_GameID] ON [dbo].[tbl_Game_Ruleset_Full] ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-
-                                ALTER TABLE [dbo].[tbl_Game_TimingMethod_Full] ADD CONSTRAINT [PK_tbl_Game_TimingMethod_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                CREATE NONCLUSTERED INDEX [IDX_tbl_Game_TimingMethod_Full_GameID] ON [dbo].[tbl_Game_TimingMethod_Full] ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY]");
+                                SELECT TOP 0 * INTO dbo.tbl_Game_TimingMethod_Full FROM dbo.tbl_Game_TimingMethod");
                     tran.Complete();
                 }
             }
@@ -147,40 +112,41 @@ namespace SpeedRunAppImport.Repository
                                 DROP TABLE dbo.tbl_Game_Ruleset_ToRemove
                                 DROP TABLE dbo.tbl_Game_TimingMethod_ToRemove
 
-                                EXEC sp_rename 'dbo.PK_tbl_Game_Full', 'PK_tbl_Game'
-                                EXEC sp_rename 'dbo.DF_tbl_Game_Full_ImportedDate', 'DF_tbl_Game_ImportedDate'
-                                EXEC sp_rename 'dbo.tbl_Game.IDX_tbl_Game_Full_OrderValue', 'IDX_tbl_Game_OrderValue', 'INDEX'
+                                ALTER TABLE [dbo].[tbl_Game] ADD CONSTRAINT [PK_tbl_Game] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                ALTER TABLE [dbo].[tbl_Game] ADD CONSTRAINT [DF_tbl_Game_ImportedDate] DEFAULT GETDATE() FOR [ImportedDate]
+                                CREATE CLUSTERED INDEX [IDX_tbl_Game_OrderValue] ON [dbo].[tbl_Game] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY] 
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_Game_Name] ON [dbo].[tbl_Game] ([Name]) WITH (FILLFACTOR=90) ON [PRIMARY] 
 
-                                EXEC sp_rename 'dbo.PK_tbl_Level_Full', 'PK_tbl_Level'
-                                EXEC sp_rename 'dbo.tbl_Level.IDX_tbl_Level_Full_OrderValue', 'IDX_tbl_Level_OrderValue', 'INDEX'
-                                EXEC sp_rename 'dbo.tbl_Level.IDX_tbl_Level_Full_GameID', 'IDX_tbl_Level_GameID', 'INDEX'
+                                ALTER TABLE [dbo].[tbl_Level] ADD CONSTRAINT [PK_tbl_Level] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                CREATE CLUSTERED INDEX [IDX_tbl_Level_OrderValue] ON [dbo].[tbl_Level] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_Level_GameID] ON [dbo].[tbl_Level] ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
 
-                                EXEC sp_rename 'dbo.PK_tbl_Category_Full', 'PK_tbl_Category'
-                                EXEC sp_rename 'dbo.tbl_Category.IDX_tbl_Category_Full_OrderValue', 'IDX_tbl_Category_OrderValue', 'INDEX'
-                                EXEC sp_rename 'dbo.tbl_Category.IDX_tbl_Category_Full_GameID', 'IDX_tbl_Category_GameID', 'INDEX'
+                                ALTER TABLE [dbo].[tbl_Category] ADD CONSTRAINT [PK_tbl_Category] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                CREATE CLUSTERED INDEX [IDX_tbl_Category_OrderValue] ON [dbo].[tbl_Category] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY] 
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_Category_GameID] ON [dbo].[tbl_Category] ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
 
-                                EXEC sp_rename 'dbo.PK_tbl_Variable_Full', 'PK_tbl_Variable'
-                                EXEC sp_rename 'dbo.tbl_Variable.IDX_tbl_Variable_Full_OrderValue', 'IDX_tbl_Variable_OrderValue', 'INDEX'
-                                EXEC sp_rename 'dbo.tbl_Variable.IDX_tbl_Variable_Full_GameID', 'IDX_tbl_Variable_GameID', 'INDEX'
+                                ALTER TABLE [dbo].[tbl_Variable] ADD CONSTRAINT [PK_tbl_Variable] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                CREATE CLUSTERED INDEX [IDX_tbl_Variable_OrderValue] ON [dbo].[tbl_Variable] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY] 
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_Variable_GameID] ON [dbo].[tbl_Variable] ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
 
-                                EXEC sp_rename 'dbo.PK_tbl_VariableValue_Full', 'PK_tbl_VariableValue'
-                                EXEC sp_rename 'dbo.tbl_VariableValue.IDX_tbl_VariableValue_Full_OrderValue', 'IDX_tbl_VariableValue_OrderValue', 'INDEX'
-                                EXEC sp_rename 'dbo.tbl_VariableValue.IDX_tbl_VariableValue_Full_GameID', 'IDX_tbl_VariableValue_GameID', 'INDEX'
+                                ALTER TABLE [dbo].[tbl_VariableValue] ADD CONSTRAINT [PK_tbl_VariableValue] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                CREATE CLUSTERED INDEX [IDX_tbl_VariableValue_OrderValue] ON [dbo].[tbl_VariableValue] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY] 
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_VariableValue_GameID] ON [dbo].[tbl_VariableValue] ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
 
-                                EXEC sp_rename 'dbo.PK_tbl_Game_Platform_Full', 'PK_tbl_Game_Platform'
-                                EXEC sp_rename 'dbo.tbl_Game_Platform.IDX_tbl_Game_Platform_Full_GameID', 'IDX_tbl_Game_Platform_GameID', 'INDEX'
+                                ALTER TABLE [dbo].[tbl_Game_Platform] ADD CONSTRAINT [PK_tbl_Game_Platform] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_Game_Platform_GameID] ON [dbo].[tbl_Game_Platform] ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
 
-                                EXEC sp_rename 'dbo.PK_tbl_Game_Region_Full', 'PK_tbl_Game_Region'
-                                EXEC sp_rename 'dbo.tbl_Game_Region.IDX_tbl_Game_Region_Full_GameID', 'IDX_tbl_Game_Region_GameID', 'INDEX'
+                                ALTER TABLE [dbo].[tbl_Game_Region] ADD CONSTRAINT [PK_tbl_Game_Region] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_Game_Region_GameID] ON [dbo].[tbl_Game_Region] ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
 
-                                EXEC sp_rename 'dbo.PK_tbl_Game_Moderator_Full', 'PK_tbl_Game_Moderator'
-                                EXEC sp_rename 'dbo.tbl_Game_Moderator.IDX_tbl_Game_Moderator_Full_GameID', 'IDX_tbl_Game_Moderator_GameID', 'INDEX'
+                                ALTER TABLE [dbo].[tbl_Game_Moderator] ADD CONSTRAINT [PK_tbl_Game_Moderator] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_Game_Moderator_GameID] ON [dbo].[tbl_Game_Moderator] ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
 
-                                EXEC sp_rename 'dbo.PK_tbl_Game_Ruleset_Full', 'PK_tbl_Game_Ruleset'
-                                EXEC sp_rename 'dbo.tbl_Game_Ruleset.IDX_tbl_Game_Ruleset_Full_GameID', 'IDX_tbl_Game_Ruleset_GameID', 'INDEX'
+                                ALTER TABLE [dbo].[tbl_Game_Ruleset] ADD CONSTRAINT [PK_tbl_Game_Ruleset] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_Game_Ruleset_GameID] ON [dbo].[tbl_Game_Ruleset] ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
 
-                                EXEC sp_rename 'dbo.PK_tbl_Game_TimingMethod_Full', 'PK_tbl_Game_TimingMethod'
-                                EXEC sp_rename 'dbo.tbl_Game_TimingMethod.IDX_tbl_Game_TimingMethod_Full_GameID', 'IDX_tbl_Game_TimingMethod_GameID', 'INDEX'");
+                                ALTER TABLE [dbo].[tbl_Game_TimingMethod] ADD CONSTRAINT [PK_tbl_Game_TimingMethod] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_Game_TimingMethod_GameID] ON [dbo].[tbl_Game_TimingMethod] ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY]");
 
                     tran.Complete();
                 }

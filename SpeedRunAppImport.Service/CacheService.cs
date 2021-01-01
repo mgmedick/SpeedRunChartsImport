@@ -32,7 +32,7 @@ namespace SpeedRunApp.Service
         public IEnumerable<GameEntity> GetGames()
         {
             IEnumerable<GameEntity> games = null;
-            if (!_cache.TryGetValue<IEnumerable<VariableEntity>>("games", out games))
+            if (!_cache.TryGetValue<IEnumerable<GameEntity>>("games", out games))
             {
                 games = _gameRepo.GetGames();
                 _cache.Set("games", games);

@@ -28,5 +28,17 @@ namespace SpeedRunApp.Service
 
             return variables;
         }
+
+        public IEnumerable<GameEntity> GetGames()
+        {
+            IEnumerable<GameEntity> games = null;
+            if (!_cache.TryGetValue<IEnumerable<VariableEntity>>("games", out games))
+            {
+                games = _gameRepo.GetGames();
+                _cache.Set("games", games);
+            }
+
+            return games;
+        }
     }
 }

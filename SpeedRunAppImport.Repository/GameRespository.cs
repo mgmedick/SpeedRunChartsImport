@@ -279,7 +279,15 @@ namespace SpeedRunAppImport.Repository
         {
             using (IDatabase db = DBFactory.GetDatabase())
             {
-                return db.Query<VariableEntity>("SELECT OrderValue, ID, [Name], GameID, VariableScopeTypeID, CategoryID, LevelID, IsSubCategory FROM dbo.tbl_Variable ORDER BY OrderValue").ToList();
+                return db.Query<VariableEntity>("SELECT OrderValue, ID, [Name], GameID, VariableScopeTypeID, CategoryID, LevelID, IsSubCategory FROM dbo.tbl_Variable WITH (NOLOCK) ORDER BY OrderValue").ToList();
+            }
+        }
+
+        public IEnumerable<GameEntity> GetGames()
+        {
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                return db.Query<GameEntity>("SELECT [OrderValue], [ID], [Name], [JapaneseName], [Abbreviation], [IsRomHack], [YearOfRelease], [SpeedRunComUrl], [CoverImageUrl], [CreatedDate], [ImportedDate], [ModifiedDate] FROM [dbo].[tbl_Game] WITH (NOLOCK) ORDER BY OrderValue").ToList();
             }
         }
     }

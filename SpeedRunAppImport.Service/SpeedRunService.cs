@@ -44,23 +44,27 @@ namespace SpeedRunAppImport.Service
                     _speedRunRepo.CopySpeedRunTables();
                 }
 
-                do
+                var games = _cacheService.GetGames();
+                foreach (var game in games)
                 {
-                    runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count + prevTotal, orderBy);
-                    results.AddRange(runs);
-                    _logger.Information("Pulled runs: {@New}, total runs: {@Total}", runs.Count, results.Count + prevTotal);
-                    Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
-
-                    var memorySize = GC.GetTotalMemory(false);
-                    if (memorySize > MaxMemorySizeBytes)
+                    do
                     {
-                        prevTotal += results.Count;
-                        _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
-                        SaveSpeedRuns(results, isFullImport);
-                        results.ClearMemory();
+                        runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count + prevTotal, game.ID, orderBy);
+                        results.AddRange(runs);
+                        _logger.Information("Pulled runs: {@New}, total runs: {@Total}", runs.Count, results.Count + prevTotal);
+                        Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
+
+                        var memorySize = GC.GetTotalMemory(false);
+                        if (memorySize > MaxMemorySizeBytes)
+                        {
+                            prevTotal += results.Count;
+                            _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
+                            SaveSpeedRuns(results, isFullImport);
+                            results.ClearMemory();
+                        }
                     }
+                    while (runs.Count == MaxElementsPerPage && runs.Min(i => i.DateSubmitted ?? SqlMinDateTime) >= lastImportDate);
                 }
-                while (runs.Count == MaxElementsPerPage && runs.Min(i => i.DateSubmitted ?? SqlMinDateTime) >= lastImportDate);
 
                 if (results.Any())
                 {
@@ -99,7 +103,7 @@ namespace SpeedRunAppImport.Service
 
             do
             {
-                verifiedRuns = GetSpeedRunsWithRetry(MaxElementsPerPage, verifiedResults.Count + verifiedPrevTotal, RunsOrdering.VerifyDateDescending, RunStatusType.Verified);
+                verifiedRuns = GetSpeedRunsWithRetry(MaxElementsPerPage, verifiedResults.Count + verifiedPrevTotal, null, RunsOrdering.VerifyDateDescending, RunStatusType.Verified);
                 verifiedResults.AddRange(verifiedRuns);
                 _logger.Information("Pulled verified runs: {@New}, total runs: {@Total}", verifiedRuns.Count, verifiedResults.Count + verifiedPrevTotal);
                 Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
@@ -129,7 +133,7 @@ namespace SpeedRunAppImport.Service
 
             do
             {
-                rejectedRuns = GetSpeedRunsWithRetry(MaxElementsPerPage, rejectedResults.Count + rejectedPrevTotal, RunsOrdering.DateSubmittedDescending, RunStatusType.Rejected);
+                rejectedRuns = GetSpeedRunsWithRetry(MaxElementsPerPage, rejectedResults.Count + rejectedPrevTotal, null, RunsOrdering.DateSubmittedDescending, RunStatusType.Rejected);
                 rejectedResults.AddRange(rejectedRuns);
                 _logger.Information("Pulled rejected runs: {@New}, total runs: {@Total}", rejectedRuns.Count, rejectedResults.Count + rejectedPrevTotal);
                 Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
@@ -153,14 +157,14 @@ namespace SpeedRunAppImport.Service
             }
         }
 
-        public List<SpeedRun> GetSpeedRunsWithRetry(int elementsPerPage, int elementsOffset, RunsOrdering orderBy, RunStatusType? statusType = null, int retryCount = 0)
+        public List<SpeedRun> GetSpeedRunsWithRetry(int elementsPerPage, int elementsOffset, string gameID, RunsOrdering orderBy, RunStatusType? statusType = null, int retryCount = 0)
         {
             ClientContainer clientContainer = new ClientContainer();
             List<SpeedRun> runs = null;
 
             try
             {
-                runs = clientContainer.Runs.GetRuns(status: statusType, elementsPerPage: elementsPerPage, elementsOffset: elementsOffset, orderBy: orderBy).ToList();
+                runs = clientContainer.Runs.GetRuns(status: statusType, gameId: gameID, elementsPerPage: elementsPerPage, elementsOffset: elementsOffset, orderBy: orderBy).ToList();
             }
             catch (Exception ex)
             {
@@ -169,7 +173,7 @@ namespace SpeedRunAppImport.Service
                     Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.ErrorPullDelayMS));
                     retryCount++;
                     _logger.Information("Retrying pull speedRuns: {@New}, total speedRuns: {@Total}, retry: {@RetryCount}", elementsPerPage, elementsOffset, retryCount);
-                    runs = GetSpeedRunsWithRetry(elementsPerPage, elementsOffset, orderBy, statusType, retryCount);
+                    runs = GetSpeedRunsWithRetry(elementsPerPage, elementsOffset, gameID, orderBy, statusType, retryCount);
                 }
                 else
                 {

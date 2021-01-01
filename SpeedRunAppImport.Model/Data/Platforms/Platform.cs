@@ -1,4 +1,5 @@
-﻿using SpeedRunAppImport.Model.Entity;
+﻿using System;
+using SpeedRunAppImport.Model.Entity;
 
 namespace SpeedRunAppImport.Model.Data
 {

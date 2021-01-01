@@ -81,8 +81,6 @@ namespace SpeedRunAppImport.Service
                     _gameRepo.RenameAndDropGameTables();
                 }
 
-                _speedRunRepo.UpdateSpeedRunSubCategoryVariableValues(lastImportDate);
-
                 _settingService.UpdateSetting("GameLastImportDate", newImportDate);
                 _logger.Information("Completed ProcessGames");
             }

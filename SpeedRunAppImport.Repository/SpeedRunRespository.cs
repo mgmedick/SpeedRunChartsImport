@@ -30,9 +30,6 @@ namespace SpeedRunAppImport.Repository
                     db.Execute(@"IF OBJECT_ID('dbo.tbl_SpeedRun_Full') IS NOT NULL 
                                     DROP TABLE dbo.tbl_SpeedRun_Full
 
-                                IF OBJECT_ID('dbo.tbl_SpeedRun_Full_Ordered') IS NOT NULL 
-                                    DROP TABLE dbo.tbl_SpeedRun_Full_Ordered
-
                                 IF OBJECT_ID('dbo.tbl_SpeedRun_Player_Full') IS NOT NULL 
                                     DROP TABLE dbo.tbl_SpeedRun_Player_Full
 
@@ -43,7 +40,6 @@ namespace SpeedRunAppImport.Repository
                                     DROP TABLE dbo.tbl_SpeedRun_Video_Full
 
                                 SELECT TOP 0 * INTO dbo.tbl_SpeedRun_Full FROM dbo.tbl_SpeedRun
-                                SELECT TOP 0 * INTO dbo.tbl_SpeedRun_Full_Ordered FROM dbo.tbl_SpeedRun
                                 SELECT TOP 0 * INTO dbo.tbl_SpeedRun_Player_Full FROM dbo.tbl_SpeedRun_Player
                                 SELECT TOP 0 * INTO dbo.tbl_SpeedRun_VariableValue_Full FROM dbo.tbl_SpeedRun_VariableValue
                                 SELECT TOP 0 * INTO dbo.tbl_SpeedRun_Video_Full FROM dbo.tbl_SpeedRun_Video
@@ -61,33 +57,13 @@ namespace SpeedRunAppImport.Repository
                 using (var tran = db.GetTransaction())
                 {
                     db.OneTimeCommandTimeout = 32767;
-                    db.Execute(@"DECLARE @batch INT = 10000
-
-                                WHILE @batch > 0
-                                BEGIN
-                                    INSERT INTO tbl_SpeedRun_Full_Ordered (ID, StatusTypeID, GameID, CategoryID, LevelID, PlatformID, RegionID, IsEmulated,
-											                                PrimaryTime, RealTime, RealTimeWithoutLoads, GameTime, Comment, ExaminerUserID,
-											                                RejectReason, SpeedRunComUrl, SplitsUrl, RunDate, DateSubmitted, VerifyDate,
-											                                ImportedDate, ModifiedDate, [Rank], SubCategoryVariableValues, PlayerIDs)
-                                    SELECT TOP (@batch)
-	                                ID, StatusTypeID, GameID, CategoryID, LevelID, PlatformID, RegionID, IsEmulated,
-	                                PrimaryTime, RealTime, RealTimeWithoutLoads, GameTime, Comment, ExaminerUserID,
-	                                RejectReason, SpeedRunComUrl, SplitsUrl, RunDate, DateSubmitted, VerifyDate,
-	                                ImportedDate, ModifiedDate, [Rank], SubCategoryVariableValues, PlayerIDs
-                                    FROM dbo.tbl_SpeedRun_Full t1
-                                    WHERE NOT EXISTS (SELECT 1 FROM tbl_SpeedRun_Full_Ordered t2 WHERE t2.ID = t1.ID)
-                                    ORDER BY ISNULL(t1.DateSubmitted, t1.RunDate)
-
-                                    SELECT @batch = @@ROWCOUNT
-                                END
-
-                                EXEC sp_rename 'dbo.tbl_SpeedRun', 'tbl_SpeedRun_ToRemove'
+                    db.Execute(@"EXEC sp_rename 'dbo.tbl_SpeedRun', 'tbl_SpeedRun_ToRemove'
                                 EXEC sp_rename 'dbo.tbl_SpeedRun_Full', 'tbl_SpeedRun_Full_ToRemove'
                                 EXEC sp_rename 'dbo.tbl_SpeedRun_Player', 'tbl_SpeedRun_Player_ToRemove'
                                 EXEC sp_rename 'dbo.tbl_SpeedRun_VariableValue', 'tbl_SpeedRun_VariableValue_ToRemove'
                                 EXEC sp_rename 'dbo.tbl_SpeedRun_Video', 'tbl_SpeedRun_Video_ToRemove'
 
-                                EXEC sp_rename 'dbo.tbl_SpeedRun_Full_Ordered', 'tbl_SpeedRun'
+                                EXEC sp_rename 'dbo.tbl_SpeedRun_Full', 'tbl_SpeedRun'
                                 EXEC sp_rename 'dbo.tbl_SpeedRun_Player_Full', 'tbl_SpeedRun_Player'
                                 EXEC sp_rename 'dbo.tbl_SpeedRun_VariableValue_Full', 'tbl_SpeedRun_VariableValue'
                                 EXEC sp_rename 'dbo.tbl_SpeedRun_Video_Full', 'tbl_SpeedRun_Video'
@@ -316,7 +292,7 @@ namespace SpeedRunAppImport.Repository
             using (IDatabase db = DBFactory.GetDatabase())
             {
                 db.OneTimeCommandTimeout = 32767;
-                db.Execute("EXEC dbo.UpdateSpeedRunRanks @0, @1", importProcessID, gameLastImportDate, speedRunLastImportDate);
+                db.Execute("EXEC dbo.UpdateSpeedRunRanks @0, @1, @2", importProcessID, gameLastImportDate, speedRunLastImportDate);
             }
 
             _logger.Information("Completed UpdateSpeedRunRanks");

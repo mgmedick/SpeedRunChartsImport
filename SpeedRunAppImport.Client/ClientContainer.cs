@@ -25,7 +25,7 @@ namespace SpeedRunAppImport.Client
         public VariablesClient Variables { get; private set; }
 
         public ClientContainer(string userAgent = "speedruncomorg/1.0",
-            string accessToken = null, int maxCacheElements = 500,
+            string accessToken = null, int maxCacheElements = 0,
             TimeSpan? timeout = null)
         {
             UserAgent = userAgent;

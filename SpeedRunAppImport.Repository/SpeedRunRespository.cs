@@ -308,14 +308,14 @@ namespace SpeedRunAppImport.Repository
             }
         }
 
-        public void UpdateSpeedRunRanks(int importProcessID, DateTime lastImportDate)
+        public void UpdateSpeedRunRanks(int importProcessID, DateTime gameLastImportDate, DateTime speedRunLastImportDate)
         {
-            _logger.Information("Started UpdateSpeedRunRanks {@ImportProcessID}, {@LastImportDate}", importProcessID, lastImportDate);
+            _logger.Information("Started UpdateSpeedRunRanks {@ImportProcessID}, {@GameLastImportDate}, {@SpeedRunLastImportDate}", importProcessID, gameLastImportDate, speedRunLastImportDate);
 
             using (IDatabase db = DBFactory.GetDatabase())
             {
                 db.OneTimeCommandTimeout = 32767;
-                db.Execute("EXEC dbo.UpdateSpeedRunRanks @0, @1", importProcessID, lastImportDate);
+                db.Execute("EXEC dbo.UpdateSpeedRunRanks @0, @1", importProcessID, gameLastImportDate, speedRunLastImportDate);
             }
 
             _logger.Information("Completed UpdateSpeedRunRanks");

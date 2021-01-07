@@ -99,6 +99,7 @@ namespace SpeedRunAppImport
                 BaseService.PullDelayMS = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("PullDelayMS").Value);
                 BaseService.ErrorPullDelayMS = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("ErrorPullDelayMS").Value);
                 BaseService.RejectedDaysBack = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("RejectedDaysBack").Value);
+                BaseService.SpeedRunComLatestRunsUrl = _config.GetSection("ApiSettings").GetSection("SpeedRunComLatestRunsUrl").Value;
                 _logger.Information("Completed Init");
             }
             catch (Exception ex)

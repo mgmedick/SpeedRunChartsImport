@@ -21,6 +21,7 @@ namespace SpeedRunAppImport.Service
         public static int RejectedDaysBack { get; set; }
         public static bool IsFullImport { get; set; }
         public static DateTime SqlMinDateTime { get; set; }
+        public static string SpeedRunComLatestRunsUrl { get; set; }
     }
 }
 

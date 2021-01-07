@@ -4,7 +4,7 @@ using SpeedRunAppImport.Interfaces.Repositories;
 using SpeedRunAppImport.Model.Entity;
 using System.Collections.Generic;
 
-namespace SpeedRunApp.Service
+namespace SpeedRunAppImport.Service
 {
     public class CacheService : ICacheService
     {

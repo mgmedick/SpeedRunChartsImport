@@ -16,18 +16,146 @@ namespace SpeedRunAppImport.Service
     public class SpeedRunService : BaseService, ISpeedRunService
     {
         private readonly ISettingService _settingService = null;
-        private readonly ISpeedRunRepository _speedRunRepo = null;
         private readonly ICacheService _cacheService = null;
+        private readonly IScrapeService _scrapeService = null;
+        private readonly ISpeedRunRepository _speedRunRepo = null;
         private readonly ILogger _logger;
 
-        public SpeedRunService(ISettingService settingService, ISpeedRunRepository speedRunRepo, ICacheService cacheService, ILogger logger)
+        public SpeedRunService(ISettingService settingService, ICacheService cacheService, IScrapeService scrapeService, ISpeedRunRepository speedRunRepo, ILogger logger)
         {
             _settingService = settingService;
-            _speedRunRepo = speedRunRepo;
             _cacheService = cacheService;
+            _scrapeService = scrapeService;
+            _speedRunRepo = speedRunRepo;
             _logger = logger;
         }
 
+        public void ProcessSpeedRuns(DateTime lastImportDate, bool isFullImport)
+        {
+            try
+            {
+                _logger.Information("Started ProcessSpeedRuns: {@LastImportDate}, {@IsFullImport}", lastImportDate, isFullImport);
+                var newImportDate = DateTime.UtcNow;
+
+                if (isFullImport)
+                {
+                    ProcessSpeedRunsFullImport();
+                }
+                else
+                {
+                    ProcessLatestSpeedRuns(lastImportDate);
+                }
+
+                _settingService.UpdateSetting("SpeedRunLastImportDate", newImportDate);
+                _logger.Information("Completed ProcessSpeedRuns");
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "ProcessSpeedRuns");
+            }
+        }
+
+        public void ProcessSpeedRunsFullImport()
+        {
+            RunsOrdering orderBy = RunsOrdering.DateSubmitted;
+            var results = new List<SpeedRun>();
+            var runs = new List<SpeedRun>();
+            var games = _cacheService.GetGames().ToList();
+            var prevTotal = 0;
+
+            _speedRunRepo.CopySpeedRunTables();
+
+            foreach (var game in games)
+            {
+                var prevGameTotal = 0;
+                do
+                {
+                    runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count(i => i.GameID == game.ID) + prevGameTotal, game.ID, orderBy);
+                    results.AddRange(runs);
+                    _logger.Information("GameID: {@GameID}, Pulled runs: {@New}, total runs: {@Total}", runs.Count, results.Count + prevTotal);
+                    Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
+
+                    var memorySize = GC.GetTotalMemory(false);
+                    if (memorySize > MaxMemorySizeBytes)
+                    {
+                        prevTotal += results.Count;
+                        prevGameTotal += results.Count(i => i.GameID == game.ID);
+                        _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
+                        SaveSpeedRuns(results, true);
+                        results.ClearMemory();
+                    }
+                }
+                while (runs.Count == MaxElementsPerPage);
+            }
+
+            if (results.Any())
+            {
+                SaveSpeedRuns(results, true);
+                results.ClearMemory();
+            }
+
+            _speedRunRepo.RenameAndDropSpeedRunTables();
+        }
+
+        public void ProcessLatestSpeedRuns(DateTime lastImportDate)
+        {
+            var results = new List<SpeedRun>();
+            var latestRuns = _scrapeService.GetLatestSpeedRunIDs().ToList();
+
+            foreach (var runID in latestRuns)
+            {
+                var run = GetSpeedRunWithRetry(runID);
+                results.Add(run);
+                _logger.Information("Pulled runs: {@New}, total runs: {@Total}", results.Count, latestRuns.Count);
+                Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
+
+                var memorySize = GC.GetTotalMemory(false);
+                if (memorySize > MaxMemorySizeBytes)
+                {
+                    _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
+                    SaveSpeedRuns(results, false);
+                    results.ClearMemory();
+                }
+            }
+
+            if (results.Any())
+            {
+                results.RemoveAll(i => (i.DateSubmitted ?? SqlMinDateTime) < lastImportDate);
+                SaveSpeedRuns(results, false);
+                results.ClearMemory();
+            }
+
+            ProcessSpeedRunUpdates(lastImportDate);
+        }
+
+        public void ProcessSpeedRunUpdates(DateTime lastImportDate)
+        {
+            var lastUpdateDate = lastImportDate.AddDays(RejectedDaysBack);
+            var runs = _speedRunRepo.GetSpeedRunsBetweenDates(lastUpdateDate, lastImportDate);
+            var updatedRuns = new List<SpeedRun>();
+
+            foreach (var run in runs)
+            {
+                var updatedRun = GetSpeedRunWithRetry(run.ID);
+                updatedRuns.Add(updatedRun);
+
+                var memorySize = GC.GetTotalMemory(false);
+                if (memorySize > MaxMemorySizeBytes)
+                {
+                    _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", updatedRuns.Count, memorySize);
+                    SaveSpeedRuns(updatedRuns, false);
+                    updatedRuns.ClearMemory();
+                }
+            }
+
+            if (updatedRuns.Any())
+            {
+                SaveSpeedRuns(updatedRuns, false);
+                updatedRuns.ClearMemory();
+            }
+        }
+
+        /*
         public void ProcessSpeedRuns(DateTime lastImportDate, bool isFullImport)
         {
             try
@@ -91,7 +219,7 @@ namespace SpeedRunAppImport.Service
             }
         }
 
-        public void ProcessSpeedRunUpdates(DateTime lastImportDate, bool isFullImport)
+        public void ProcessSpeedRunUpdates(DateTime lastImportDate)
         {
             var verifiedResults = new List<SpeedRun>();
             var verifiedRuns = new List<SpeedRun>();
@@ -109,7 +237,7 @@ namespace SpeedRunAppImport.Service
                 {
                     verifiedPrevTotal += verifiedResults.Count;
                     _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", verifiedResults.Count, memorySize);
-                    SaveSpeedRuns(verifiedResults, isFullImport);
+                    SaveSpeedRuns(verifiedResults, false);
                     verifiedResults.ClearMemory();
                 }
             }
@@ -118,7 +246,7 @@ namespace SpeedRunAppImport.Service
             if (verifiedResults.Any())
             {
                 verifiedResults.RemoveAll(i => (i.VerifyDate ?? SqlMinDateTime) < lastImportDate);
-                SaveSpeedRuns(verifiedResults, isFullImport);
+                SaveSpeedRuns(verifiedResults, false);
                 verifiedResults.ClearMemory();
             }
 
@@ -139,7 +267,7 @@ namespace SpeedRunAppImport.Service
                 {
                     rejectedPrevTotal += rejectedResults.Count;
                     _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", rejectedResults.Count, memorySize);
-                    SaveSpeedRuns(rejectedResults, isFullImport);
+                    SaveSpeedRuns(rejectedResults, false);
                     rejectedResults.ClearMemory();
                 }
             }
@@ -148,19 +276,20 @@ namespace SpeedRunAppImport.Service
             if (rejectedResults.Any())
             {
                 rejectedResults.RemoveAll(i => (i.DateSubmitted ?? SqlMinDateTime) < rejectedDate);
-                SaveSpeedRuns(rejectedResults, isFullImport);
+                SaveSpeedRuns(rejectedResults, false);
                 rejectedResults.ClearMemory();
             }
         }
+        */
 
-        public List<SpeedRun> GetSpeedRunsWithRetry(int elementsPerPage, int elementsOffset, RunsOrdering orderBy, RunStatusType? statusType = null, int retryCount = 0)
+        public List<SpeedRun> GetSpeedRunsWithRetry(int elementsPerPage, int elementsOffset, string gameID, RunsOrdering orderBy, RunStatusType? statusType = null, int retryCount = 0)
         {
             ClientContainer clientContainer = new ClientContainer();
             List<SpeedRun> runs = null;
 
             try
             {
-                runs = clientContainer.Runs.GetRuns(status: statusType, elementsPerPage: elementsPerPage, elementsOffset: elementsOffset, orderBy: orderBy).ToList();
+                runs = clientContainer.Runs.GetRuns(status: statusType, elementsPerPage: elementsPerPage, elementsOffset: elementsOffset, gameId: gameID, orderBy: orderBy).ToList();
             }
             catch (Exception ex)
             {
@@ -169,7 +298,7 @@ namespace SpeedRunAppImport.Service
                     Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.ErrorPullDelayMS));
                     retryCount++;
                     _logger.Information("Retrying pull speedRuns: {@New}, total speedRuns: {@Total}, retry: {@RetryCount}", elementsPerPage, elementsOffset, retryCount);
-                    runs = GetSpeedRunsWithRetry(elementsPerPage, elementsOffset, orderBy, statusType, retryCount);
+                    runs = GetSpeedRunsWithRetry(elementsPerPage, elementsOffset, gameID, orderBy, statusType, retryCount);
                 }
                 else
                 {

@@ -72,7 +72,7 @@ namespace SpeedRunAppImport.Service
                 {
                     runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count(i => i.GameID == game.ID) + prevGameTotal, game.ID, orderBy);
                     results.AddRange(runs);
-                    _logger.Information("GameID: {@GameID}, pulled runs: {@New}, total runs: {@Total}", game.ID, runs.Count, results.Count + prevTotal);
+                    _logger.Information("GameID: {@GameID}, pulled runs: {@New}, game total: {@GameTotal}, total runs: {@Total}", game.ID, runs.Count, results.Count(i => i.GameID == game.ID) + prevGameTotal, results.Count + prevTotal);
                     Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
 
                     var memorySize = GC.GetTotalMemory(false);
@@ -293,7 +293,12 @@ namespace SpeedRunAppImport.Service
             }
             catch (Exception ex)
             {
-                if (retryCount <= MaxRetryCount)
+                if (ex is APIException && ((APIException)ex).Message.Contains("Invalid pagination values"))
+                {
+                    runs = new List<SpeedRun>();
+                    _logger.Information(ex, "GetSpeedRunsWithRetry");
+                }
+                else if (retryCount <= MaxRetryCount)
                 {
                     Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.ErrorPullDelayMS));
                     retryCount++;

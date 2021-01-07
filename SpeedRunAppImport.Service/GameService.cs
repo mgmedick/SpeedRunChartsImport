@@ -59,7 +59,7 @@ namespace SpeedRunAppImport.Service
                     {
                         prevTotal += results.Count;
                         _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
-                        SaveGames(results.OrderBy(i => i.CreationDate), isFullImport);
+                        SaveGames(results, isFullImport);
                         results.ClearMemory();
                     }
                 }
@@ -119,7 +119,7 @@ namespace SpeedRunAppImport.Service
 
         public void SaveGames(IEnumerable<Game> games, bool isFullImport)
         {
-            var gameEntities = games.Select(i => i.ConvertToEntity()).ToList();
+            var gameEntities = games.Select(i => i.ConvertToEntity()).OrderBy(i => i.CreatedDate).ToList();
             var levelEntities = games.SelectMany(i => i.Levels.Select(i => i.ConvertToEntity())).ToList();
             var categoryEntities = games.SelectMany(i => i.Categories.Select(i => i.ConvertToEntity())).ToList();
             var variableEntities = games.SelectMany(i => i.Variables.Select(i => i.ConvertToEntity())).ToList();

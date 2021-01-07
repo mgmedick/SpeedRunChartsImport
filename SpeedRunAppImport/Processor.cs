@@ -133,22 +133,18 @@ namespace SpeedRunAppImport
             if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Game) || Processes.Contains(ImportProcess.SpeedRun))
             {
                 ImportProcess importProcess;
-                DateTime lastImportDate;
 
                 if (Processes.Contains(ImportProcess.All) || (Processes.Contains(ImportProcess.Game) && Processes.Contains(ImportProcess.SpeedRun)))
                 {
                     importProcess = ImportProcess.All;
-                    lastImportDate = (SpeedRunLastImportDate > GameLastImportDate) ? GameLastImportDate : SpeedRunLastImportDate;
                 }
                 else if (Processes.Contains(ImportProcess.Game))
                 {
                     importProcess = ImportProcess.Game;
-                    lastImportDate = GameLastImportDate;
                 }
                 else
                 {
                     importProcess = ImportProcess.SpeedRun;
-                    lastImportDate = SpeedRunLastImportDate;
                 }
 
                 if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Game))
@@ -156,7 +152,7 @@ namespace SpeedRunAppImport
                     _speedRunRepo.UpdateSpeedRunSubCategoryVariableValues(GameLastImportDate);
                 }
 
-                _speedRunRepo.UpdateSpeedRunRanks((int)importProcess, lastImportDate.ToLocalTime());
+                _speedRunRepo.UpdateSpeedRunRanks((int)importProcess, GameLastImportDate.ToLocalTime(), SpeedRunLastImportDate.ToLocalTime());
             }
         }
 

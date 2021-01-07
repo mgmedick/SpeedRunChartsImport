@@ -100,13 +100,13 @@ namespace SpeedRunAppImport.Service
         public void ProcessLatestSpeedRuns(DateTime lastImportDate)
         {
             var results = new List<SpeedRun>();
-            var latestRuns = _scrapeService.GetLatestSpeedRunIDs().ToList();
+            var latestRuns = _scrapeService.GetLatestSpeedRunIDs();
 
             foreach (var runID in latestRuns)
             {
                 var run = GetSpeedRunWithRetry(runID);
                 results.Add(run);
-                _logger.Information("Pulled runs: {@New}, total runs: {@Total}", results.Count, latestRuns.Count);
+                _logger.Information("Pulled runs: {@New}, total runs: {@Total}", results.Count, latestRuns.Count());
                 Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
 
                 var memorySize = GC.GetTotalMemory(false);
@@ -120,7 +120,6 @@ namespace SpeedRunAppImport.Service
 
             if (results.Any())
             {
-                results.RemoveAll(i => (i.DateSubmitted ?? SqlMinDateTime) < lastImportDate);
                 SaveSpeedRuns(results, false);
                 results.ClearMemory();
             }
@@ -130,6 +129,7 @@ namespace SpeedRunAppImport.Service
 
         public void ProcessSpeedRunUpdates(DateTime lastImportDate)
         {
+            _logger.Information("Started ProcessSpeedRunUpdates: {@LastImportDate}", lastImportDate);
             var lastUpdateDate = lastImportDate.AddDays(RejectedDaysBack);
             var runs = _speedRunRepo.GetSpeedRunsBetweenDates(lastUpdateDate, lastImportDate);
             var updatedRuns = new List<SpeedRun>();
@@ -138,6 +138,7 @@ namespace SpeedRunAppImport.Service
             {
                 var updatedRun = GetSpeedRunWithRetry(run.ID);
                 updatedRuns.Add(updatedRun);
+                _logger.Information("Pulled runs: {@New}, total runs: {@Total}", updatedRuns.Count, runs.Count());
 
                 var memorySize = GC.GetTotalMemory(false);
                 if (memorySize > MaxMemorySizeBytes)
@@ -153,6 +154,7 @@ namespace SpeedRunAppImport.Service
                 SaveSpeedRuns(updatedRuns, false);
                 updatedRuns.ClearMemory();
             }
+            _logger.Information("Completed ProcessSpeedRunUpdates");
         }
 
         /*

@@ -72,7 +72,7 @@ namespace SpeedRunAppImport.Service
                 {
                     runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count(i => i.GameID == game.ID) + prevGameTotal, game.ID, orderBy);
                     results.AddRange(runs);
-                    _logger.Information("GameID: {@GameID}, Pulled runs: {@New}, total runs: {@Total}", runs.Count, results.Count + prevTotal);
+                    _logger.Information("GameID: {@GameID}, pulled runs: {@New}, total runs: {@Total}", game.ID, runs.Count, results.Count + prevTotal);
                     Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
 
                     var memorySize = GC.GetTotalMemory(false);

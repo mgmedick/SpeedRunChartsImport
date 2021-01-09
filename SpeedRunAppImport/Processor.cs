@@ -98,7 +98,7 @@ namespace SpeedRunAppImport
                 BaseService.MaxMemorySizeBytes = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxMemorySizeBytes").Value);
                 BaseService.PullDelayMS = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("PullDelayMS").Value);
                 BaseService.ErrorPullDelayMS = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("ErrorPullDelayMS").Value);
-                BaseService.RejectedDaysBack = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("RejectedDaysBack").Value);
+                BaseService.UpdateDaysBack = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("UpdateDaysBack").Value);
                 BaseService.SpeedRunComLatestRunsUrl = _config.GetSection("ApiSettings").GetSection("SpeedRunComLatestRunsUrl").Value;
                 _logger.Information("Completed Init");
             }

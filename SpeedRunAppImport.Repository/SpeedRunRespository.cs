@@ -269,19 +269,6 @@ namespace SpeedRunAppImport.Repository
             }
         }
 
-        public IEnumerable<SpeedRunEntity> GetSpeedRunsBetweenDates(DateTime startDate, DateTime endDate)
-        {
-            using (IDatabase db = DBFactory.GetDatabase())
-            {
-                return db.Query<SpeedRunEntity>("SELECT ID, StatusTypeID, GameID, CategoryID, LevelID, PlatformID, RegionID, IsEmulated, " +
-                                                    "PrimaryTime, RealTime, RealTimeWithoutLoads, GameTime, Comment, ExaminerUserID, " +
-                                                    "RejectReason, SpeedRunComUrl, SplitsUrl, RunDate, DateSubmitted, VerifyDate, " +
-                                                    "ImportedDate, ModifiedDate, [Rank], SubCategoryVariableValues, PlayerIDs " +
-                                                    "FROM dbo.tbl_SpeedRun " +
-                                                    "WHERE ImportedDate BETWEEN @0 AND @1", startDate, endDate).ToList();
-            }
-        }
-
         public void UpdateSpeedRunRanks(int importProcessID, DateTime gameLastImportDate, DateTime speedRunLastImportDate)
         {
             _logger.Information("Started UpdateSpeedRunRanks {@ImportProcessID}, {@GameLastImportDate}, {@SpeedRunLastImportDate}", importProcessID, gameLastImportDate, speedRunLastImportDate);

@@ -100,13 +100,13 @@ namespace SpeedRunAppImport.Service
         public void ProcessLatestSpeedRuns(DateTime lastImportDate)
         {
             var results = new List<SpeedRun>();
-            var latestRuns = _scrapeService.GetLatestSpeedRunIDs();
+            var latestRunIDs = _scrapeService.GetLatestSpeedRunIDs();
 
-            foreach (var runID in latestRuns)
+            foreach (var runID in latestRunIDs)
             {
                 var run = GetSpeedRunWithRetry(runID);
                 results.Add(run);
-                _logger.Information("Pulled runs: {@New}, total runs: {@Total}", results.Count, latestRuns.Count());
+                _logger.Information("Pulled runs: {@New}, total runs: {@Total}", results.Count, latestRunIDs.Count());
                 Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
 
                 var memorySize = GC.GetTotalMemory(false);
@@ -130,29 +130,30 @@ namespace SpeedRunAppImport.Service
         public void ProcessSpeedRunUpdates(DateTime lastImportDate)
         {
             _logger.Information("Started ProcessSpeedRunUpdates: {@LastImportDate}", lastImportDate);
-            var lastUpdateDate = lastImportDate.AddDays(RejectedDaysBack);
-            var runs = _speedRunRepo.GetSpeedRunsBetweenDates(lastUpdateDate, lastImportDate);
-            var updatedRuns = new List<SpeedRun>();
+            var lastUpdateDate = lastImportDate.AddDays(UpdateDaysBack);
+            var updateRunIDs = _speedRunRepo.GetSpeedRuns(i => i.StatusTypeID == (int)RunStatusType.New && i.DateSubmitted >= lastUpdateDate).Select(i => i.ID).ToList();
+            var updatedResults = new List<SpeedRun>();
 
-            foreach (var run in runs)
+            foreach (var runID in updateRunIDs)
             {
-                var updatedRun = GetSpeedRunWithRetry(run.ID);
-                updatedRuns.Add(updatedRun);
-                _logger.Information("Pulled runs: {@New}, total runs: {@Total}", updatedRuns.Count, runs.Count());
+                var run = GetSpeedRunWithRetry(runID);
+                updatedResults.Add(run);
+                _logger.Information("Pulled runs: {@New}, total runs: {@Total}", updatedResults.Count, updateRunIDs.Count());
+                Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
 
                 var memorySize = GC.GetTotalMemory(false);
                 if (memorySize > MaxMemorySizeBytes)
                 {
-                    _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", updatedRuns.Count, memorySize);
-                    SaveSpeedRuns(updatedRuns, false);
-                    updatedRuns.ClearMemory();
+                    _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", updatedResults.Count, memorySize);
+                    SaveSpeedRuns(updatedResults, false);
+                    updatedResults.ClearMemory();
                 }
             }
 
-            if (updatedRuns.Any())
+            if (updatedResults.Any())
             {
-                SaveSpeedRuns(updatedRuns, false);
-                updatedRuns.ClearMemory();
+                SaveSpeedRuns(updatedResults, false);
+                updatedResults.ClearMemory();
             }
             _logger.Information("Completed ProcessSpeedRunUpdates");
         }

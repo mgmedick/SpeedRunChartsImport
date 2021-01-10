@@ -34,8 +34,8 @@ namespace SpeedRunAppImport.Service
         {
             try
             {
-                _logger.Information("Started ProcessSpeedRuns: {@LastImportDate}, {@IsFullImport}", lastImportDate, isFullImport);
-                var newImportDate = DateTime.UtcNow;
+                var lastImportDateUtc = lastImportDate.ToUniversalTime();
+                _logger.Information("Started ProcessSpeedRuns: {@LastImportDate}, {@LastImportDateUtc}, {@IsFullImport}", lastImportDate, lastImportDateUtc, isFullImport);
 
                 if (isFullImport)
                 {
@@ -43,10 +43,10 @@ namespace SpeedRunAppImport.Service
                 }
                 else
                 {
-                    ProcessLatestSpeedRuns(lastImportDate);
+                    ProcessLatestSpeedRuns(lastImportDateUtc);
                 }
 
-                _settingService.UpdateSetting("SpeedRunLastImportDate", newImportDate);
+                _settingService.UpdateSetting("SpeedRunLastImportDate", DateTime.Now);
                 _logger.Information("Completed ProcessSpeedRuns");
             }
             catch (Exception ex)
@@ -100,7 +100,7 @@ namespace SpeedRunAppImport.Service
             _speedRunRepo.RenameAndDropSpeedRunTables();
         }
 
-        public void ProcessLatestSpeedRuns(DateTime lastImportDate)
+        public void ProcessLatestSpeedRuns(DateTime lastImportDateUtc)
         {
             var results = new List<SpeedRun>();
             var latestRunIDs = _scrapeService.GetLatestSpeedRunIDs();
@@ -130,14 +130,14 @@ namespace SpeedRunAppImport.Service
                 results.ClearMemory();
             }
 
-            ProcessSpeedRunUpdates(lastImportDate);
+            ProcessSpeedRunUpdates(lastImportDateUtc);
         }
 
-        public void ProcessSpeedRunUpdates(DateTime lastImportDate)
+        public void ProcessSpeedRunUpdates(DateTime lastImportDateUtc)
         {
-            _logger.Information("Started ProcessSpeedRunUpdates: {@LastImportDate}", lastImportDate);
-            var lastUpdateDate = lastImportDate.AddDays(UpdateDaysBack);
-            var updateRunIDs = _speedRunRepo.GetSpeedRuns(i => i.StatusTypeID == (int)RunStatusType.New && i.DateSubmitted >= lastUpdateDate).Select(i => i.ID).ToList();
+            _logger.Information("Started ProcessSpeedRunUpdates: {@LastImportDateUtc}", lastImportDateUtc);
+            var lastUpdateDateUtc = lastImportDateUtc.AddDays(UpdateDaysBack);
+            var updateRunIDs = _speedRunRepo.GetSpeedRuns(i => i.StatusTypeID == (int)RunStatusType.New && i.DateSubmitted >= lastUpdateDateUtc).Select(i => i.ID).ToList();
             var updatedResults = new List<SpeedRun>();
 
             foreach (var runID in updateRunIDs)

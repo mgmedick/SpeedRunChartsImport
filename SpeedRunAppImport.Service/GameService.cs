@@ -33,8 +33,9 @@ namespace SpeedRunAppImport.Service
         {
             try
             {
-                _logger.Information("Started ProcessGames: {@LastImportDate}, {@IsFullImport}", lastImportDate, isFullImport);
-                var newImportDate = DateTime.UtcNow;
+                var lastImportDateUtc = lastImportDate.ToUniversalTime();
+                _logger.Information("Started ProcessGames: {@LastImportDate}, {@LastImportDateUtc}, {@IsFullImport}", lastImportDate, lastImportDateUtc, isFullImport);
+
                 GamesOrdering orderBy = isFullImport ? GamesOrdering.CreationDate : GamesOrdering.CreationDateDescending;
                 var gameEmbeds = new GameEmbeds { EmbedCategories = true, EmbedLevels = true, EmbedModerators = false, EmbedPlatforms = false, EmbedVariables = true };
                 var results = new List<Game>();
@@ -63,13 +64,13 @@ namespace SpeedRunAppImport.Service
                         results.ClearMemory();
                     }
                 }
-                while (games.Count == MaxElementsPerPage && games.Min(i => i.CreationDate ?? SqlMinDateTime) >= lastImportDate);
+                while (games.Count == MaxElementsPerPage && games.Min(i => i.CreationDate ?? SqlMinDateTime) >= lastImportDateUtc);
 
                 if (results.Any())
                 {
                     if (!isFullImport)
                     {
-                        results.RemoveAll(i => (i.CreationDate ?? SqlMinDateTime) < lastImportDate);
+                        results.RemoveAll(i => (i.CreationDate ?? SqlMinDateTime) < lastImportDateUtc);
                     }
 
                     SaveGames(results, isFullImport);
@@ -81,7 +82,7 @@ namespace SpeedRunAppImport.Service
                     _gameRepo.RenameAndDropGameTables();
                 }
 
-                _settingService.UpdateSetting("GameLastImportDate", newImportDate);
+                _settingService.UpdateSetting("GameLastImportDate", DateTime.Now);
                 _logger.Information("Completed ProcessGames");
             }
             catch (Exception ex)

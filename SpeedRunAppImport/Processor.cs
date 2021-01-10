@@ -85,11 +85,11 @@ namespace SpeedRunAppImport
                 }
                 else
                 {
-                    PlatformLastImportDate = _settingService.GetSetting("PlatformLastImportDate")?.Dte ?? DateTime.UtcNow;
-                    GameLastImportDate = _settingService.GetSetting("GameLastImportDate")?.Dte ?? DateTime.UtcNow;
-                    UserLastImportDate = _settingService.GetSetting("UserLastImportDate")?.Dte ?? DateTime.UtcNow;
-                    SpeedRunLastImportDate = _settingService.GetSetting("SpeedRunLastImportDate")?.Dte ?? DateTime.UtcNow;
-                    LeaderboardLastImportDate = _settingService.GetSetting("LeaderboardLastImportDate")?.Dte ?? DateTime.UtcNow;
+                    PlatformLastImportDate = _settingService.GetSetting("PlatformLastImportDate")?.Dte ?? DateTime.Now;
+                    GameLastImportDate = _settingService.GetSetting("GameLastImportDate")?.Dte ?? DateTime.Now;
+                    UserLastImportDate = _settingService.GetSetting("UserLastImportDate")?.Dte ?? DateTime.Now;
+                    SpeedRunLastImportDate = _settingService.GetSetting("SpeedRunLastImportDate")?.Dte ?? DateTime.Now;
+                    LeaderboardLastImportDate = _settingService.GetSetting("LeaderboardLastImportDate")?.Dte ?? DateTime.Now;
                 }
 
                 BaseService.SqlMinDateTime = sqlMinDateTime;
@@ -152,7 +152,7 @@ namespace SpeedRunAppImport
                     _speedRunRepo.UpdateSpeedRunSubCategoryVariableValues(GameLastImportDate);
                 }
 
-                _speedRunRepo.UpdateSpeedRunRanks((int)importProcess, GameLastImportDate.ToLocalTime(), SpeedRunLastImportDate.ToLocalTime());
+                _speedRunRepo.UpdateSpeedRunRanks((int)importProcess, GameLastImportDate, SpeedRunLastImportDate);
             }
         }
 

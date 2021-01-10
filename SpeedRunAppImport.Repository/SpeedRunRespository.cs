@@ -68,7 +68,6 @@ namespace SpeedRunAppImport.Repository
                                 EXEC sp_rename 'dbo.tbl_SpeedRun_Video_Full', 'tbl_SpeedRun_Video'
 
                                 DROP TABLE dbo.tbl_SpeedRun_ToRemove
-                                DROP TABLE dbo.tbl_SpeedRun_Full_ToRemove
                                 DROP TABLE dbo.tbl_SpeedRun_Player_ToRemove
                                 DROP TABLE dbo.tbl_SpeedRun_VariableValue_ToRemove
                                 DROP TABLE dbo.tbl_SpeedRun_Video_ToRemove

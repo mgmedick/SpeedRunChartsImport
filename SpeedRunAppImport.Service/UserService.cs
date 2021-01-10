@@ -30,8 +30,9 @@ namespace SpeedRunAppImport.Service
         {
             try
             {
-                _logger.Information("Started ProcessUsers: {@LastImportDate}, {@IsFullImport}", lastImportDate, isFullImport);
-                var newImportDate = DateTime.UtcNow;
+                var lastImportDateUtc = lastImportDate.ToUniversalTime();
+                _logger.Information("Started ProcessUsers: {@LastImportDate}, {@LastImportDateUtc}, {@IsFullImport}", lastImportDate, lastImportDateUtc, isFullImport);
+
                 UsersOrdering orderBy = isFullImport ? UsersOrdering.SignUpDate : UsersOrdering.SignUpDateDescending;
                 var results = new List<User>();
                 var users = new List<User>();
@@ -58,13 +59,13 @@ namespace SpeedRunAppImport.Service
                         results.ClearMemory();
                     }
                 }
-                while (users.Count == MaxElementsPerPage && users.Min(i => i.SignUpDate ?? SqlMinDateTime) >= lastImportDate);
+                while (users.Count == MaxElementsPerPage && users.Min(i => i.SignUpDate ?? SqlMinDateTime) >= lastImportDateUtc);
 
                 if (results.Any())
                 {
                     if (!isFullImport)
                     {
-                        results.RemoveAll(i => (i.SignUpDate ?? SqlMinDateTime) < lastImportDate);
+                        results.RemoveAll(i => (i.SignUpDate ?? SqlMinDateTime) < lastImportDateUtc);
                     }
 
                     SaveUsers(results, isFullImport);
@@ -76,7 +77,7 @@ namespace SpeedRunAppImport.Service
                     _userRepo.RenameAndDropUserTables();
                 }
 
-                _settingService.UpdateSetting("UserLastImportDate", newImportDate);
+                _settingService.UpdateSetting("UserLastImportDate", DateTime.Now);
                 _logger.Information("Completed ProcessUsers");
             }
             catch (Exception ex)

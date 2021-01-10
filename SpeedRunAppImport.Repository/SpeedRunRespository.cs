@@ -30,6 +30,9 @@ namespace SpeedRunAppImport.Repository
                     db.Execute(@"IF OBJECT_ID('dbo.tbl_SpeedRun_Full') IS NOT NULL 
                                     DROP TABLE dbo.tbl_SpeedRun_Full
 
+                                IF OBJECT_ID('dbo.tbl_SpeedRun_Full_Ordered') IS NOT NULL 
+                                    DROP TABLE dbo.tbl_SpeedRun_Full_Ordered
+
                                 IF OBJECT_ID('dbo.tbl_SpeedRun_Player_Full') IS NOT NULL 
                                     DROP TABLE dbo.tbl_SpeedRun_Player_Full
 
@@ -40,6 +43,7 @@ namespace SpeedRunAppImport.Repository
                                     DROP TABLE dbo.tbl_SpeedRun_Video_Full
 
                                 SELECT TOP 0 * INTO dbo.tbl_SpeedRun_Full FROM dbo.tbl_SpeedRun
+                                SELECT TOP 0 * INTO dbo.tbl_SpeedRun_Full_Ordered FROM dbo.tbl_SpeedRun
                                 SELECT TOP 0 * INTO dbo.tbl_SpeedRun_Player_Full FROM dbo.tbl_SpeedRun_Player
                                 SELECT TOP 0 * INTO dbo.tbl_SpeedRun_VariableValue_Full FROM dbo.tbl_SpeedRun_VariableValue
                                 SELECT TOP 0 * INTO dbo.tbl_SpeedRun_Video_Full FROM dbo.tbl_SpeedRun_Video
@@ -57,24 +61,57 @@ namespace SpeedRunAppImport.Repository
                 using (var tran = db.GetTransaction())
                 {
                     db.OneTimeCommandTimeout = 32767;
-                    db.Execute(@"EXEC sp_rename 'dbo.tbl_SpeedRun', 'tbl_SpeedRun_ToRemove'
+                    db.Execute(@"INSERT INTO dbo.tbl_SpeedRun_Full ([ID],[StatusTypeID],[GameID],[CategoryID],[LevelID],[PlatformID],[RegionID],
+                                                            [IsEmulated],[PrimaryTime],[RealTime],[RealTimeWithoutLoads],[GameTime],[Comment],[ExaminerUserID],
+                                                            [RejectReason],[SpeedRunComUrl],[SplitsUrl],[RunDate],[DateSubmitted],[VerifyDate],[ImportedDate],
+                                                            [ModifiedDate],[Rank],[SubCategoryVariableValues],[PlayerIDs])
+                                SELECT [ID],[StatusTypeID],[GameID],[CategoryID],[LevelID],[PlatformID],[RegionID],
+                                        [IsEmulated],[PrimaryTime],[RealTime],[RealTimeWithoutLoads],[GameTime],[Comment],[ExaminerUserID],
+                                        [RejectReason],[SpeedRunComUrl],[SplitsUrl],[RunDate],[DateSubmitted],[VerifyDate],[ImportedDate],
+                                        [ModifiedDate],[Rank],[SubCategoryVariableValues],[PlayerIDs]
+                                FROM dbo.tbl_SpeedRun rn
+                                WHERE NOT EXISTS (SELECT 1 FROM dbo.tbl_SpeedRun_Full rn1 WHERE rn1.ID = rn.ID)
+                                ORDER BY ISNULL(rn.DateSubmitted, rn.RunDate)
+
+                                DECLARE @RowCount INT = 1000
+
+                                WHILE @RowCount > 0
+                                BEGIN
+                                    INSERT INTO dbo.tbl_SpeedRun_Full_Ordered ([ID],[StatusTypeID],[GameID],[CategoryID],[LevelID],[PlatformID],[RegionID],
+                                                                [IsEmulated],[PrimaryTime],[RealTime],[RealTimeWithoutLoads],[GameTime],[Comment],[ExaminerUserID],
+                                                                [RejectReason],[SpeedRunComUrl],[SplitsUrl],[RunDate],[DateSubmitted],[VerifyDate],[ImportedDate],
+                                                                [ModifiedDate],[Rank],[SubCategoryVariableValues],[PlayerIDs])
+                                    SELECT TOP (@RowCount)
+                                        [ID],[StatusTypeID],[GameID],[CategoryID],[LevelID],[PlatformID],[RegionID],
+                                        [IsEmulated],[PrimaryTime],[RealTime],[RealTimeWithoutLoads],[GameTime],[Comment],[ExaminerUserID],
+                                        [RejectReason],[SpeedRunComUrl],[SplitsUrl],[RunDate],[DateSubmitted],[VerifyDate],[ImportedDate],
+                                        [ModifiedDate],[Rank],[SubCategoryVariableValues],[PlayerIDs]
+                                    FROM dbo.tbl_SpeedRun_Full rn
+                                    WHERE NOT EXISTS (SELECT 1 FROM dbo.tbl_SpeedRun_Full_Ordered rn1 WHERE rn1.ID = rn.ID)
+                                    ORDER BY ISNULL(rn.DateSubmitted, rn.RunDate)
+
+                                    SELECT @RowCount = @@ROWCOUNT
+                                END
+
+                                EXEC sp_rename 'dbo.tbl_SpeedRun', 'tbl_SpeedRun_ToRemove'
+                                EXEC sp_rename 'dbo.tbl_SpeedRun_Full', 'tbl_SpeedRun_Full_ToRemove'
                                 EXEC sp_rename 'dbo.tbl_SpeedRun_Player', 'tbl_SpeedRun_Player_ToRemove'
                                 EXEC sp_rename 'dbo.tbl_SpeedRun_VariableValue', 'tbl_SpeedRun_VariableValue_ToRemove'
                                 EXEC sp_rename 'dbo.tbl_SpeedRun_Video', 'tbl_SpeedRun_Video_ToRemove'
 
-                                EXEC sp_rename 'dbo.tbl_SpeedRun_Full', 'tbl_SpeedRun'
+                                EXEC sp_rename 'dbo.tbl_SpeedRun_Full_Ordered', 'tbl_SpeedRun'
                                 EXEC sp_rename 'dbo.tbl_SpeedRun_Player_Full', 'tbl_SpeedRun_Player'
                                 EXEC sp_rename 'dbo.tbl_SpeedRun_VariableValue_Full', 'tbl_SpeedRun_VariableValue'
                                 EXEC sp_rename 'dbo.tbl_SpeedRun_Video_Full', 'tbl_SpeedRun_Video'
 
                                 DROP TABLE dbo.tbl_SpeedRun_ToRemove
+                                DROP TABLE dbo.tbl_SpeedRun_Full_ToRemove
                                 DROP TABLE dbo.tbl_SpeedRun_Player_ToRemove
                                 DROP TABLE dbo.tbl_SpeedRun_VariableValue_ToRemove
                                 DROP TABLE dbo.tbl_SpeedRun_Video_ToRemove
 
-                                EXEC sp_rename 'dbo.DF_tbl_SpeedRun_Full_ImportedDate', 'DF_tbl_SpeedRun_ImportedDate'
-
                                 ALTER TABLE [dbo].[tbl_SpeedRun] ADD CONSTRAINT [PK_tbl_SpeedRun] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                ALTER TABLE [dbo].[tbl_SpeedRun] ADD CONSTRAINT [DF_tbl_SpeedRun_ImportedDate] DEFAULT GETDATE() FOR [ImportedDate]
                                 CREATE CLUSTERED INDEX [IDX_tbl_SpeedRun_OrderValue] ON [dbo].[tbl_SpeedRun] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY] 
                                 CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_StatusTypeID_GameID_CategoryID_LevelID_SubCategoryVariableValues_PlusInclude] ON [dbo].[tbl_SpeedRun] ([StatusTypeID],[GameID],[CategoryID],[LevelID],[SubCategoryVariableValues]) INCLUDE ([PlayerIDs],[Rank],[PrimaryTime]) WITH (FILLFACTOR=90) ON [PRIMARY]
                                 CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_StatusTypeID_GameID_Rank] ON [dbo].[tbl_SpeedRun] ([StatusTypeID],[GameID],[Rank]) WITH (FILLFACTOR=90) ON [PRIMARY]

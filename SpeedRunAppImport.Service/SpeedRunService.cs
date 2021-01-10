@@ -71,18 +71,21 @@ namespace SpeedRunAppImport.Service
                 do
                 {
                     runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count(i => i.GameID == game.ID) + prevGameTotal, game.ID, orderBy);
-                    results.AddRange(runs);
-                    _logger.Information("GameID: {@GameID}, pulled runs: {@New}, game total: {@GameTotal}, total runs: {@Total}", game.ID, runs.Count, results.Count(i => i.GameID == game.ID) + prevGameTotal, results.Count + prevTotal);
-                    Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
-
-                    var memorySize = GC.GetTotalMemory(false);
-                    if (memorySize > MaxMemorySizeBytes)
+                    if(runs != null)
                     {
-                        prevTotal += results.Count;
-                        prevGameTotal += results.Count(i => i.GameID == game.ID);
-                        _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
-                        SaveSpeedRuns(results, true);
-                        results.ClearMemory();
+                        results.AddRange(runs);
+                        _logger.Information("GameID: {@GameID}, pulled runs: {@New}, game total: {@GameTotal}, total runs: {@Total}", game.ID, runs.Count, results.Count(i => i.GameID == game.ID) + prevGameTotal, results.Count + prevTotal);
+                        Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
+
+                        var memorySize = GC.GetTotalMemory(false);
+                        if (memorySize > MaxMemorySizeBytes)
+                        {
+                            prevTotal += results.Count;
+                            prevGameTotal += results.Count(i => i.GameID == game.ID);
+                            _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
+                            SaveSpeedRuns(results, true);
+                            results.ClearMemory();
+                        }
                     }
                 }
                 while (runs.Count == MaxElementsPerPage);
@@ -105,16 +108,19 @@ namespace SpeedRunAppImport.Service
             foreach (var runID in latestRunIDs)
             {
                 var run = GetSpeedRunWithRetry(runID);
-                results.Add(run);
-                _logger.Information("Pulled runs: {@New}, total runs: {@Total}", results.Count, latestRunIDs.Count());
-                Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
-
-                var memorySize = GC.GetTotalMemory(false);
-                if (memorySize > MaxMemorySizeBytes)
+                if(run != null)
                 {
-                    _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
-                    SaveSpeedRuns(results, false);
-                    results.ClearMemory();
+                    results.Add(run);
+                    _logger.Information("Pulled runs: {@New}, total runs: {@Total}", results.Count, latestRunIDs.Count());
+                    Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
+
+                    var memorySize = GC.GetTotalMemory(false);
+                    if (memorySize > MaxMemorySizeBytes)
+                    {
+                        _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
+                        SaveSpeedRuns(results, false);
+                        results.ClearMemory();
+                    }
                 }
             }
 
@@ -137,16 +143,19 @@ namespace SpeedRunAppImport.Service
             foreach (var runID in updateRunIDs)
             {
                 var run = GetSpeedRunWithRetry(runID);
-                updatedResults.Add(run);
-                _logger.Information("Pulled runs: {@New}, total runs: {@Total}", updatedResults.Count, updateRunIDs.Count());
-                Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
-
-                var memorySize = GC.GetTotalMemory(false);
-                if (memorySize > MaxMemorySizeBytes)
+                if (run != null)
                 {
-                    _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", updatedResults.Count, memorySize);
-                    SaveSpeedRuns(updatedResults, false);
-                    updatedResults.ClearMemory();
+                    updatedResults.Add(run);
+                    _logger.Information("Pulled runs: {@New}, total runs: {@Total}", updatedResults.Count, updateRunIDs.Count());
+                    Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
+
+                    var memorySize = GC.GetTotalMemory(false);
+                    if (memorySize > MaxMemorySizeBytes)
+                    {
+                        _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", updatedResults.Count, memorySize);
+                        SaveSpeedRuns(updatedResults, false);
+                        updatedResults.ClearMemory();
+                    }
                 }
             }
 
@@ -298,7 +307,7 @@ namespace SpeedRunAppImport.Service
             {
                 if (ex is APIException && ((APIException)ex).Message.Contains("Invalid pagination values"))
                 {
-                    runs = new List<SpeedRun>();
+                    runs = null;
                     _logger.Information(ex, "GetSpeedRunsWithRetry");
                 }
                 else if (retryCount <= MaxRetryCount)
@@ -328,7 +337,12 @@ namespace SpeedRunAppImport.Service
             }
             catch (Exception ex)
             {
-                if (retryCount <= MaxRetryCount)
+                if (ex is APIException && ((APIException)ex).Message.Contains("could not be found"))
+                {
+                    run = null;
+                    _logger.Information(ex, "GetSpeedRunWithRetry");
+                }
+                else if (retryCount <= MaxRetryCount)
                 {
                     Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.ErrorPullDelayMS));
                     retryCount++;

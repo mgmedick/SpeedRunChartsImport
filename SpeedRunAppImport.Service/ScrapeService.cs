@@ -9,6 +9,7 @@ using AngleSharp.Html.Parser;
 using System.Linq;
 using System.IO;
 using AngleSharp.Attributes;
+using System.Threading.Tasks;
 
 namespace SpeedRunAppImport.Service
 {
@@ -27,7 +28,7 @@ namespace SpeedRunAppImport.Service
             var requester = new DefaultHttpRequester("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36");
             var angleSharpConfig = Configuration.Default.With(requester).WithDefaultLoader();
             var context = BrowsingContext.New(angleSharpConfig);
-            var document = context.OpenAsync(SpeedRunComLatestRunsUrl).Result;
+            var document = Task.Run(async () => await context.OpenAsync(SpeedRunComLatestRunsUrl)).Result;
             var runIDs = document.QuerySelectorAll(".linked").Select(i => i.GetAttribute("data-target").Substring(i.GetAttribute("data-target").LastIndexOf('/') + 1)).ToList();
             var existingRunIDs = _speedRunRepo.GetSpeedRuns(i => runIDs.Contains(i.ID)).Select(i => i.ID).ToList();
             var results = runIDs.Where(i => !existingRunIDs.Contains(i)).ToList();

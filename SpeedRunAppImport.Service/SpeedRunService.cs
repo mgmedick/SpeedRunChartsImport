@@ -70,7 +70,7 @@ namespace SpeedRunAppImport.Service
                 var prevGameTotal = 0;
                 do
                 {
-                    runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count(i => i.GameID == game.ID) + prevGameTotal, game.ID, orderBy);
+                    runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count(i => i.GameID == game.ID) + prevGameTotal, game.ID, orderBy, RunStatusType.Verified);
                     if(runs != null)
                     {
                         results.AddRange(runs);

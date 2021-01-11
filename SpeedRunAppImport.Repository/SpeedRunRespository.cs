@@ -174,6 +174,7 @@ namespace SpeedRunAppImport.Repository
 
                 using (IDatabase db = DBFactory.GetDatabase())
                 {
+                    db.OneTimeCommandTimeout = 32767;
                     using (var tran = db.GetTransaction())
                     {
                         db.InsertBulk<SpeedRunEntity>(runsBatch);
@@ -200,6 +201,7 @@ namespace SpeedRunAppImport.Repository
                 {
                     using (var tran = db.GetTransaction())
                     {
+                        db.OneTimeCommandTimeout = 32767;
                         if (db.Exists<SpeedRunEntity>(speedRun.ID))
                         {
                             speedRun.ModifiedDate = DateTime.Now;

@@ -56,7 +56,7 @@ namespace SpeedRunAppImport.Repository
             {
                 using (var tran = db.GetTransaction())
                 {
-                    db.OneTimeCommandTimeout = 32767;
+                    //db.OneTimeCommandTimeout = 32767;
                     db.Execute(@"INSERT INTO dbo.tbl_SpeedRun_Full ([ID],[StatusTypeID],[GameID],[CategoryID],[LevelID],[PlatformID],[RegionID],
                                                             [IsEmulated],[PrimaryTime],[RealTime],[RealTimeWithoutLoads],[GameTime],[Comment],[ExaminerUserID],
                                                             [RejectReason],[SpeedRunComUrl],[SplitsUrl],[RunDate],[DateSubmitted],[VerifyDate],[ImportedDate],
@@ -174,7 +174,7 @@ namespace SpeedRunAppImport.Repository
 
                 using (IDatabase db = DBFactory.GetDatabase())
                 {
-                    db.OneTimeCommandTimeout = 32767;
+                    //db.OneTimeCommandTimeout = 32767;
                     using (var tran = db.GetTransaction())
                     {
                         db.InsertBulk<SpeedRunEntity>(runsBatch);
@@ -201,7 +201,7 @@ namespace SpeedRunAppImport.Repository
                 {
                     using (var tran = db.GetTransaction())
                     {
-                        db.OneTimeCommandTimeout = 32767;
+                        //db.OneTimeCommandTimeout = 32767;
                         if (db.Exists<SpeedRunEntity>(speedRun.ID))
                         {
                             speedRun.ModifiedDate = DateTime.Now;
@@ -288,7 +288,7 @@ namespace SpeedRunAppImport.Repository
 
             using (IDatabase db = DBFactory.GetDatabase())
             {
-                db.OneTimeCommandTimeout = 32767;
+                //db.OneTimeCommandTimeout = 32767;
                 db.Execute("EXEC dbo.UpdateSpeedRunRanks @0, @1, @2", importProcessID, gameLastImportDate, speedRunLastImportDate);
             }
 
@@ -301,7 +301,7 @@ namespace SpeedRunAppImport.Repository
 
             using (IDatabase db = DBFactory.GetDatabase())
             {
-                db.OneTimeCommandTimeout = 32767;
+                //db.OneTimeCommandTimeout = 32767;
                 db.Execute("EXEC dbo.UpdateSpeedRunSubCategoryVariableValues @0", lastImportDate);
             }
 

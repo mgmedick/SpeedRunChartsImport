@@ -16,8 +16,11 @@ namespace SpeedRunAppImport.Repository.Configuration
 
             BaseRepository.DBFactory = DatabaseFactory.Config(i =>
             {
-                i.UsingDatabase(() => new Database(connectionString, DatabaseType.SqlServer2012, SqlClientFactory.Instance));
+                var db = new Database(connectionString, DatabaseType.SqlServer2012, SqlClientFactory.Instance);
+                db.CommandTimeout = 0;
+                i.UsingDatabase(() => db);
                 i.WithFluentConfig(fluentConfig);
+                
             });
 
             BaseRepository.MaxBulkRows = maxBulkRows;

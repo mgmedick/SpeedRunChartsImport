@@ -69,6 +69,27 @@ namespace SpeedRunAppImport.Repository
                                 WHERE NOT EXISTS (SELECT 1 FROM dbo.tbl_SpeedRun_Full rn1 WHERE rn1.ID = rn.ID)
                                 ORDER BY ISNULL(rn.DateSubmitted, rn.RunDate)
 
+                                IF OBJECT_ID('tempdb..#RunsToDelete') IS NOT NULL 
+                                BEGIN 
+                                    DROP TABLE #RunsToDelete
+                                END
+
+                                CREATE TABLE #RunsToDelete 
+                                ( 
+                                        [OrderValue] [int],
+                                        [SpeedRunID] [varchar] (50),
+                                        [PriorityRank] [int]
+                                )
+
+                                INSERT INTO #RunsToDelete (OrderValue, SpeedRunID, PriorityRank)
+                                SELECT OrderValue, ID, RANK() OVER (PARTITION BY ID ORDER BY OrderValue)
+                                FROM dbo.tbl_SpeedRun_Full
+                                WHERE ID IN (SELECT ID FROM dbo.tbl_SpeedRun_Full GROUP BY ID HAVING COUNT(*) > 1)
+
+                                DELETE rn
+                                FROM dbo.tbl_SpeedRun_Full rn
+                                JOIN #RunsToDelete rn1 ON rn1.OrderValue = rn.OrderValue and PriorityRank > 1
+
                                 EXEC sp_rename 'dbo.tbl_SpeedRun', 'tbl_SpeedRun_ToRemove'
                                 EXEC sp_rename 'dbo.tbl_SpeedRun_Player', 'tbl_SpeedRun_Player_ToRemove'
                                 EXEC sp_rename 'dbo.tbl_SpeedRun_VariableValue', 'tbl_SpeedRun_VariableValue_ToRemove'

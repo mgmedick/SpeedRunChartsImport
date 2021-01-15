@@ -303,6 +303,15 @@ namespace SpeedRunAppImport.Repository
             }
         }
 
+        public IEnumerable<string> GetExistingSpeedRunIDs(IEnumerable<string> runIDs)
+        {
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                var runIDString = "'" + string.Join("','", runIDs) + "'";
+                return db.Query<string>("SELECT ID FROM dbo.tbl_SpeedRun WITH (NOLOCK) WHERE ID IN (@0)", runIDString).ToList();
+            }
+        }
+
         public void UpdateSpeedRunRanks(int importProcessID, DateTime gameLastImportDate, DateTime speedRunLastImportDate)
         {
             _logger.Information("Started UpdateSpeedRunRanks {@ImportProcessID}, {@GameLastImportDate}, {@SpeedRunLastImportDate}", importProcessID, gameLastImportDate, speedRunLastImportDate);

@@ -30,7 +30,7 @@ namespace SpeedRunAppImport.Service
             var context = BrowsingContext.New(angleSharpConfig);
             var document = Task.Run(async () => await context.OpenAsync(SpeedRunComLatestRunsUrl)).Result;
             var runIDs = document.QuerySelectorAll(".linked").Select(i => i.GetAttribute("data-target").Substring(i.GetAttribute("data-target").LastIndexOf('/') + 1)).ToList();
-            var existingRunIDs = _speedRunRepo.GetSpeedRuns(i => runIDs.Contains(i.ID)).Select(i => i.ID).ToList();
+            var existingRunIDs = _speedRunRepo.GetExistingSpeedRunIDs(runIDs);
             var results = runIDs.Where(i => !existingRunIDs.Contains(i)).ToList();
 
             return results;

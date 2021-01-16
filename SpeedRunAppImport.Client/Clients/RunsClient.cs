@@ -330,8 +330,9 @@ namespace SpeedRunAppImport.Client
         {
             Uri videoUri = null;
 
+            string[] imageExtensions = { ".png", ".jpg", ".tif", ".bmp", ".eps" };
             var videoUriString = element.uri as string;
-            if (!string.IsNullOrWhiteSpace(videoUriString))
+            if (!string.IsNullOrWhiteSpace(videoUriString) && !imageExtensions.Any(i => videoUriString.EndsWith(i)))
             {
                 if (!videoUriString.StartsWith("http"))
                 {

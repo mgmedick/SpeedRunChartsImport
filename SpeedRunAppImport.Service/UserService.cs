@@ -17,12 +17,14 @@ namespace SpeedRunAppImport.Service
     {
         private readonly ISettingService _settingService = null;
         private readonly IUserRepository _userRepo = null;
+        private readonly ISpeedRunRepository _speedRunRepo = null;
         private readonly ILogger _logger;
 
-        public UserService(ISettingService settingService, IUserRepository userRepo, ILogger logger)
+        public UserService(ISettingService settingService, IUserRepository userRepo, ISpeedRunRepository speedRunRepo, ILogger logger)
         {
             _settingService = settingService;
             _userRepo = userRepo;
+            _speedRunRepo = speedRunRepo;
             _logger = logger;
         }
 
@@ -114,7 +116,8 @@ namespace SpeedRunAppImport.Service
 
         public void SaveUsers(IEnumerable<User> users, bool isFullImport)
         {
-            var userEntities = users.Select(i => i.ConvertToEntity()).OrderBy(i => i.SignUpDate).ToList();
+            var existingPlayerIDs = _speedRunRepo.GetExistingSpeedRunPlayerIDs();
+            var userEntities = users.Where(i => existingPlayerIDs.Contains(i.ID)).Select(i => i.ConvertToEntity()).OrderBy(i => i.SignUpDate).ToList();
             SaveUsers(userEntities, isFullImport);
         }
 

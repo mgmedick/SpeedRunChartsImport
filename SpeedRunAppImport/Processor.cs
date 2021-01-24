@@ -120,14 +120,14 @@ namespace SpeedRunAppImport
                 _gameService.ProcessGames(GameLastImportDate, IsFullImport);
             }
 
-            if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.User))
-            {
-                _userService.ProcessUsers(UserLastImportDate, IsFullImport);
-            }
-
             if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.SpeedRun))
             {
                 _speedRunService.ProcessSpeedRuns(SpeedRunLastImportDate, IsFullImport);
+            }
+
+            if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.User))
+            {
+                _userService.ProcessUsers(UserLastImportDate, IsFullImport);
             }
 
             if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Game) || Processes.Contains(ImportProcess.SpeedRun))

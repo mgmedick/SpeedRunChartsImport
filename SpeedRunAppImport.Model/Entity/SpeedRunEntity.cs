@@ -12,6 +12,7 @@ namespace SpeedRunAppImport.Model.Entity
         public string GameID { get; set; }
         public string CategoryID { get; set; }
         public string LevelID { get; set; }
+        public string VariableValues { get; set; }
         public string SubCategoryVariableValues { get; set; }
         public string PlayerIDs { get; set; }
         public string PlatformID { get; set; }
@@ -24,6 +25,7 @@ namespace SpeedRunAppImport.Model.Entity
         public string Comment { get; set; }
         public string ExaminerUserID { get; set; }
         public string RejectReason { get; set; }
+        public string PrimaryVideoLinkUrl { get; set; }
         public string SpeedRunComUrl { get; set; }
         public string SplitsUrl { get; set; }
         public DateTime? RunDate { get; set; }

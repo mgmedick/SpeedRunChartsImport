@@ -92,15 +92,15 @@ namespace SpeedRunAppImport.Model.Data
             return Name;
         }
 
-        public LevelEntity ConvertToEntity()
-        {
-            return new LevelEntity
-            {
-                ID = this.ID,
-                Name = this.Name,
-                Rules = this.Rules,
-                GameID = this.GameID
-            };
-        }
+        //public LevelEntity ConvertToEntity()
+        //{
+        //    return new LevelEntity
+        //    {
+        //        ID = this.ID,
+        //        Name = this.Name,
+        //        Rules = this.Rules,
+        //        GameID = this.GameID
+        //    };
+        //}
     }
 }

@@ -133,18 +133,18 @@ namespace SpeedRunAppImport.Model.Data
             return Name;
         }
 
-        public VariableEntity ConvertToEntity()
-        {
-            return new VariableEntity
-            {
-                ID = this.ID,
-                Name = this.Name,
-                GameID = this.GameID,
-                VariableScopeTypeID = (int)this.Scope.Type,
-                CategoryID = this.CategoryID,
-                LevelID = this.Scope.LevelID,
-                IsSubCategory = this.IsSubCategory
-            };
-        }
+        //public VariableEntity ConvertToEntity()
+        //{
+        //    return new VariableEntity
+        //    {
+        //        ID = this.ID,
+        //        Name = this.Name,
+        //        GameID = this.GameID,
+        //        VariableScopeTypeID = (int)this.Scope.Type,
+        //        CategoryID = this.CategoryID,
+        //        LevelID = this.Scope.LevelID,
+        //        IsSubCategory = this.IsSubCategory
+        //    };
+        //}
     }
 }

@@ -129,6 +129,7 @@ namespace SpeedRunAppImport.Service
             var userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs();
 
             var gameEntities = games.Select(i => new GameEntity() { SpeedRunComID = i.ID, Name = i.Name, YearOfRelease = i.YearOfRelease, IsRomHack = i.IsRomHack, CreatedDate = i.CreationDate }).ToList();
+            var gameLinkEntities = games.Select(i => new GameLinkEntity() { GameSpeedRunComID = i.ID, SpeedRunComUrl = i.WebLink.ToString(), CoverImageUrl = i.Assets?.CoverLarge?.Uri.ToString() }).ToList();
             var levelEntities = games.SelectMany(i => i.Levels.Select(g => new LevelEntity { SpeedRunComID = g.ID, Name = g.Name, GameSpeedRunComID = i.ID })).ToList();
             var levelRuleEntities = games.SelectMany(i => i.Levels.Select(g => new LevelRuleEntity { LevelSpeedRunComID = g.ID, Rules = g.Rules })).ToList();
             var categoryEntities = games.SelectMany(i => i.Categories.Select(g => new CategoryEntity { SpeedRunComID = g.ID, Name = g.Name, GameSpeedRunComID = i.ID, CategoryTypeID = (int)g.Type } )).ToList();
@@ -141,18 +142,18 @@ namespace SpeedRunAppImport.Service
             var gameRulesetEntities = games.Select(i => new GameRulesetEntity { GameSpeedRunComID = i.ID, ShowMilliseconds = i.Ruleset.ShowMilliseconds, RequiresVerification = i.Ruleset.RequiresVerification, RequiresVideo = i.Ruleset.RequiresVideo, DefaultTimingMethodID = (int)i.Ruleset.DefaultTimingMethod, EmulatorsAllowed = i.Ruleset.EmulatorsAllowed }).ToList();
             var gameTimingMethodEntities = games.SelectMany(i => i.Ruleset.TimingMethods.Select(g => new GameTimingMethodEntity { GameSpeedRunComID = i.ID, TimingMethodID = (int)g })).ToList();
 
-            SaveGames(gameEntities, levelEntities, categoryEntities, variableEntities, variableValueEntities, gamePlatformEntities, gameRegionEntities, gameModeratorEntities, gameRulesetEntities, gameTimingMethodEntities, isFullImport);
+            SaveGames(gameEntities, gameLinkEntities, levelEntities, levelRuleEntities, categoryEntities, categoryRuleEntities, variableEntities, variableValueEntities, gamePlatformEntities, gameRegionEntities, gameModeratorEntities, gameRulesetEntities, gameTimingMethodEntities, isFullImport);
         }
 
-        public void SaveGames(IEnumerable<GameEntity> games, IEnumerable<LevelEntity> levels, IEnumerable<LevelRuleEntity> levelRules, IEnumerable<CategoryEntity> categories, IEnumerable<CategoryRuleEntity> CategoryRules, IEnumerable<VariableEntity> variables, IEnumerable<VariableValueEntity> variableValues, IEnumerable<GamePlatformEntity> gamePlatforms, IEnumerable<GameRegionEntity> gameRegions, IEnumerable<GameModeratorEntity> gameModerators, IEnumerable<GameRulesetEntity> gameRulesets, IEnumerable<GameTimingMethodEntity> gameTimingMethods, bool isFullImport)
+        public void SaveGames(IEnumerable<GameEntity> games, IEnumerable<GameLinkEntity> gameLinks, IEnumerable<LevelEntity> levels, IEnumerable<LevelRuleEntity> levelRules, IEnumerable<CategoryEntity> categories, IEnumerable<CategoryRuleEntity> CategoryRules, IEnumerable<VariableEntity> variables, IEnumerable<VariableValueEntity> variableValues, IEnumerable<GamePlatformEntity> gamePlatforms, IEnumerable<GameRegionEntity> gameRegions, IEnumerable<GameModeratorEntity> gameModerators, IEnumerable<GameRulesetEntity> gameRulesets, IEnumerable<GameTimingMethodEntity> gameTimingMethods, bool isFullImport)
         {
             if (isFullImport)
             {
-                _gameRepo.InsertGames(games, levels, levelRules, categories, CategoryRules, variables, variableValues, gamePlatforms, gameRegions, gameModerators, gameRulesets, gameTimingMethods);
+                _gameRepo.InsertGames(games, gameLinks, levels, levelRules, categories, CategoryRules, variables, variableValues, gamePlatforms, gameRegions, gameModerators, gameRulesets, gameTimingMethods);
             }
             else
             {
-                _gameRepo.SaveGames(games, levels, categories, variables, variableValues, gamePlatforms, gameRegions, gameModerators, gameRulesets, gameTimingMethods);
+                _gameRepo.SaveGames(games, gameLinks, levels, levelRules, categories, CategoryRules, variables, variableValues, gamePlatforms, gameRegions, gameModerators, gameRulesets, gameTimingMethods);
             }
         }
     }

@@ -100,6 +100,9 @@ namespace SpeedRunAppImport.Repository
 
             foreach (var user in usersList)
             {
+                var userLocation = userLocations.FirstOrDefault(i => i.SpeedRunComID == user.SpeedRunComID);
+                var userLink = userLinks.FirstOrDefault(i => i.SpeedRunComID == user.SpeedRunComID);
+
                 using (IDatabase db = DBFactory.GetDatabase())
                 {
                     var userSpeedRunCom = userSpeedRunComIDs.FirstOrDefault(i => i.SpeedRunComID == user.SpeedRunComID);
@@ -110,11 +113,21 @@ namespace SpeedRunAppImport.Repository
                     }
 
                     db.Save<UserEntity>(user);
-                    userLocations.Where(i => i.SpeedRunComID == user.SpeedRunComID).ToList().ForEach(i => i.UserID = user.ID);
-                    userLinks.Where(i => i.SpeedRunComID == user.SpeedRunComID).ToList().ForEach(i => i.UserID = user.ID);
 
-                    db.InsertBulk<UserLocationEntity>(userLocations);
-                    db.InsertBulk<UserLinkEntity>(userLinks);
+                    var userSpeedRunComID = new UserSpeedRunComIDEntity { UserID = user.ID, SpeedRunComID = user.SpeedRunComID };
+                    db.Insert<UserSpeedRunComIDEntity>(userSpeedRunComID);
+
+                    if (userLocation != null)
+                    {
+                        userLocation.UserID = user.ID;
+                        db.Insert<UserLocationEntity>(userLocation);
+                    }
+
+                    if (userLink != null)
+                    {
+                        userLink.UserID = user.ID;
+                        db.Insert<UserLinkEntity>(userLink);
+                    }
                 }
 
                 _logger.Information("Saved users {@Count} / {@Total}", count, usersList.Count);

@@ -50,20 +50,20 @@ namespace SpeedRunAppImport.Model.Data
         //private Lazy<ReadOnlyCollection<Category>> _categories { get; set; }
         //public IEnumerable<CategoryType> CategoryTypes { get { return Categories.Select(i => i.Type).OrderBy(i => i).Distinct(); } }
 
-        public GameEntity ConvertToEntity()
-        {
-            return new GameEntity
-            {
-                ID = this.ID,
-                Name = this.Name,
-                JapaneseName = this.JapaneseName,
-                Abbreviation = this.Abbreviation,
-                YearOfRelease = this.YearOfRelease,
-                IsRomHack = this.IsRomHack,
-                SpeedRunComUrl = this.WebLink.ToString(),
-                CoverImageUrl = this.Assets?.CoverLarge?.Uri.ToString(),
-                CreatedDate = this.CreationDate
-            };
-        }
+        //public GameEntity ConvertToEntity()
+        //{
+        //    return new GameEntity
+        //    {
+        //        ID = this.ID,
+        //        Name = this.Name,
+        //        JapaneseName = this.JapaneseName,
+        //        Abbreviation = this.Abbreviation,
+        //        YearOfRelease = this.YearOfRelease,
+        //        IsRomHack = this.IsRomHack,
+        //        SpeedRunComUrl = this.WebLink.ToString(),
+        //        CoverImageUrl = this.Assets?.CoverLarge?.Uri.ToString(),
+        //        CreatedDate = this.CreationDate
+        //    };
+        //}
     }
 }

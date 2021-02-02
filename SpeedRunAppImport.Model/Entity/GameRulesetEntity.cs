@@ -7,7 +7,8 @@ namespace SpeedRunAppImport.Model.Entity
     public class GameRulesetEntity
     {
         public int ID { get; set; }
-        public string GameID { get; set; }
+        public int GameID { get; set; }
+        public string GameSpeedRunComID { get; set; }
         public bool ShowMilliseconds { get; set; }
         public bool RequiresVerification { get; set; }
         public bool RequiresVideo { get; set; }

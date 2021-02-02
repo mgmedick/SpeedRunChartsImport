@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using SpeedRunAppImport.Model.Entity;
 using System.Threading.Tasks;
+using System.Linq.Expressions;
 
 namespace SpeedRunAppImport.Interfaces.Repositories
 {
@@ -11,6 +12,8 @@ namespace SpeedRunAppImport.Interfaces.Repositories
         void CopyPlatformTables();
         void RenameAndDropPlatformTables();
         IEnumerable<string> GetAllPlatformIDs();
+        IEnumerable<PlatformEntity> GetPlatforms();
+        IEnumerable<PlatformSpeedRunComIDEntity> GetPlatformSpeedRunComIDs();
     }
 }
 

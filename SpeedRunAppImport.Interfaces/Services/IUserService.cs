@@ -12,7 +12,7 @@ namespace SpeedRunAppImport.Interfaces.Services
         void ProcessUsers(DateTime lastImportDate, bool isFullImport);
         List<User> GetUsersWithRetry(int elementsPerPage, int elementsOffset, UsersOrdering orderBy, int retryCount = 0);
         void SaveUsers(IEnumerable<User> users, bool isFullImport);
-        void SaveUsers(IEnumerable<UserEntity> userEntities, bool isFullImport);
+        void SaveUsers(IEnumerable<UserEntity> userEntities, IEnumerable<UserLocationEntity> userLocationEntities, IEnumerable<UserLinkEntity> userLinkEntities, bool isFullImport);
     }
 } 
 

@@ -6,10 +6,12 @@ namespace SpeedRunAppImport.Model.Entity
 {
     public class VariableValueEntity
     {
-        public int OrderValue { get; set; }
-        public string ID { get; set; }
-        public string GameID { get; set; }
-        public string VariableID { get; set; }
+        public int ID { get; set; }
+        public string SpeedRunComID { get; set; }
+        public int GameID { get; set; }
+        public string GameSpeedRunComID { get; set; }
+        public int VariableID { get; set; }
+        public string VariableSpeedRunComID { get; set; }
         public string Value { get; set; }
         public bool IsCustomValue { get; set; }
     }

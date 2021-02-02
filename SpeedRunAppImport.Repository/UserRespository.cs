@@ -6,6 +6,7 @@ using System.Linq;
 using SpeedRunAppImport.Model.Entity;
 using SpeedRunAppImport.Interfaces.Repositories;
 //using Microsoft.Extensions.Configuration;
+using System.Linq.Expressions;
 
 namespace SpeedRunAppImport.Repository
 {
@@ -58,7 +59,7 @@ namespace SpeedRunAppImport.Repository
             }
         }
 
-        public void InsertUsers(IEnumerable<UserEntity> users)
+        public void InsertUsers(IEnumerable<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, IEnumerable<UserLinkEntity> userLinks)
         {
             _logger.Information("Started InsertUsers");
             int batchCount = 0;
@@ -66,12 +67,21 @@ namespace SpeedRunAppImport.Repository
             while (batchCount < usersList.Count)
             {
                 var usersBatch = usersList.Skip(batchCount).Take(MaxBulkRows).ToList();
+                var userSpeedRunComIDs = usersBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
+                var userLocationsBatch = userLocations.Where(i => userSpeedRunComIDs.Contains(i.SpeedRunComID)).ToList();
+                var userLinksBatch = userLinks.Where(i => userSpeedRunComIDs.Contains(i.SpeedRunComID)).ToList();
 
                 using (IDatabase db = DBFactory.GetDatabase())
                 {
                     using (var tran = db.GetTransaction())
                     {
                         db.InsertBulk<UserEntity>(usersBatch);
+                        userLocationsBatch.ForEach(i => i.UserID = usersBatch.Where(g => g.SpeedRunComID == i.SpeedRunComID).Select(g => g.ID).FirstOrDefault());
+                        userLinksBatch.ForEach(i => i.UserID = usersBatch.Where(g => g.SpeedRunComID == i.SpeedRunComID).Select(g => g.ID).FirstOrDefault());
+
+                        db.InsertBulk<UserLocationEntity>(userLocationsBatch);
+                        db.InsertBulk<UserLinkEntity>(userLinksBatch);
+
                         tran.Complete();
                     }
                 }
@@ -82,19 +92,50 @@ namespace SpeedRunAppImport.Repository
             _logger.Information("Completed InsertUsers");
         }
 
-        public void SaveUsers(IEnumerable<UserEntity> users)
+        public void SaveUsers(IEnumerable<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, IEnumerable<UserLinkEntity> userLinks)
         {
             int count = 1;
             var usersList = users.ToList();
+            var userSpeedRunComIDs = GetUserSpeedRunComIDs();
+
             foreach (var user in usersList)
             {
                 using (IDatabase db = DBFactory.GetDatabase())
                 {
+                    var userSpeedRunCom = userSpeedRunComIDs.FirstOrDefault(i => i.SpeedRunComID == user.SpeedRunComID);
+                    if (userSpeedRunCom != null)
+                    {
+                        db.DeleteWhere<UserLocationEntity>("UserID = @userID", new { userID = userSpeedRunCom.UserID });
+                        db.DeleteWhere<UserLinkEntity>("UserID = @userID", new { userID = userSpeedRunCom.UserID });
+                    }
+
                     db.Save<UserEntity>(user);
+                    userLocations.Where(i => i.SpeedRunComID == user.SpeedRunComID).ToList().ForEach(i => i.UserID = user.ID);
+                    userLinks.Where(i => i.SpeedRunComID == user.SpeedRunComID).ToList().ForEach(i => i.UserID = user.ID);
+
+                    db.InsertBulk<UserLocationEntity>(userLocations);
+                    db.InsertBulk<UserLinkEntity>(userLinks);
                 }
 
                 _logger.Information("Saved users {@Count} / {@Total}", count, usersList.Count);
                 count++;
+            }
+        }
+
+        public int? GetExistingUserID(string speedRunComID)
+        {
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                var result = db.Query<UserSpeedRunComIDEntity>().Where(i => i.SpeedRunComID == speedRunComID).FirstOrDefault();
+                return result?.UserID;
+            }
+        }
+
+        public IEnumerable<UserSpeedRunComIDEntity> GetUserSpeedRunComIDs()
+        {
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                return db.Query<UserSpeedRunComIDEntity>("SELECT UserID, SpeedRunComID FROM dbo.tbl_User_SpeedRunComID WITH(NOLOCK)").ToList();
             }
         }
     }

@@ -6,6 +6,7 @@ using System.Linq;
 using SpeedRunAppImport.Model.Entity;
 using SpeedRunAppImport.Interfaces.Repositories;
 //using Microsoft.Extensions.Configuration;
+using System.Linq.Expressions;
 
 namespace SpeedRunAppImport.Repository
 {
@@ -86,6 +87,22 @@ namespace SpeedRunAppImport.Repository
             using (IDatabase db = DBFactory.GetDatabase())
             {
                 return db.Query<string>("SELECT DISTINCT ID FROM dbo.tbl_Platform").ToList();
+            }
+        }
+
+        public IEnumerable<PlatformEntity> GetPlatforms()
+        {
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                return db.Query<PlatformEntity>("SELECT ID, [Name], YearOfRelease FROM dbo.tbl_Platform ORDER BY ID").ToList();
+            }
+        }
+
+        public IEnumerable<PlatformSpeedRunComIDEntity> GetPlatformSpeedRunComIDs()
+        {
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                return db.Query<PlatformSpeedRunComIDEntity>("SELECT PlatformID, SpeedRunComID FROM dbo.tbl_Platform_SpeedRunComID WITH(NOLOCK)").ToList();
             }
         }
     }

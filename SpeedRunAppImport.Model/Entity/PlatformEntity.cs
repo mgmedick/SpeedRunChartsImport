@@ -6,8 +6,8 @@ namespace SpeedRunAppImport.Model.Entity
 {
     public class PlatformEntity
     {
-        public int OrderValue { get; set; }
-        public string ID { get; set; }
+        public int ID { get; set; }
+        public string SpeedRunComID { get; set; }
         public string Name { get; set; }
         public int YearOfRelease { get; set; }
         public DateTime ImportedDate { get; set; }

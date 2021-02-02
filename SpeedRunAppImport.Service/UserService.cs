@@ -117,19 +117,31 @@ namespace SpeedRunAppImport.Service
         public void SaveUsers(IEnumerable<User> users, bool isFullImport)
         {
             var existingPlayerIDs = _speedRunRepo.GetExistingSpeedRunPlayerIDs();
-            var userEntities = users.Where(i => existingPlayerIDs.Contains(i.ID)).Select(i => i.ConvertToEntity()).OrderBy(i => i.SignUpDate).ToList();
-            SaveUsers(userEntities, isFullImport);
+            var existingUsers = users.Where(i => existingPlayerIDs.Contains(i.ID));
+            var userEntities = existingUsers.Select(i => new UserEntity { SpeedRunComID = i.ID, Name = i.Name, SignUpDate = i.SignUpDate }).ToList();
+            var userLocationEntities = existingUsers.Select(i => new UserLocationEntity { SpeedRunComID = i.ID, Location = i.Location?.ToString() }).ToList();
+            var userLinkEntities = existingUsers.Select(i => new UserLinkEntity
+            {
+                SpeedRunComID = i.ID,
+                SpeedRunComUrl = i.WebLink.ToString(),
+                TwitchProfileUrl = i.TwitchProfile?.ToString(),
+                HitboxProfileUrl = i.HitboxProfile?.ToString(),
+                YoutubeProfileUrl = i.YoutubeProfile?.ToString(),
+                TwitterProfileUrl = i.TwitterProfile?.ToString()
+            }).ToList();
+
+            SaveUsers(userEntities, userLocationEntities, userLinkEntities, isFullImport);
         }
 
-        public void SaveUsers(IEnumerable<UserEntity> userEntities, bool isFullImport)
+        public void SaveUsers(IEnumerable<UserEntity> userEntities, IEnumerable<UserLocationEntity> userLocationEntities, IEnumerable<UserLinkEntity> userLinkEntities, bool isFullImport)
         {
             if (isFullImport)
             {
-                _userRepo.InsertUsers(userEntities);
+                _userRepo.InsertUsers(userEntities, userLocationEntities, userLinkEntities);
             }
             else
             {
-                _userRepo.SaveUsers(userEntities);
+                _userRepo.SaveUsers(userEntities, userLocationEntities, userLinkEntities);
             }
         }
     }

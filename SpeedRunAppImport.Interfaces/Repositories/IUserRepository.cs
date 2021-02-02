@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using SpeedRunAppImport.Model.Entity;
 using System.Threading.Tasks;
+using System.Linq.Expressions;
 
 namespace SpeedRunAppImport.Interfaces.Repositories
 {
@@ -9,8 +10,9 @@ namespace SpeedRunAppImport.Interfaces.Repositories
     {
         void CopyUserTables();
         void RenameAndDropUserTables();
-        void InsertUsers(IEnumerable<UserEntity> users);
-        void SaveUsers(IEnumerable<UserEntity> users);
+        void InsertUsers(IEnumerable<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, IEnumerable<UserLinkEntity> userLinks);
+        void SaveUsers(IEnumerable<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, IEnumerable<UserLinkEntity> userLinks);
+        IEnumerable<UserSpeedRunComIDEntity> GetUserSpeedRunComIDs();
     }
 }
 

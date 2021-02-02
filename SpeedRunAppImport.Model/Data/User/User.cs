@@ -54,7 +54,7 @@ namespace SpeedRunAppImport.Model.Data
         {
             return new UserEntity
             {
-                ID = this.ID,
+                SpeedRunComID = this.ID,
                 Name = this.Name,
                 JapaneseName = this.JapaneseName,
                 UserRoleID = (int)this.Role,

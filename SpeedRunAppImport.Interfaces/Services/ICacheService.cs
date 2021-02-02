@@ -7,5 +7,6 @@ namespace SpeedRunAppImport.Interfaces.Services
     {
         IEnumerable<VariableEntity> GetVariables();
         IEnumerable<GameEntity> GetGames();
+        IEnumerable<PlatformEntity> GetPlatforms();
     }
 }

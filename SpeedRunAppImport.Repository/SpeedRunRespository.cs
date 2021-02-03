@@ -218,6 +218,9 @@ namespace SpeedRunAppImport.Repository
             var speedRunsList = speedRuns.ToList();
             foreach (var speedRun in speedRuns)
             {
+                var variableValue = variableValues.FirstOrDefault(i => i.SpeedRunComID == user.SpeedRunComID);
+                var userLink = userLinks.FirstOrDefault(i => i.SpeedRunComID == user.SpeedRunComID);
+
                 using (IDatabase db = DBFactory.GetDatabase())
                 {
                     using (var tran = db.GetTransaction())
@@ -244,56 +247,6 @@ namespace SpeedRunAppImport.Repository
                 count++;
             }
         }
-
-        /*
-        public void UpdateSpeedRunStatus(IEnumerable<SpeedRunEntity> speedRuns, RunStatusType statusType)
-        {
-            try
-            {
-                int batchCount = 0;
-                while (batchCount < speedRuns.Count())
-                {
-                    var runsBatch = speedRuns.Skip(batchCount).Take(MaxBulkRows).Select(i => i.ID).ToArray();
-
-                    using (IDatabase db = DBFactory.GetDatabase())
-                    {
-                        using (var tran = db.GetTransaction())
-                        {
-                            db.UpdateMany<SpeedRunEntity>()
-                              .Where(i => runsBatch.Contains(i.ID))
-                              .OnlyFields(i => new { i.StatusTypeID, i.Comment })
-                              .Execute(new SpeedRunEntity() { StatusTypeID = (int)statusType });
-                            tran.Complete();
-                        }
-                    }
-
-                    batchCount += MaxBulkRows;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "UpdateSpeedRunStatus");
-            }
-        }
-
-        public void UpdateSpeedRunStatusAndRejectReason(IEnumerable<SpeedRunEntity> speedRuns)
-        {
-            try
-            {
-                using (IDatabase db = DBFactory.GetDatabase())
-                {
-                    foreach (var speedRun in speedRuns)
-                    {
-                        db.Update<SpeedRunEntity>(speedRun, i => new { i.StatusTypeID, i.Comment, i.RejectReason });
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "UpdateSpeedRunStatusAndRejectReason");
-            }
-        }
-        */
 
         public IEnumerable<SpeedRunEntity> GetSpeedRuns(Expression<Func<SpeedRunEntity, bool>> predicate)
         {

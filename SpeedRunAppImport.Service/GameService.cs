@@ -124,9 +124,9 @@ namespace SpeedRunAppImport.Service
 
         public void SaveGames(IEnumerable<Game> games, bool isFullImport)
         {
-            var platformSpeedRunComIDs = _platformRepo.GetPlatformSpeedRunComIDs();
-            var regionSpeedRunComIDs = _gameRepo.GetRegionSpeedRunComIDs();
-            var userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs();
+            var platformSpeedRunComIDs = _platformRepo.GetPlatformSpeedRunComIDs().ToList();
+            var regionSpeedRunComIDs = _gameRepo.GetRegionSpeedRunComIDs().ToList();
+            var userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs().ToList();
 
             var gameEntities = games.Select(i => new GameEntity() { SpeedRunComID = i.ID, Name = i.Name, YearOfRelease = i.YearOfRelease, IsRomHack = i.IsRomHack, CreatedDate = i.CreationDate }).ToList();
             var gameLinkEntities = games.Select(i => new GameLinkEntity() { GameSpeedRunComID = i.ID, SpeedRunComUrl = i.WebLink.ToString(), CoverImageUrl = i.Assets?.CoverLarge?.Uri.ToString() }).ToList();
@@ -136,9 +136,9 @@ namespace SpeedRunAppImport.Service
             var categoryRuleEntities = games.SelectMany(i => i.Categories.Select(g => new CategoryRuleEntity { CategorySpeedRunComID = g.ID, Rules = g.Rules })).ToList();
             var variableEntities = games.SelectMany(i => i.Variables.Select(g => new VariableEntity { SpeedRunComID = g.ID, Name= g.Name, GameSpeedRunComID = i.ID, CategorySpeedRunComID = g.CategoryID, LevelSpeedRunComID = g.Scope.LevelID, IsSubCategory = g.IsSubCategory })).ToList();
             var variableValueEntities = games.SelectMany(i => i.Variables.SelectMany(g => g.Values.Select(h => new VariableValueEntity { SpeedRunComID = h.ID, GameSpeedRunComID = g.GameID, VariableSpeedRunComID = h.VariableID, Value = h.Value, IsCustomValue = h.IsCustomValue }))).ToList();
-            var gamePlatformEntities = games.SelectMany(i => i.PlatformIDs.Select(g => new GamePlatformEntity { GameSpeedRunComID = i.ID, PlatformID = platformSpeedRunComIDs.Where(h => h.SpeedRunComID == g).Select(h => h.PlatformID).FirstOrDefault() })).ToList();
-            var gameRegionEntities = games.SelectMany(i => i.RegionIDs.Select(g => new GameRegionEntity { GameSpeedRunComID = i.ID, RegionID = regionSpeedRunComIDs.Where(h => h.SpeedRunComID == g).Select(h => h.RegionID).FirstOrDefault() })).ToList();
-            var gameModeratorEntities = games.SelectMany(i => i.Moderators.Select(g => new GameModeratorEntity { GameSpeedRunComID = i.ID, UserID = userSpeedRunComIDs.Where(h => h.SpeedRunComID == g.UserID).Select(h => h.UserID).FirstOrDefault() })).ToList();            
+            var gamePlatformEntities = games.SelectMany(i => i.PlatformIDs.Select(g => new GamePlatformEntity { GameSpeedRunComID = i.ID, PlatformID = platformSpeedRunComIDs.Find(h => h.SpeedRunComID == g).PlatformID })).ToList();
+            var gameRegionEntities = games.SelectMany(i => i.RegionIDs.Select(g => new GameRegionEntity { GameSpeedRunComID = i.ID, RegionID = regionSpeedRunComIDs.Find(h => h.SpeedRunComID == g).RegionID })).ToList();
+            var gameModeratorEntities = games.SelectMany(i => i.Moderators.Select(g => new GameModeratorEntity { GameSpeedRunComID = i.ID, UserID = userSpeedRunComIDs.Find(h => h.SpeedRunComID == g.UserID).UserID })).ToList();            
             var gameRulesetEntities = games.Select(i => new GameRulesetEntity { GameSpeedRunComID = i.ID, ShowMilliseconds = i.Ruleset.ShowMilliseconds, RequiresVerification = i.Ruleset.RequiresVerification, RequiresVideo = i.Ruleset.RequiresVideo, DefaultTimingMethodID = (int)i.Ruleset.DefaultTimingMethod, EmulatorsAllowed = i.Ruleset.EmulatorsAllowed }).ToList();
             var gameTimingMethodEntities = games.SelectMany(i => i.Ruleset.TimingMethods.Select(g => new GameTimingMethodEntity { GameSpeedRunComID = i.ID, TimingMethodID = (int)g })).ToList();
 

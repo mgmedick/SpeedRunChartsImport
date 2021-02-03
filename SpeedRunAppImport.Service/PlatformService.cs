@@ -106,9 +106,18 @@ namespace SpeedRunAppImport.Service
             return platforms;
         }
 
+        //public PlatformEntity ConvertToEntity()
+        //{
+        //    return new PlatformEntity
+        //    {
+        //        ID = this.ID,
+        //        Name = this.Name,
+        //        YearOfRelease = this.YearOfRelease
+        //    };
+        //}
         public void SavePlatforms(IEnumerable<Platform> platforms, bool isFullImport)
         {
-            var platformEntities = platforms.Select(i => i.ConvertToEntity()).OrderBy(i => i.YearOfRelease).ToList();
+            var platformEntities = platforms.Select(i => new PlatformEntity { SpeedRunComID = i.ID, Name = i.Name, YearOfRelease = i.YearOfRelease }).ToList();
             SavePlatforms(platformEntities, isFullImport);
         }
 
@@ -116,8 +125,8 @@ namespace SpeedRunAppImport.Service
         {
             if (!isFullImport)
             {
-                var platformIDs = _platformRepo.GetAllPlatformIDs().ToList();
-                platformEntities = platformEntities.Where(i => !platformIDs.Contains(i.ID)).ToList();
+                var platformSpeedRunComIDs = _platformRepo.GetPlatformSpeedRunComIDs().ToList();
+                platformEntities = platformEntities.Where(i => !platformSpeedRunComIDs.Any(g => g.SpeedRunComID == i.SpeedRunComID)).ToList();
             }
 
             _platformRepo.InsertPlatforms(platformEntities);

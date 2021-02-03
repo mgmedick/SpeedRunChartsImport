@@ -64,6 +64,7 @@ namespace SpeedRunAppImport.Repository
             _logger.Information("Started InsertUsers");
             int batchCount = 0;
             var usersList = users.ToList();
+
             while (batchCount < usersList.Count)
             {
                 var usersBatch = usersList.Skip(batchCount).Take(MaxBulkRows).ToList();
@@ -75,12 +76,16 @@ namespace SpeedRunAppImport.Repository
                 {
                     using (var tran = db.GetTransaction())
                     {
-                        db.InsertBulk<UserEntity>(usersBatch);
+                        db.InsertBatch<UserEntity>(usersBatch);
+
+                        var userSpeedRunComIDsBatch = usersBatch.Select(i => new UserSpeedRunComIDEntity { UserID = i.ID, SpeedRunComID = i.SpeedRunComID }).ToList();
+                        db.InsertBatch<UserSpeedRunComIDEntity>(userSpeedRunComIDsBatch);
+
                         userLocationsBatch.ForEach(i => i.UserID = usersBatch.Where(g => g.SpeedRunComID == i.SpeedRunComID).Select(g => g.ID).FirstOrDefault());
                         userLinksBatch.ForEach(i => i.UserID = usersBatch.Where(g => g.SpeedRunComID == i.SpeedRunComID).Select(g => g.ID).FirstOrDefault());
 
-                        db.InsertBulk<UserLocationEntity>(userLocationsBatch);
-                        db.InsertBulk<UserLinkEntity>(userLinksBatch);
+                        db.InsertBatch<UserLocationEntity>(userLocationsBatch);
+                        db.InsertBatch<UserLinkEntity>(userLinksBatch);
 
                         tran.Complete();
                     }
@@ -108,6 +113,8 @@ namespace SpeedRunAppImport.Repository
                     var userSpeedRunCom = userSpeedRunComIDs.FirstOrDefault(i => i.SpeedRunComID == user.SpeedRunComID);
                     if (userSpeedRunCom != null)
                     {
+                        user.ModifiedDate = DateTime.Now;
+                        db.DeleteWhere<UserSpeedRunComIDEntity>("UserID = @userID", new { userID = userSpeedRunCom.UserID });
                         db.DeleteWhere<UserLocationEntity>("UserID = @userID", new { userID = userSpeedRunCom.UserID });
                         db.DeleteWhere<UserLinkEntity>("UserID = @userID", new { userID = userSpeedRunCom.UserID });
                     }

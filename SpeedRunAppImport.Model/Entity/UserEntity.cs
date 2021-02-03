@@ -11,5 +11,6 @@ namespace SpeedRunAppImport.Model.Entity
         public string Name { get; set; }
         public DateTime? SignUpDate { get; set; }
         public DateTime ImportedDate { get; set; }
+        public DateTime? ModifiedDate { get; set; }
     }
 } 

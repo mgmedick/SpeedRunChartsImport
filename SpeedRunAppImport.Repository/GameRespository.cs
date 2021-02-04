@@ -418,5 +418,21 @@ namespace SpeedRunAppImport.Repository
                 return db.Query<GameSpeedRunComIDEntity>("SELECT GameID, SpeedRunComID FROM dbo.tbl_User_SpeedRunComID WITH(NOLOCK)").ToList();
             }
         }
+
+        public IEnumerable<GameSpeedRunComIDEntity> GetVariableSpeedRunComIDs()
+        {
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                return db.Query<GameSpeedRunComIDEntity>("SELECT GameID, SpeedRunComID FROM dbo.tbl_Variable_SpeedRunComID WITH(NOLOCK)").ToList();
+            }
+        }
+
+        public IEnumerable<GameSpeedRunComIDEntity> GetLevelSpeedRunComIDs()
+        {
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                return db.Query<GameSpeedRunComIDEntity>("SELECT GameID, SpeedRunComID FROM dbo.tbl_Variable_SpeedRunComID WITH(NOLOCK)").ToList();
+            }
+        }
     }
 }

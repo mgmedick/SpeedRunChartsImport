@@ -7,9 +7,11 @@ namespace SpeedRunAppImport.Model.Entity
     public class SpeedRunPlayerEntity
     {
         public int ID { get; set; }
-        public string SpeedRunID { get; set; }
+        public int SpeedRunID { get; set; }
+        public string SpeedRunSpeedRunComID { get; set; }
         public bool IsUser { get; set; }
-        public string UserID { get; set; }
+        public int UserID { get; set; }
+        public string UserSpeedRunComID { get; set; }
         public string GuestName { get; set; }
     }
 } 

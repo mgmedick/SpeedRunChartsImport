@@ -4,11 +4,13 @@ using System.Linq;
 
 namespace SpeedRunAppImport.Model.Entity
 {
-    public class SpeedRunVideoEntity
+    public class SpeedRunTimeEntity
     {
-        public int ID { get; set; }
         public int SpeedRunID { get; set; }
         public string SpeedRunSpeedRunComID { get; set; }
-        public string VideoLinkUrl { get; set; }
+        public long? PrimaryTime { get; set; }
+        public long? RealTime { get; set; }
+        public long? RealTimeWithoutLoads { get; set; }
+        public long? GameTime { get; set; }
     }
 } 

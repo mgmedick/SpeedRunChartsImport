@@ -81,10 +81,10 @@ namespace SpeedRunAppImport.Repository
                         var userSpeedRunComIDsBatch = usersBatch.Select(i => new UserSpeedRunComIDEntity { UserID = i.ID, SpeedRunComID = i.SpeedRunComID }).ToList();
                         db.InsertBatch<UserSpeedRunComIDEntity>(userSpeedRunComIDsBatch);
 
-                        userLocationsBatch.ForEach(i => i.UserID = usersBatch.Where(g => g.SpeedRunComID == i.SpeedRunComID).Select(g => g.ID).FirstOrDefault());
-                        userLinksBatch.ForEach(i => i.UserID = usersBatch.Where(g => g.SpeedRunComID == i.SpeedRunComID).Select(g => g.ID).FirstOrDefault());
-
+                        userLocationsBatch.ForEach(i => i.UserID = usersBatch.Find(g => g.SpeedRunComID == i.SpeedRunComID).ID);
                         db.InsertBatch<UserLocationEntity>(userLocationsBatch);
+
+                        userLinksBatch.ForEach(i => i.UserID = usersBatch.Find(g => g.SpeedRunComID == i.SpeedRunComID).ID);
                         db.InsertBatch<UserLinkEntity>(userLinksBatch);
 
                         tran.Complete();

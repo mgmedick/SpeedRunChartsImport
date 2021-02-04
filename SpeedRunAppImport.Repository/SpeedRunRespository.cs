@@ -180,28 +180,55 @@ namespace SpeedRunAppImport.Repository
         }
         */
 
-        public void InsertSpeedRuns(IEnumerable<SpeedRunEntity> speedRuns, IEnumerable<SpeedRunVariableValueEntity> variableValues, IEnumerable<SpeedRunPlayerEntity> players, IEnumerable<SpeedRunVideoEntity> videos)
+        public void InsertSpeedRuns(IEnumerable<SpeedRunEntity> speedRuns, IEnumerable<SpeedRunLinkEntity> speedRunLinks, IEnumerable<SpeedRunSystemEntity> speedRunSystems, IEnumerable<SpeedRunTimeEntity> speedRunTimes, IEnumerable<SpeedRunCommentEntity> speedRunComments, IEnumerable<SpeedRunVariableValueEntity> variableValues, IEnumerable<SpeedRunPlayerEntity> players, IEnumerable<SpeedRunVideoEntity> videos)
         {
             _logger.Information("Started InsertSpeedRuns");
             int batchCount = 0;
             var speedRunsList = speedRuns.ToList();
+
             while (batchCount < speedRunsList.Count)
             {
                 var runsBatch = speedRunsList.Skip(batchCount).Take(MaxBulkRows).ToList();
-                var runIDs = runsBatch.Select(i => i.ID).Distinct().ToList();
-                var variableValuesBatch = variableValues.Where(i => runIDs.Contains(i.SpeedRunID)).ToList();
-                var playersBatch = players.Where(i => runIDs.Contains(i.SpeedRunID)).ToList();
-                var videosBatch = videos.Where(i => runIDs.Contains(i.SpeedRunID)).ToList();
+                var runIDs = runsBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
+                var speedRunLinksBatch = speedRunLinks.Where(i => runIDs.Contains(i.SpeedRunSpeedRunComID)).ToList();
+                var speedRunSystemsBatch = speedRunSystems.Where(i => runIDs.Contains(i.SpeedRunSpeedRunComID)).ToList();
+                var speedRunTimesBatch = speedRunTimes.Where(i => runIDs.Contains(i.SpeedRunSpeedRunComID)).ToList();
+                var speedRunCommentsBatch = speedRunComments.Where(i => runIDs.Contains(i.SpeedRunSpeedRunComID)).ToList();
+                var variableValuesBatch = variableValues.Where(i => runIDs.Contains(i.SpeedRunSpeedRunComID)).ToList();
+                var playersBatch = players.Where(i => runIDs.Contains(i.SpeedRunSpeedRunComID)).ToList();
+                var videosBatch = videos.Where(i => runIDs.Contains(i.SpeedRunSpeedRunComID)).ToList();
 
                 using (IDatabase db = DBFactory.GetDatabase())
                 {
                     //db.OneTimeCommandTimeout = 32767;
                     using (var tran = db.GetTransaction())
                     {
-                        db.InsertBulk<SpeedRunEntity>(runsBatch);
-                        db.InsertBulk<SpeedRunVariableValueEntity>(variableValuesBatch);
-                        db.InsertBulk<SpeedRunPlayerEntity>(playersBatch);
-                        db.InsertBulk<SpeedRunVideoEntity>(videosBatch);
+                        db.InsertBatch<SpeedRunEntity>(runsBatch);
+
+                        var speedRunSpeedRunComIDsBatch = runsBatch.Select(i => new SpeedRunSpeedRunComIDEntity { SpeedRunID = i.ID, SpeedRunComID = i.SpeedRunComID }).ToList();
+                        db.InsertBatch<SpeedRunSpeedRunComIDEntity>(speedRunSpeedRunComIDsBatch);
+
+                        speedRunLinksBatch.ForEach(i => i.SpeedRunID = runsBatch.Find(g => g.SpeedRunComID == i.SpeedRunSpeedRunComID).ID);
+                        db.InsertBatch<SpeedRunLinkEntity>(speedRunLinksBatch);
+
+                        speedRunSystemsBatch.ForEach(i => i.SpeedRunID = runsBatch.Find(g => g.SpeedRunComID == i.SpeedRunSpeedRunComID).ID);
+                        db.InsertBatch<SpeedRunSystemEntity>(speedRunSystemsBatch);
+
+                        speedRunTimesBatch.ForEach(i => i.SpeedRunID = runsBatch.Find(g => g.SpeedRunComID == i.SpeedRunSpeedRunComID).ID);
+                        db.InsertBatch<SpeedRunTimeEntity>(speedRunTimesBatch);
+
+                        speedRunCommentsBatch.ForEach(i => i.SpeedRunID = runsBatch.Find(g => g.SpeedRunComID == i.SpeedRunSpeedRunComID).ID);
+                        db.InsertBatch<SpeedRunCommentEntity>(speedRunCommentsBatch);
+
+                        variableValuesBatch.ForEach(i => i.SpeedRunID = runsBatch.Find(g => g.SpeedRunComID == i.SpeedRunSpeedRunComID).ID);
+                        db.InsertBatch<SpeedRunVariableValueEntity>(variableValuesBatch);
+
+                        playersBatch.ForEach(i => i.SpeedRunID = runsBatch.Find(g => g.SpeedRunComID == i.SpeedRunSpeedRunComID).ID);
+                        db.InsertBatch<SpeedRunPlayerEntity>(playersBatch);
+
+                        videosBatch.ForEach(i => i.SpeedRunID = runsBatch.Find(g => g.SpeedRunComID == i.SpeedRunSpeedRunComID).ID);
+                        db.InsertBatch<SpeedRunVideoEntity>(videosBatch);
+
                         tran.Complete();
                     }
                 }
@@ -212,32 +239,77 @@ namespace SpeedRunAppImport.Repository
             _logger.Information("Completed InsertSpeedRuns");
         }
 
-        public void SaveSpeedRuns(IEnumerable<SpeedRunEntity> speedRuns, IEnumerable<SpeedRunVariableValueEntity> variableValues, IEnumerable<SpeedRunPlayerEntity> players, IEnumerable<SpeedRunVideoEntity> videos)
+        public void SaveSpeedRuns(IEnumerable<SpeedRunEntity> speedRuns, IEnumerable<SpeedRunLinkEntity> speedRunLinks, IEnumerable<SpeedRunSystemEntity> speedRunSystems, IEnumerable<SpeedRunTimeEntity> speedRunTimes, IEnumerable<SpeedRunCommentEntity> speedRunComments, IEnumerable<SpeedRunVariableValueEntity> variableValues, IEnumerable<SpeedRunPlayerEntity> players, IEnumerable<SpeedRunVideoEntity> videos)
         {
             int count = 1;
             var speedRunsList = speedRuns.ToList();
+            var speedRunSpeedRunComIDs = GetSpeedRunSpeedRunComIDs();
+
             foreach (var speedRun in speedRuns)
             {
-                var variableValue = variableValues.FirstOrDefault(i => i.SpeedRunComID == user.SpeedRunComID);
-                var userLink = userLinks.FirstOrDefault(i => i.SpeedRunComID == user.SpeedRunComID);
+                var speedRunLink = speedRunLinks.FirstOrDefault(i => i.SpeedRunSpeedRunComID == speedRun.SpeedRunComID);
+                var speedRunSystem = speedRunSystems.FirstOrDefault(i => i.SpeedRunSpeedRunComID == speedRun.SpeedRunComID);
+                var speedRunTime = speedRunTimes.FirstOrDefault(i => i.SpeedRunSpeedRunComID == speedRun.SpeedRunComID);
+                var speedRunComment = speedRunComments.FirstOrDefault(i => i.SpeedRunSpeedRunComID == speedRun.SpeedRunComID);
+                var variableValuesBatch = variableValues.Where(i => i.SpeedRunSpeedRunComID == speedRun.SpeedRunComID).ToList();
+                var playersBatch = players.Where(i => i.SpeedRunSpeedRunComID == speedRun.SpeedRunComID).ToList();
+                var videosBatch = videos.Where(i => i.SpeedRunSpeedRunComID == speedRun.SpeedRunComID).ToList();
 
                 using (IDatabase db = DBFactory.GetDatabase())
                 {
                     using (var tran = db.GetTransaction())
                     {
-                        //db.OneTimeCommandTimeout = 32767;
-                        if (db.Exists<SpeedRunEntity>(speedRun.ID))
+                        var speedRunSpeedRunCom = speedRunSpeedRunComIDs.FirstOrDefault(i => i.SpeedRunComID == speedRun.SpeedRunComID);
+                        if (speedRunSpeedRunCom != null)
                         {
                             speedRun.ModifiedDate = DateTime.Now;
-                            db.DeleteWhere<SpeedRunVariableValueEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
-                            db.DeleteWhere<SpeedRunPlayerEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
-                            db.DeleteWhere<SpeedRunVideoEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
+                            db.DeleteWhere<SpeedRunSpeedRunComIDEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunSpeedRunCom.SpeedRunID });
+                            db.DeleteWhere<SpeedRunLinkEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunSpeedRunCom.SpeedRunID });
+                            db.DeleteWhere<SpeedRunSystemEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunSpeedRunCom.SpeedRunID });
+                            db.DeleteWhere<SpeedRunTimeEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunSpeedRunCom.SpeedRunID });
+                            db.DeleteWhere<SpeedRunCommentEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunSpeedRunCom.SpeedRunID });
+                            db.DeleteWhere<SpeedRunVariableValueEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunSpeedRunCom.SpeedRunID });
+                            db.DeleteWhere<SpeedRunPlayerEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunSpeedRunCom.SpeedRunID });
+                            db.DeleteWhere<SpeedRunVideoEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunSpeedRunCom.SpeedRunID });
                         }
 
                         db.Save<SpeedRunEntity>(speedRun);
-                        db.InsertBulk<SpeedRunVariableValueEntity>(variableValues.Where(i => i.SpeedRunID == speedRun.ID).ToList());
-                        db.InsertBulk<SpeedRunPlayerEntity>(players.Where(i => i.SpeedRunID == speedRun.ID).ToList());
-                        db.InsertBulk<SpeedRunVideoEntity>(videos.Where(i => i.SpeedRunID == speedRun.ID).ToList());
+
+                        var speedRunSpeedRunComID = new SpeedRunSpeedRunComIDEntity { SpeedRunID = speedRun.ID, SpeedRunComID = speedRun.SpeedRunComID };
+                        db.Insert<SpeedRunSpeedRunComIDEntity>(speedRunSpeedRunComID);
+
+                        if (speedRunLink != null)
+                        {
+                            speedRunLink.SpeedRunID = speedRun.ID;
+                            db.Insert<SpeedRunLinkEntity>(speedRunLink);
+                        }
+
+                        if (speedRunSystem != null)
+                        {
+                            speedRunSystem.SpeedRunID = speedRun.ID;
+                            db.Insert<SpeedRunSystemEntity>(speedRunSystem);
+                        }
+
+                        if (speedRunTime != null)
+                        {
+                            speedRunTime.SpeedRunID = speedRun.ID;
+                            db.Insert<SpeedRunTimeEntity>(speedRunTime);
+                        }
+
+                        if (speedRunComment != null)
+                        {
+                            speedRunComment.SpeedRunID = speedRun.ID;
+                            db.Insert<SpeedRunCommentEntity>(speedRunComment);
+                        }
+
+                        variableValuesBatch.ForEach(i => i.SpeedRunID = speedRun.ID);
+                        db.InsertBatch<SpeedRunVariableValueEntity>(variableValuesBatch);
+
+                        playersBatch.ForEach(i => i.SpeedRunID = speedRun.ID);
+                        db.InsertBatch<SpeedRunPlayerEntity>(playersBatch);
+
+                        videosBatch.ForEach(i => i.SpeedRunID = speedRun.ID);
+                        db.InsertBatch<SpeedRunVideoEntity>(videosBatch);
 
                         tran.Complete();
                     }
@@ -245,6 +317,14 @@ namespace SpeedRunAppImport.Repository
 
                 _logger.Information("Saved speedRuns {@Count} / {@Total}", count, speedRunsList.Count);
                 count++;
+            }
+        }
+
+        public IEnumerable<SpeedRunSpeedRunComIDEntity> GetSpeedRunSpeedRunComIDs()
+        {
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                return db.Query<SpeedRunSpeedRunComIDEntity>("SELECT SpeedRunID, SpeedRunComID FROM dbo.tbl_SpeedRun_SpeedRunComID WITH(NOLOCK)").ToList();
             }
         }
 

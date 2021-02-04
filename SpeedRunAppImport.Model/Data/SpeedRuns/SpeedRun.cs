@@ -78,35 +78,35 @@ namespace SpeedRunAppImport.Model.Data
         public IEnumerable<Variable> Variables { get; set; }
         public IEnumerable<VariableValue> VariableValues { get; set; }
 
-        public SpeedRunEntity ConvertToEntity(IEnumerable<string> variableIDs, IEnumerable<string> subCategoryVariableIDs)
-        {
-            return new SpeedRunEntity
-            {
-                ID = this.ID,
-                StatusTypeID = (int)this.Status.Type,
-                GameID = this.GameID,
-                CategoryID = this.CategoryID,
-                LevelID = this.LevelID,
-                VariableValues = this.VariableValueMappings != null ? string.Join(",", this.VariableValueMappings.Where(i => variableIDs.Contains(i.VariableID)).Select(i => i.VariableID + "|" + i.VariableValueID)) : null,
-                SubCategoryVariableValues = this.VariableValueMappings != null ? string.Join(",", this.VariableValueMappings.Where(i => subCategoryVariableIDs.Contains(i.VariableID)).Select(i => i.VariableID + "|" + i.VariableValueID)) : null,
-                PlayerIDs = string.Join(",", this.Players.Select(i => i.UserID ?? i.GuestName).OrderBy(i => i)),
-                PlatformID = this.System.PlatformID,
-                RegionID = this.System.RegionID,
-                IsEmulated = this.System.IsEmulated,
-                PrimaryTime = this.Times.Primary?.Ticks,
-                RealTime = this.Times.RealTime?.Ticks,
-                RealTimeWithoutLoads = this.Times.RealTimeWithoutLoads?.Ticks,
-                GameTime = this.Times.GameTime?.Ticks,
-                Comment = this.Comment,
-                ExaminerUserID = this.Status.ExaminerUserID,
-                RejectReason = this.Status.Reason,
-                PrimaryVideoLinkUrl = this.Videos?.Links?.Where(i => !string.IsNullOrWhiteSpace(i?.ToString())).Select(i=>i.ToString()).FirstOrDefault(),
-                SpeedRunComUrl = this.WebLink.ToString(),
-                SplitsUrl = this.SplitsUri?.ToString(),
-                RunDate = this.Date,
-                DateSubmitted = this.DateSubmitted,
-                VerifyDate = this.Status.VerifyDate
-            };
-        }
+        //public SpeedRunEntity ConvertToEntity(IEnumerable<string> variableIDs, IEnumerable<string> subCategoryVariableIDs)
+        //{
+        //    return new SpeedRunEntity
+        //    {
+        //        ID = this.ID,
+        //        StatusTypeID = (int)this.Status.Type,
+        //        GameID = this.GameID,
+        //        CategoryID = this.CategoryID,
+        //        LevelID = this.LevelID,
+        //        VariableValues = this.VariableValueMappings != null ? string.Join(",", this.VariableValueMappings.Where(i => variableIDs.Contains(i.VariableID)).Select(i => i.VariableID + "|" + i.VariableValueID)) : null,
+        //        SubCategoryVariableValues = this.VariableValueMappings != null ? string.Join(",", this.VariableValueMappings.Where(i => subCategoryVariableIDs.Contains(i.VariableID)).Select(i => i.VariableID + "|" + i.VariableValueID)) : null,
+        //        PlayerIDs = string.Join(",", this.Players.Select(i => i.UserID ?? i.GuestName).OrderBy(i => i)),
+        //        PlatformID = this.System.PlatformID,
+        //        RegionID = this.System.RegionID,
+        //        IsEmulated = this.System.IsEmulated,
+        //        PrimaryTime = this.Times.Primary?.Ticks,
+        //        RealTime = this.Times.RealTime?.Ticks,
+        //        RealTimeWithoutLoads = this.Times.RealTimeWithoutLoads?.Ticks,
+        //        GameTime = this.Times.GameTime?.Ticks,
+        //        Comment = this.Comment,
+        //        ExaminerUserID = this.Status.ExaminerUserID,
+        //        RejectReason = this.Status.Reason,
+        //        PrimaryVideoLinkUrl = this.Videos?.Links?.Where(i => !string.IsNullOrWhiteSpace(i?.ToString())).Select(i=>i.ToString()).FirstOrDefault(),
+        //        SpeedRunComUrl = this.WebLink.ToString(),
+        //        SplitsUrl = this.SplitsUri?.ToString(),
+        //        RunDate = this.Date,
+        //        DateSubmitted = this.DateSubmitted,
+        //        VerifyDate = this.Status.VerifyDate
+        //    };
+        //}
     }
 }

@@ -18,14 +18,16 @@ namespace SpeedRunAppImport.Service
         private readonly ISettingService _settingService = null;
         private readonly ICacheService _cacheService = null;
         private readonly IScrapeService _scrapeService = null;
+        private readonly IGameRepository _gameRepo = null;
         private readonly ISpeedRunRepository _speedRunRepo = null;
         private readonly ILogger _logger;
 
-        public SpeedRunService(ISettingService settingService, ICacheService cacheService, IScrapeService scrapeService, ISpeedRunRepository speedRunRepo, ILogger logger)
+        public SpeedRunService(ISettingService settingService, ICacheService cacheService, IScrapeService scrapeService, IGameRepository gameRepo, ISpeedRunRepository speedRunRepo, ILogger logger)
         {
             _settingService = settingService;
             _cacheService = cacheService;
             _scrapeService = scrapeService;
+            _gameRepo = gameRepo;
             _speedRunRepo = speedRunRepo;
             _logger = logger;
         }
@@ -355,9 +357,41 @@ namespace SpeedRunAppImport.Service
             return run;
         }
 
+        //public SpeedRunEntity ConvertToEntity(IEnumerable<string> variableIDs, IEnumerable<string> subCategoryVariableIDs)
+        //{
+        //    return new SpeedRunEntity
+        //    {
+        //        ID = this.ID,
+        //        StatusTypeID = (int)this.Status.Type,
+        //        GameID = this.GameID,
+        //        CategoryID = this.CategoryID,
+        //        LevelID = this.LevelID,
+        //        VariableValues = this.VariableValueMappings != null ? string.Join(",", this.VariableValueMappings.Where(i => variableIDs.Contains(i.VariableID)).Select(i => i.VariableID + "|" + i.VariableValueID)) : null,
+        //        SubCategoryVariableValues = this.VariableValueMappings != null ? string.Join(",", this.VariableValueMappings.Where(i => subCategoryVariableIDs.Contains(i.VariableID)).Select(i => i.VariableID + "|" + i.VariableValueID)) : null,
+        //        PlayerIDs = string.Join(",", this.Players.Select(i => i.UserID ?? i.GuestName).OrderBy(i => i)),
+        //        PlatformID = this.System.PlatformID,
+        //        RegionID = this.System.RegionID,
+        //        IsEmulated = this.System.IsEmulated,
+        //        PrimaryTime = this.Times.Primary?.Ticks,
+        //        RealTime = this.Times.RealTime?.Ticks,
+        //        RealTimeWithoutLoads = this.Times.RealTimeWithoutLoads?.Ticks,
+        //        GameTime = this.Times.GameTime?.Ticks,
+        //        Comment = this.Comment,
+        //        ExaminerUserID = this.Status.ExaminerUserID,
+        //        RejectReason = this.Status.Reason,
+        //        PrimaryVideoLinkUrl = this.Videos?.Links?.Where(i => !string.IsNullOrWhiteSpace(i?.ToString())).Select(i=>i.ToString()).FirstOrDefault(),
+        //        SpeedRunComUrl = this.WebLink.ToString(),
+        //        SplitsUrl = this.SplitsUri?.ToString(),
+        //        RunDate = this.Date,
+        //        DateSubmitted = this.DateSubmitted,
+        //        VerifyDate = this.Status.VerifyDate
+        //    };
+        //}
         public void SaveSpeedRuns(IEnumerable<SpeedRun> runs, bool isFullImport)
         {
-            var variableIDs = _cacheService.GetVariables().Where(i => !i.IsSubCategory).Select(i => i.ID).ToList();
+            var variableIDs = _gameRepo.GetGameSpeedRunComIDs
+
+
             var subCategoryVariableIDs = _cacheService.GetVariables().Where(i => i.IsSubCategory).Select(i => i.ID).ToList();
             var runEntities = runs.Select(i => i.ConvertToEntity(variableIDs, subCategoryVariableIDs)).OrderBy(i => i.DateSubmitted).ToList();
             var variableValueEntities = runs.SelectMany(i => i.VariableValueMappings.Select(g => new SpeedRunVariableValueEntity() { SpeedRunID = i.ID, VariableID = g.VariableID, VariableValueID = g.VariableValueID })).ToList();

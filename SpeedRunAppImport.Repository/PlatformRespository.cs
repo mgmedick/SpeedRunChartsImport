@@ -63,6 +63,7 @@ namespace SpeedRunAppImport.Repository
             _logger.Information("Started InsertPlatforms");
             int batchCount = 0;
             var platformsList = platforms.ToList();
+
             while (batchCount < platformsList.Count)
             {
                 var platformsBatch = platformsList.Skip(batchCount).Take(MaxBulkRows).ToList();
@@ -84,14 +85,6 @@ namespace SpeedRunAppImport.Repository
                 batchCount += MaxBulkRows;
             }
             _logger.Information("Completed InsertPlatforms");
-        }
-
-        public IEnumerable<string> GetAllPlatformIDs()
-        {
-            using (IDatabase db = DBFactory.GetDatabase())
-            {
-                return db.Query<string>("SELECT DISTINCT ID FROM dbo.tbl_Platform").ToList();
-            }
         }
 
         public IEnumerable<PlatformEntity> GetPlatforms()

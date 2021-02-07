@@ -26,7 +26,7 @@ namespace SpeedRunAppImport.Model.Entity
         //public long? RealTimeWithoutLoads { get; set; }
         //public long? GameTime { get; set; }
         //public string Comment { get; set; }
-        public int ExaminerUserID { get; set; }
+        public int? ExaminerUserID { get; set; }
         public string ExaminerSpeedRunComID { get; set; }
         //public string RejectReason { get; set; }
         //public string PrimaryVideoLinkUrl { get; set; }

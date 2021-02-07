@@ -5,8 +5,6 @@ namespace SpeedRunAppImport.Interfaces.Services
 {
     public interface ICacheService
     {
-        IEnumerable<VariableEntity> GetVariables();
-        IEnumerable<GameEntity> GetGames();
-        IEnumerable<PlatformEntity> GetPlatforms();
+        //IEnumerable<VariableEntity> GetVariables();
     }
 }

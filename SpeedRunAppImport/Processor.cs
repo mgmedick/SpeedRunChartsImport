@@ -26,19 +26,17 @@ namespace SpeedRunAppImport
         private readonly IUserService _userService;
         private readonly ISpeedRunService _speedRunService;
         private readonly IPlatformService _platformService;
-        private readonly ILeaderboardService _leaderboardService;
         private readonly ISpeedRunRepository _speedRunRepo;
         private readonly ISettingService _settingService;
         private readonly IConfiguration _config;
         private readonly ILogger _logger;
 
-        public Processor(IGameService gameService, IUserService userService, ISpeedRunService speedRunService, IPlatformService platformService, ILeaderboardService leaderboardService, ISpeedRunRepository speedRunRepo, ISettingService settingService, IConfiguration config, ILogger logger)
+        public Processor(IGameService gameService, IUserService userService, ISpeedRunService speedRunService, IPlatformService platformService, ISpeedRunRepository speedRunRepo, ISettingService settingService, IConfiguration config, ILogger logger)
         {
             _gameService = gameService;
             _userService = userService;
             _speedRunService = speedRunService;
             _platformService = platformService;
-            _leaderboardService = leaderboardService;
             _speedRunRepo = speedRunRepo;
             _settingService = settingService;
             _config = config;
@@ -115,6 +113,11 @@ namespace SpeedRunAppImport
                 _platformService.ProcessPlatforms(IsFullImport);
             }
 
+            if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.User))
+            {
+                _userService.ProcessUsers(UserLastImportDate, IsFullImport);
+            }
+
             if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Game))
             {
                 _gameService.ProcessGames(GameLastImportDate, IsFullImport);
@@ -125,34 +128,11 @@ namespace SpeedRunAppImport
                 _speedRunService.ProcessSpeedRuns(SpeedRunLastImportDate, IsFullImport);
             }
 
-            if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.User))
-            {
-                _userService.ProcessUsers(UserLastImportDate, IsFullImport);
-            }
-
             if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Game) || Processes.Contains(ImportProcess.SpeedRun))
             {
-                ImportProcess importProcess;
+                var lastImportDate = GameLastImportDate > SpeedRunLastImportDate ? GameLastImportDate : SpeedRunLastImportDate;
 
-                if (Processes.Contains(ImportProcess.All) || (Processes.Contains(ImportProcess.Game) && Processes.Contains(ImportProcess.SpeedRun)))
-                {
-                    importProcess = ImportProcess.All;
-                }
-                else if (Processes.Contains(ImportProcess.Game))
-                {
-                    importProcess = ImportProcess.Game;
-                }
-                else
-                {
-                    importProcess = ImportProcess.SpeedRun;
-                }
-
-                if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Game))
-                {
-                    _speedRunRepo.UpdateSpeedRunSubCategoryVariableValues(GameLastImportDate);
-                }
-
-                _speedRunRepo.UpdateSpeedRunRanks((int)importProcess, GameLastImportDate, SpeedRunLastImportDate);
+                _speedRunRepo.UpdateSpeedRunRanks(lastImportDate);
             }
         }
 

@@ -116,13 +116,11 @@ namespace SpeedRunAppImport.Service
 
         public void SaveUsers(IEnumerable<User> users, bool isFullImport)
         {
-            var existingPlayerIDs = _speedRunRepo.GetExistingSpeedRunPlayerIDs();
-            var existingUsers = users.Where(i => existingPlayerIDs.Contains(i.ID));
-            var userEntities = existingUsers.Select(i => new UserEntity { SpeedRunComID = i.ID, Name = i.Name, SignUpDate = i.SignUpDate }).ToList();
-            var userLocationEntities = existingUsers.Select(i => new UserLocationEntity { SpeedRunComID = i.ID, Location = i.Location?.ToString() }).ToList();
-            var userLinkEntities = existingUsers.Select(i => new UserLinkEntity
+            var userEntities = users.Select(i => new UserEntity { SpeedRunComID = i.ID, Name = i.Name, SignUpDate = i.SignUpDate }).ToList();
+            var userLocationEntities = users.Select(i => new UserLocationEntity { UserSpeedRunComID = i.ID, Location = i.Location?.ToString() }).ToList();
+            var userLinkEntities = users.Select(i => new UserLinkEntity
             {
-                SpeedRunComID = i.ID,
+                UserSpeedRunComID = i.ID,
                 SpeedRunComUrl = i.WebLink.ToString(),
                 TwitchProfileUrl = i.TwitchProfile?.ToString(),
                 HitboxProfileUrl = i.HitboxProfile?.ToString(),

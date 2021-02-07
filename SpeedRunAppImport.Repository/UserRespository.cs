@@ -69,8 +69,8 @@ namespace SpeedRunAppImport.Repository
             {
                 var usersBatch = usersList.Skip(batchCount).Take(MaxBulkRows).ToList();
                 var userSpeedRunComIDs = usersBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
-                var userLocationsBatch = userLocations.Where(i => userSpeedRunComIDs.Contains(i.SpeedRunComID)).ToList();
-                var userLinksBatch = userLinks.Where(i => userSpeedRunComIDs.Contains(i.SpeedRunComID)).ToList();
+                var userLocationsBatch = userLocations.Where(i => userSpeedRunComIDs.Contains(i.UserSpeedRunComID)).ToList();
+                var userLinksBatch = userLinks.Where(i => userSpeedRunComIDs.Contains(i.UserSpeedRunComID)).ToList();
 
                 using (IDatabase db = DBFactory.GetDatabase())
                 {
@@ -81,10 +81,10 @@ namespace SpeedRunAppImport.Repository
                         var userSpeedRunComIDsBatch = usersBatch.Select(i => new UserSpeedRunComIDEntity { UserID = i.ID, SpeedRunComID = i.SpeedRunComID }).ToList();
                         db.InsertBatch<UserSpeedRunComIDEntity>(userSpeedRunComIDsBatch);
 
-                        userLocationsBatch.ForEach(i => i.UserID = usersBatch.Find(g => g.SpeedRunComID == i.SpeedRunComID).ID);
+                        userLocationsBatch.ForEach(i => i.UserID = usersBatch.Find(g => g.SpeedRunComID == i.UserSpeedRunComID).ID);
                         db.InsertBatch<UserLocationEntity>(userLocationsBatch);
 
-                        userLinksBatch.ForEach(i => i.UserID = usersBatch.Find(g => g.SpeedRunComID == i.SpeedRunComID).ID);
+                        userLinksBatch.ForEach(i => i.UserID = usersBatch.Find(g => g.SpeedRunComID == i.UserSpeedRunComID).ID);
                         db.InsertBatch<UserLinkEntity>(userLinksBatch);
 
                         tran.Complete();
@@ -105,8 +105,8 @@ namespace SpeedRunAppImport.Repository
 
             foreach (var user in usersList)
             {
-                var userLocation = userLocations.FirstOrDefault(i => i.SpeedRunComID == user.SpeedRunComID);
-                var userLink = userLinks.FirstOrDefault(i => i.SpeedRunComID == user.SpeedRunComID);
+                var userLocation = userLocations.FirstOrDefault(i => i.UserSpeedRunComID == user.SpeedRunComID);
+                var userLink = userLinks.FirstOrDefault(i => i.UserSpeedRunComID == user.SpeedRunComID);
 
                 using (IDatabase db = DBFactory.GetDatabase())
                 {
@@ -139,15 +139,6 @@ namespace SpeedRunAppImport.Repository
 
                 _logger.Information("Saved users {@Count} / {@Total}", count, usersList.Count);
                 count++;
-            }
-        }
-
-        public int? GetExistingUserID(string speedRunComID)
-        {
-            using (IDatabase db = DBFactory.GetDatabase())
-            {
-                var result = db.Query<UserSpeedRunComIDEntity>().Where(i => i.SpeedRunComID == speedRunComID).FirstOrDefault();
-                return result?.UserID;
             }
         }
 

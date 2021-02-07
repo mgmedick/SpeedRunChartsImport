@@ -328,56 +328,43 @@ namespace SpeedRunAppImport.Repository
             }
         }
 
-        public IEnumerable<SpeedRunEntity> GetSpeedRuns(Expression<Func<SpeedRunEntity, bool>> predicate)
+        //public IEnumerable<SpeedRunEntity> GetSpeedRuns(Expression<Func<SpeedRunEntity, bool>> predicate)
+        //{
+        //    using (IDatabase db = DBFactory.GetDatabase())
+        //    {
+        //        return db.Query<SpeedRunEntity>().Where(predicate).ToList();
+        //    }
+        //}
+
+        public IEnumerable<string> GetExistingSpeedRunComIDs(IEnumerable<string> speedRunComIDs)
         {
             using (IDatabase db = DBFactory.GetDatabase())
             {
-                return db.Query<SpeedRunEntity>().Where(predicate).ToList();
+                var runIDString = "'" + string.Join("','", speedRunComIDs) + "'";
+                return db.Query<string>("SELECT SpeedRunComID FROM dbo.tbl_SpeedRun_SpeedRunComID WITH (NOLOCK) WHERE SpeedRunComID IN (@0)", speedRunComIDs).ToList();
             }
         }
 
-        public IEnumerable<string> GetExistingSpeedRunIDs(IEnumerable<string> runIDs)
-        {
-            using (IDatabase db = DBFactory.GetDatabase())
-            {
-                var runIDString = "'" + string.Join("','", runIDs) + "'";
-                return db.Query<string>("SELECT ID FROM dbo.tbl_SpeedRun WITH (NOLOCK) WHERE ID IN (@0)", runIDString).ToList();
-            }
-        }
+        //public IEnumerable<string> GetExistingSpeedRunPlayerIDs()
+        //{
+        //    using (IDatabase db = DBFactory.GetDatabase())
+        //    {
+        //        db.OneTimeCommandTimeout = 32767;
+        //        return db.Query<string>("SELECT DISTINCT UserID FROM dbo.tbl_SpeedRun_Player WITH (NOLOCK) WHERE UserID IS NOT NULL").ToList();
+        //    }
+        //}
 
-        public IEnumerable<string> GetExistingSpeedRunPlayerIDs()
+        public void UpdateSpeedRunRanks(DateTime lastImportDate)
         {
+            _logger.Information("Started UpdateSpeedRunRanks {@LastImportDate}", lastImportDate);
+
             using (IDatabase db = DBFactory.GetDatabase())
             {
                 db.OneTimeCommandTimeout = 32767;
-                return db.Query<string>("SELECT DISTINCT UserID FROM dbo.tbl_SpeedRun_Player WITH (NOLOCK) WHERE UserID IS NOT NULL").ToList();
-            }
-        }
-
-        public void UpdateSpeedRunRanks(int importProcessID, DateTime gameLastImportDate, DateTime speedRunLastImportDate)
-        {
-            _logger.Information("Started UpdateSpeedRunRanks {@ImportProcessID}, {@GameLastImportDate}, {@SpeedRunLastImportDate}", importProcessID, gameLastImportDate, speedRunLastImportDate);
-
-            using (IDatabase db = DBFactory.GetDatabase())
-            {
-                db.OneTimeCommandTimeout = 32767;
-                db.Execute("EXEC dbo.UpdateSpeedRunRanks @0, @1, @2", importProcessID, gameLastImportDate, speedRunLastImportDate);
+                db.Execute("EXEC dbo.UpdateSpeedRunRanks @0", lastImportDate);
             }
 
             _logger.Information("Completed UpdateSpeedRunRanks");
-        }
-
-        public void UpdateSpeedRunSubCategoryVariableValues(DateTime lastImportDate)
-        {
-            _logger.Information("Started UpdateSpeedRunSubCategoryVariableValues {@LastImportDate}", lastImportDate);
-
-            using (IDatabase db = DBFactory.GetDatabase())
-            {
-                db.OneTimeCommandTimeout = 32767;
-                db.Execute("EXEC dbo.UpdateSpeedRunSubCategoryVariableValues @0", lastImportDate);
-            }
-
-            _logger.Information("Completed UpdateSpeedRunSubCategoryVariableValues");
         }
     }
 }

@@ -12,9 +12,13 @@ namespace SpeedRunAppImport.Interfaces.Repositories
         void RenameAndDropGameTables();
         void InsertGames(IEnumerable<GameEntity> games, IEnumerable<GameLinkEntity> gameLinks, IEnumerable<LevelEntity> levels, IEnumerable<LevelRuleEntity> levelRules, IEnumerable<CategoryEntity> categories, IEnumerable<CategoryRuleEntity> categoryRules, IEnumerable<VariableEntity> variables, IEnumerable<VariableValueEntity> variableValues, IEnumerable<GamePlatformEntity> gamePlatforms, IEnumerable<GameRegionEntity> gameRegions, IEnumerable<GameModeratorEntity> gameModerators, IEnumerable<GameRulesetEntity> gameRulesets, IEnumerable<GameTimingMethodEntity> gameTimingMethods);
         void SaveGames(IEnumerable<GameEntity> games, IEnumerable<GameLinkEntity> gameLinks, IEnumerable<LevelEntity> levels, IEnumerable<LevelRuleEntity> levelRules, IEnumerable<CategoryEntity> categories, IEnumerable<CategoryRuleEntity> categoryRules, IEnumerable<VariableEntity> variables, IEnumerable<VariableValueEntity> variableValues, IEnumerable<GamePlatformEntity> gamePlatforms, IEnumerable<GameRegionEntity> gameRegions, IEnumerable<GameModeratorEntity> gameModerators, IEnumerable<GameRulesetEntity> gameRulesets, IEnumerable<GameTimingMethodEntity> gameTimingMethods);
-        IEnumerable<VariableEntity> GetVariables();
-        IEnumerable<GameEntity> GetGames();
+        //IEnumerable<VariableEntity> GetVariables();
+        //IEnumerable<GameEntity> GetGames();
         IEnumerable<GameSpeedRunComIDEntity> GetGameSpeedRunComIDs();
+        IEnumerable<CategorySpeedRunComIDEntity> GetCategorySpeedRunComIDs();
+        IEnumerable<LevelSpeedRunComIDEntity> GetLevelSpeedRunComIDs();
+        IEnumerable<VariableSpeedRunComIDEntity> GetVariableSpeedRunComIDs();
+        IEnumerable<VariableValueSpeedRunComIDEntity> GetVariableValueSpeedRunComIDs();
         IEnumerable<RegionSpeedRunComIDEntity> GetRegionSpeedRunComIDs();
     }
 }

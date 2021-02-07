@@ -7,7 +7,7 @@ namespace SpeedRunAppImport.Model.Entity
     public class UserLocationEntity
     {
         public int UserID { get; set; }
-        public string SpeedRunComID { get; set; }
+        public string UserSpeedRunComID { get; set; }
         public string Location { get; set; }
     }
 } 

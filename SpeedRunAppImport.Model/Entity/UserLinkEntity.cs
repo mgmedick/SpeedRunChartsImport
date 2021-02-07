@@ -7,7 +7,7 @@ namespace SpeedRunAppImport.Model.Entity
     public class UserLinkEntity
     {
         public int UserID { get; set; }
-        public string SpeedRunComID { get; set; }
+        public string UserSpeedRunComID { get; set; }
         public string SpeedRunComUrl { get; set; }
         public string ProfileImageUrl { get; set; }
         public string TwitchProfileUrl { get; set; }

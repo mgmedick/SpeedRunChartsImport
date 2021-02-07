@@ -18,7 +18,7 @@ namespace SpeedRunAppImport.Repository
         {
             _logger = logger;
         }
-
+        
         public void CopyGameTables()
         {
             using (IDatabase db = DBFactory.GetDatabase())
@@ -387,29 +387,21 @@ namespace SpeedRunAppImport.Repository
             }
         }
 
-        public IEnumerable<VariableEntity> GetVariables()
-        {
-            using (IDatabase db = DBFactory.GetDatabase())
-            {
-                return db.Query<VariableEntity>("SELECT OrderValue, ID, [Name], GameID, VariableScopeTypeID, CategoryID, LevelID, IsSubCategory FROM dbo.tbl_Variable WITH (NOLOCK) ORDER BY OrderValue").ToList();
-            }
-        }
+        //public IEnumerable<VariableEntity> GetVariables()
+        //{
+        //    using (IDatabase db = DBFactory.GetDatabase())
+        //    {
+        //        return db.Query<VariableEntity>("SELECT OrderValue, ID, [Name], GameID, VariableScopeTypeID, CategoryID, LevelID, IsSubCategory FROM dbo.tbl_Variable WITH (NOLOCK) ORDER BY OrderValue").ToList();
+        //    }
+        //}
 
-        public IEnumerable<GameEntity> GetGames()
-        {
-            using (IDatabase db = DBFactory.GetDatabase())
-            {
-                return db.Query<GameEntity>("SELECT [OrderValue], [ID], [Name], [JapaneseName], [Abbreviation], [IsRomHack], [YearOfRelease], [SpeedRunComUrl], [CoverImageUrl], [CreatedDate], [ImportedDate], [ModifiedDate] FROM [dbo].[tbl_Game] WITH (NOLOCK) ORDER BY OrderValue").ToList();
-            }
-        }
-
-        public IEnumerable<RegionSpeedRunComIDEntity> GetRegionSpeedRunComIDs()
-        {
-            using (IDatabase db = DBFactory.GetDatabase())
-            {
-                return db.Query<RegionSpeedRunComIDEntity>("SELECT RegionID, SpeedRunComID FROM dbo.tbl_Region_SpeedRunComID WITH(NOLOCK)").ToList();
-            }
-        }
+        //public IEnumerable<GameEntity> GetGames()
+        //{
+        //    using (IDatabase db = DBFactory.GetDatabase())
+        //    {
+        //        return db.Query<GameEntity>("SELECT [OrderValue], [ID], [Name], [JapaneseName], [Abbreviation], [IsRomHack], [YearOfRelease], [SpeedRunComUrl], [CoverImageUrl], [CreatedDate], [ImportedDate], [ModifiedDate] FROM [dbo].[tbl_Game] WITH (NOLOCK) ORDER BY OrderValue").ToList();
+        //    }
+        //}
 
         public IEnumerable<GameSpeedRunComIDEntity> GetGameSpeedRunComIDs()
         {
@@ -419,19 +411,43 @@ namespace SpeedRunAppImport.Repository
             }
         }
 
-        public IEnumerable<GameSpeedRunComIDEntity> GetVariableSpeedRunComIDs()
+        public IEnumerable<CategorySpeedRunComIDEntity> GetCategorySpeedRunComIDs()
         {
             using (IDatabase db = DBFactory.GetDatabase())
             {
-                return db.Query<GameSpeedRunComIDEntity>("SELECT GameID, SpeedRunComID FROM dbo.tbl_Variable_SpeedRunComID WITH(NOLOCK)").ToList();
+                return db.Query<CategorySpeedRunComIDEntity>("SELECT CategoryID, SpeedRunComID FROM dbo.tbl_Category_SpeedRunComID WITH(NOLOCK)").ToList();
             }
         }
 
-        public IEnumerable<GameSpeedRunComIDEntity> GetLevelSpeedRunComIDs()
+        public IEnumerable<LevelSpeedRunComIDEntity> GetLevelSpeedRunComIDs()
         {
             using (IDatabase db = DBFactory.GetDatabase())
             {
-                return db.Query<GameSpeedRunComIDEntity>("SELECT GameID, SpeedRunComID FROM dbo.tbl_Variable_SpeedRunComID WITH(NOLOCK)").ToList();
+                return db.Query<LevelSpeedRunComIDEntity>("SELECT GameID, SpeedRunComID FROM dbo.tbl_Level_SpeedRunComID WITH(NOLOCK)").ToList();
+            }
+        }
+
+        public IEnumerable<VariableSpeedRunComIDEntity> GetVariableSpeedRunComIDs()
+        {
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                return db.Query<VariableSpeedRunComIDEntity>("SELECT VariableID, SpeedRunComID FROM dbo.tbl_Variable_SpeedRunComID WITH(NOLOCK)").ToList();
+            }
+        }
+
+        public IEnumerable<VariableValueSpeedRunComIDEntity> GetVariableValueSpeedRunComIDs()
+        {
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                return db.Query<VariableValueSpeedRunComIDEntity>("SELECT VariableValueID, SpeedRunComID FROM dbo.tbl_VariableValue_SpeedRunComID WITH(NOLOCK)").ToList();
+            }
+        }
+
+        public IEnumerable<RegionSpeedRunComIDEntity> GetRegionSpeedRunComIDs()
+        {
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                return db.Query<RegionSpeedRunComIDEntity>("SELECT RegionID, SpeedRunComID FROM dbo.tbl_Region_SpeedRunComID WITH(NOLOCK)").ToList();
             }
         }
     }

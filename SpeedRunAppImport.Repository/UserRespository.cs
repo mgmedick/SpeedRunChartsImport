@@ -25,12 +25,66 @@ namespace SpeedRunAppImport.Repository
             {
                 using (var tran = db.GetTransaction())
                 {
-                    db.Execute(@"IF OBJECT_ID('dbo.tbl_User_Full') IS NOT NULL 
+                    db.Execute(@"--tbl_User_Full
+                                 IF OBJECT_ID('dbo.tbl_User_Full') IS NOT NULL
+                                 BEGIN
                                     DROP TABLE dbo.tbl_User_Full
-                               
-                                SELECT TOP 0 * INTO dbo.tbl_User_Full FROM dbo.tbl_User
+                                 END
 
-                                ALTER TABLE [dbo].[tbl_User_Full] ADD CONSTRAINT [DF_tbl_User_Full_ImportedDate] DEFAULT GETDATE() FOR [ImportedDate]");
+                                CREATE TABLE [dbo].[tbl_User_Full]
+                                ( 
+                                    [ID] [int] NOT NULL IDENTITY(1,1), 
+                                    [Name] [varchar] (100) NOT NULL,
+	                                [UserRoleID] [int] NOT NULL,
+                                    [SignUpDate] [datetime] NULL,  
+                                    [ImportedDate] [datetime] NOT NULL CONSTRAINT [DF_tbl_User_Full_ImportedDate] DEFAULT(GETDATE())
+                                ) ON [PRIMARY] 
+                                ALTER TABLE [dbo].[tbl_User_Full] ADD CONSTRAINT [PK_tbl_User_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
+
+                                --tbl_User_SpeedRunComID_Full
+                                IF OBJECT_ID('dbo.tbl_User_SpeedRunComID_Full') IS NOT NULL 
+                                BEGIN
+                                    DROP TABLE dbo.tbl_User_SpeedRunComID_Full
+                                END 
+
+                                CREATE TABLE [dbo].[tbl_User_SpeedRunComID_Full] 
+                                (
+	                                [UserID] [int] NOT NULL,
+                                    [SpeedRunComID] [varchar] (10) NOT NULL
+                                )
+                                ALTER TABLE [dbo].[tbl_User_SpeedRunComID_Full] ADD CONSTRAINT [PK_tbl_User_SpeedRunComID_Full] PRIMARY KEY CLUSTERED ([UserID]) WITH (FILLFACTOR=90) ON [PRIMARY]                               
+
+                                --tbl_User_Location_Full
+                                IF OBJECT_ID('dbo.tbl_User_Location_Full') IS NOT NULL 
+                                BEGIN
+                                    DROP TABLE dbo.tbl_User_Location_Full
+                                END 
+
+                                CREATE TABLE [dbo].[tbl_User_Location_Full]
+                                ( 
+                                    [UserID] [int] NOT NULL,
+                                    [Location] [varchar] (100) NULL
+                                ) ON [PRIMARY] 
+                                ALTER TABLE [dbo].[tbl_User_Location_Full] ADD CONSTRAINT [PK_tbl_User_Location_Full] PRIMARY KEY CLUSTERED ([UserID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+
+                                --tbl_User_Link_Full
+                                IF OBJECT_ID('dbo.tbl_User_Link_Full') IS NOT NULL 
+                                BEGIN
+                                    DROP TABLE dbo.tbl_User_Link_Full
+                                END 
+
+                                CREATE TABLE [dbo].[tbl_User_Link_Full] 
+                                ( 
+                                    [UserID] [int] NOT NULL,
+	                                [SpeedRunComUrl] [varchar] (1000) NULL, 
+                                    [ProfileImageUrl] [varchar] (1000) NULL,
+                                    [TwitchProfileUrl] [varchar] (1000) NULL,
+                                    [HitboxProfileUrl] [varchar] (1000) NULL,
+                                    [YoutubeProfileUrl] [varchar] (1000) NULL,
+                                    [TwitterProfileUrl] [varchar] (1000) NULL,
+                                    [SpeedRunsLiveProfileUrl] [varchar] (1000) NULL
+                                ) ON [PRIMARY] 
+                                ALTER TABLE [dbo].[tbl_User_Link_Full] ADD CONSTRAINT [PK_tbl_User_Link_Full] PRIMARY KEY CLUSTERED ([UserID]) WITH (FILLFACTOR=90) ON [PRIMARY]");
                     tran.Complete();
                 }
             }
@@ -43,17 +97,40 @@ namespace SpeedRunAppImport.Repository
                 using (var tran = db.GetTransaction())
                 {
                     db.OneTimeCommandTimeout = 32767;
-                    db.Execute(@"EXEC sp_rename 'dbo.tbl_User', 'tbl_User_ToRemove'
+                    db.Execute(@"--tbl_User
+		                         ALTER TABLE [dbo].[tbl_SpeedRun_Player] DROP CONSTRAINT [FK_tbl_SpeedRun_Player_tbl_User]
+		                         ALTER TABLE [dbo].[tbl_Game_Moderator] DROP CONSTRAINT [FK_tbl_Game_Moderator_tbl_User]
+                                 DROP TABLE dbo.tbl_User
 
-                                EXEC sp_rename 'dbo.tbl_User_Full', 'tbl_User'
+                                 EXEC sp_rename 'dbo.PK_tbl_User_Full', 'PK_tbl_User'                                
+                                 EXEC sp_rename 'dbo.DF_tbl_User_Full_ImportedDate', 'DF_tbl_User_ImportedDate'
+                                 EXEC sp_rename 'dbo.FK_tbl_User_Full_tbl_UserRole', 'FK_tbl_User_tbl_UserRole'
+                                 EXEC sp_rename 'dbo.tbl_User_Full', 'tbl_User'
 
-                                DROP TABLE dbo.tbl_User_ToRemove
+                                 ALTER TABLE [dbo].[tbl_User_Full] ADD CONSTRAINT [FK_tbl_User_Full_tbl_UserRole] FOREIGN KEY ([UserRoleID]) REFERENCES [dbo].[tbl_UserRole] ([ID])
+                                 CREATE NONCLUSTERED INDEX [IDX_tbl_User_UserRoleID] ON [dbo].[tbl_User] ([UserRoleID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                 ALTER TABLE [dbo].[tbl_SpeedRun_Player] ADD CONSTRAINT [FK_tbl_SpeedRun_Player_tbl_User] FOREIGN KEY ([UserID]) REFERENCES [dbo].[tbl_User] ([ID])
+                                 ALTER TABLE [dbo].[tbl_Game_Moderator] ADD CONSTRAINT [FK_tbl_Game_Moderator_tbl_User] FOREIGN KEY ([UserID]) REFERENCES [dbo].[tbl_User] ([ID])
 
-                                EXEC sp_rename 'dbo.DF_tbl_User_Full_ImportedDate', 'DF_tbl_User_ImportedDate'
+                                 --tbl_User_SpeedRunComID
+                                 DROP TABLE dbo.tbl_User_SpeedRunComID
+                                
+                                 EXEC sp_rename 'dbo.PK_tbl_User_SpeedRunComID_Full', 'PK_tbl_User_SpeedRunComID'  
+                                 EXEC sp_rename 'dbo.tbl_User_SpeedRunComID_Full', 'tbl_User_SpeedRunComID'
 
-                                ALTER TABLE [dbo].[tbl_User] ADD CONSTRAINT [PK_tbl_User] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                CREATE CLUSTERED INDEX [IDX_tbl_User_OrderValue] ON [dbo].[tbl_User] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                CREATE NONCLUSTERED INDEX [IDX_tbl_User_Name] ON [dbo].[tbl_User] ([Name]) WITH (FILLFACTOR=90) ON [PRIMARY]");
+                                 CREATE NONCLUSTERED INDEX [IDX_tbl_User_SpeedRunComID_SpeedRunComID] ON [dbo].[tbl_User_SpeedRunComID] ([SpeedRunComID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+
+                                 --tbl_User_Location
+                                 DROP TABLE dbo.tbl_User_Location
+                                 
+                                 EXEC sp_rename 'dbo.PK_tbl_User_Location_Full', 'PK_tbl_User_Location'  
+                                 EXEC sp_rename 'dbo.tbl_User_Location_Full', 'tbl_User_Location'
+
+                                 --tbl_User_Link
+                                 DROP TABLE dbo.tbl_User_Link
+                                 
+                                 EXEC sp_rename 'dbo.PK_tbl_User_Link_Full', 'PK_tbl_User_Link'  
+                                 EXEC sp_rename 'dbo.tbl_User_Link_Full', 'tbl_User_Link'");
                     tran.Complete();
                 }
             }

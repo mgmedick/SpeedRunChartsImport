@@ -180,7 +180,7 @@ namespace SpeedRunAppImport.Repository
         }
         */
 
-        public void InsertSpeedRuns(IEnumerable<SpeedRunEntity> speedRuns, IEnumerable<SpeedRunLinkEntity> speedRunLinks, IEnumerable<SpeedRunSystemEntity> speedRunSystems, IEnumerable<SpeedRunTimeEntity> speedRunTimes, IEnumerable<SpeedRunCommentEntity> speedRunComments, IEnumerable<SpeedRunVariableValueEntity> variableValues, IEnumerable<SpeedRunPlayerEntity> players, IEnumerable<SpeedRunVideoEntity> videos)
+        public void InsertSpeedRuns(IEnumerable<SpeedRunEntity> speedRuns, IEnumerable<SpeedRunLinkEntity> speedRunLinks, IEnumerable<SpeedRunStatusEntity> speedRunStatuses, IEnumerable<SpeedRunSystemEntity> speedRunSystems, IEnumerable<SpeedRunTimeEntity> speedRunTimes, IEnumerable<SpeedRunCommentEntity> speedRunComments, IEnumerable<SpeedRunVariableValueEntity> variableValues, IEnumerable<SpeedRunPlayerEntity> players, IEnumerable<SpeedRunVideoEntity> videos)
         {
             _logger.Information("Started InsertSpeedRuns");
             int batchCount = 0;
@@ -191,6 +191,7 @@ namespace SpeedRunAppImport.Repository
                 var runsBatch = speedRunsList.Skip(batchCount).Take(MaxBulkRows).ToList();
                 var runIDs = runsBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
                 var speedRunLinksBatch = speedRunLinks.Where(i => runIDs.Contains(i.SpeedRunSpeedRunComID)).ToList();
+                var speedRunStatusesBatch = speedRunStatuses.Where(i => runIDs.Contains(i.SpeedRunSpeedRunComID)).ToList();
                 var speedRunSystemsBatch = speedRunSystems.Where(i => runIDs.Contains(i.SpeedRunSpeedRunComID)).ToList();
                 var speedRunTimesBatch = speedRunTimes.Where(i => runIDs.Contains(i.SpeedRunSpeedRunComID)).ToList();
                 var speedRunCommentsBatch = speedRunComments.Where(i => runIDs.Contains(i.SpeedRunSpeedRunComID)).ToList();
@@ -210,6 +211,9 @@ namespace SpeedRunAppImport.Repository
 
                         speedRunLinksBatch.ForEach(i => i.SpeedRunID = runsBatch.Find(g => g.SpeedRunComID == i.SpeedRunSpeedRunComID).ID);
                         db.InsertBatch<SpeedRunLinkEntity>(speedRunLinksBatch);
+
+                        speedRunStatusesBatch.ForEach(i => i.SpeedRunID = runsBatch.Find(g => g.SpeedRunComID == i.SpeedRunSpeedRunComID).ID);
+                        db.InsertBatch<SpeedRunStatusEntity>(speedRunStatusesBatch);
 
                         speedRunSystemsBatch.ForEach(i => i.SpeedRunID = runsBatch.Find(g => g.SpeedRunComID == i.SpeedRunSpeedRunComID).ID);
                         db.InsertBatch<SpeedRunSystemEntity>(speedRunSystemsBatch);
@@ -239,7 +243,7 @@ namespace SpeedRunAppImport.Repository
             _logger.Information("Completed InsertSpeedRuns");
         }
 
-        public void SaveSpeedRuns(IEnumerable<SpeedRunEntity> speedRuns, IEnumerable<SpeedRunLinkEntity> speedRunLinks, IEnumerable<SpeedRunSystemEntity> speedRunSystems, IEnumerable<SpeedRunTimeEntity> speedRunTimes, IEnumerable<SpeedRunCommentEntity> speedRunComments, IEnumerable<SpeedRunVariableValueEntity> variableValues, IEnumerable<SpeedRunPlayerEntity> players, IEnumerable<SpeedRunVideoEntity> videos)
+        public void SaveSpeedRuns(IEnumerable<SpeedRunEntity> speedRuns, IEnumerable<SpeedRunLinkEntity> speedRunLinks, IEnumerable<SpeedRunStatusEntity> speedRunStatuses, IEnumerable<SpeedRunSystemEntity> speedRunSystems, IEnumerable<SpeedRunTimeEntity> speedRunTimes, IEnumerable<SpeedRunCommentEntity> speedRunComments, IEnumerable<SpeedRunVariableValueEntity> variableValues, IEnumerable<SpeedRunPlayerEntity> players, IEnumerable<SpeedRunVideoEntity> videos)
         {
             int count = 1;
             var speedRunsList = speedRuns.ToList();
@@ -248,6 +252,7 @@ namespace SpeedRunAppImport.Repository
             foreach (var speedRun in speedRuns)
             {
                 var speedRunLink = speedRunLinks.FirstOrDefault(i => i.SpeedRunSpeedRunComID == speedRun.SpeedRunComID);
+                var speedRunStatus = speedRunStatuses.FirstOrDefault(i => i.SpeedRunSpeedRunComID == speedRun.SpeedRunComID);
                 var speedRunSystem = speedRunSystems.FirstOrDefault(i => i.SpeedRunSpeedRunComID == speedRun.SpeedRunComID);
                 var speedRunTime = speedRunTimes.FirstOrDefault(i => i.SpeedRunSpeedRunComID == speedRun.SpeedRunComID);
                 var speedRunComment = speedRunComments.FirstOrDefault(i => i.SpeedRunSpeedRunComID == speedRun.SpeedRunComID);
@@ -282,6 +287,12 @@ namespace SpeedRunAppImport.Repository
                         {
                             speedRunLink.SpeedRunID = speedRun.ID;
                             db.Insert<SpeedRunLinkEntity>(speedRunLink);
+                        }
+
+                        if (speedRunStatus != null)
+                        {
+                            speedRunStatus.SpeedRunID = speedRun.ID;
+                            db.Insert<SpeedRunStatusEntity>(speedRunStatus);
                         }
 
                         if (speedRunSystem != null)

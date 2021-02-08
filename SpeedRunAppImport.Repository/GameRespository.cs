@@ -25,51 +25,64 @@ namespace SpeedRunAppImport.Repository
             {
                 using (var tran = db.GetTransaction())
                 {
-                    db.Execute(@"IF OBJECT_ID('dbo.tbl_Game_Full') IS NOT NULL 
+                    db.Execute(@"--tbl_Game_Full
+                                IF OBJECT_ID('dbo.tbl_Game_Full') IS NOT NULL
+                                BEGIN
                                     DROP TABLE dbo.tbl_Game_Full
-                                
+                                END
+
+                                CREATE TABLE [dbo].[tbl_Game_Full] 
+                                ( 
+                                    [ID] [int] NOT NULL IDENTITY(1,1), 
+                                    [Name] [varchar] (100) NOT NULL,
+                                    [IsRomHack] [bit] NOT NULL,
+                                    [YearOfRelease] [int] NULL,
+                                    [CreatedDate] [datetime] NULL,  
+                                    [ImportedDate] [datetime] NOT NULL CONSTRAINT [DF_tbl_Game_Full_ImportedDate] DEFAULT(GETDATE()),
+                                    [ModifiedDate] [datetime] NULL
+                                ) ON [PRIMARY] 
+                                ALTER TABLE [dbo].[tbl_Game_Full] ADD CONSTRAINT [PK_tbl_Game_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
+
+                                --tbl_Game_SpeedRunComID_Full
+                                IF OBJECT_ID('dbo.tbl_Game_SpeedRunComID_Full') IS NOT NULL 
+                                BEGIN
+                                    DROP TABLE dbo.tbl_Game_SpeedRunComID_Full
+                                END 
+
+                                CREATE TABLE [dbo].[tbl_Game_SpeedRunComID_Full] 
+                                (
+	                                [GameID] [int] NOT NULL,
+                                    [SpeedRunComID] [varchar] (10) NOT NULL
+                                )
+                                ALTER TABLE [dbo].[tbl_Game_SpeedRunComID_Full] ADD CONSTRAINT [PK_tbl_Game_SpeedRunComID_Full] PRIMARY KEY CLUSTERED ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+
+                                --tbl_Game_Link_Full
+                                IF OBJECT_ID('dbo.tbl_Game_Link_Full') IS NOT NULL 
+                                BEGIN
+                                    DROP TABLE dbo.tbl_Game_Link_Full
+                                END 
+
+                                CREATE TABLE [dbo].[tbl_Game_Link_Full] 
+                                (
+                                    [GameID] [int] NOT NULL,
+                                    [SpeedRunComUrl] [varchar] (1000) NOT NULL,
+                                    [CoverImageUrl] [varchar] (1000) NULL
+                                )
+                                ALTER TABLE [dbo].[tbl_Game_Link_Full] ADD CONSTRAINT [PK_tbl_Game_Link_Full] PRIMARY KEY CLUSTERED ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+
+                                 --tbl_Level_Full
                                 IF OBJECT_ID('dbo.tbl_Level_Full') IS NOT NULL 
+                                BEGIN
                                     DROP TABLE dbo.tbl_Level_Full
+                                END
 
-                                IF OBJECT_ID('dbo.tbl_Category_Full') IS NOT NULL 
-                                    DROP TABLE dbo.tbl_Category_Full
-
-                                IF OBJECT_ID('dbo.tbl_Variable_Full') IS NOT NULL 
-                                    DROP TABLE dbo.tbl_Variable_Full
-
-                                IF OBJECT_ID('dbo.tbl_Variable_Full') IS NOT NULL 
-                                    DROP TABLE dbo.tbl_Variable_Full
-
-                                IF OBJECT_ID('dbo.tbl_VariableValue_Full') IS NOT NULL 
-                                    DROP TABLE dbo.tbl_VariableValue_Full
-
-                                IF OBJECT_ID('dbo.tbl_Game_Platform_Full') IS NOT NULL 
-                                    DROP TABLE dbo.tbl_Game_Platform_Full
-
-                                IF OBJECT_ID('dbo.tbl_Game_Region_Full') IS NOT NULL 
-                                    DROP TABLE dbo.tbl_Game_Region_Full
-
-                                IF OBJECT_ID('dbo.tbl_Game_Moderator_Full') IS NOT NULL 
-                                    DROP TABLE dbo.tbl_Game_Moderator_Full
-
-                                IF OBJECT_ID('dbo.tbl_Game_Ruleset_Full') IS NOT NULL 
-                                    DROP TABLE dbo.tbl_Game_Ruleset_Full
-
-                                IF OBJECT_ID('dbo.tbl_Game_TimingMethod_Full') IS NOT NULL 
-                                    DROP TABLE dbo.tbl_Game_TimingMethod_Full
-
-                                SELECT TOP 0 * INTO dbo.tbl_Game_Full FROM dbo.tbl_Game
-                                SELECT TOP 0 * INTO dbo.tbl_Level_Full FROM dbo.tbl_Level
-                                SELECT TOP 0 * INTO dbo.tbl_Category_Full FROM dbo.tbl_Category
-                                SELECT TOP 0 * INTO dbo.tbl_Variable_Full FROM dbo.tbl_Variable
-                                SELECT TOP 0 * INTO dbo.tbl_VariableValue_Full FROM dbo.tbl_VariableValue
-                                SELECT TOP 0 * INTO dbo.tbl_Game_Platform_Full FROM dbo.tbl_Game_Platform
-                                SELECT TOP 0 * INTO dbo.tbl_Game_Region_Full FROM dbo.tbl_Game_Region
-                                SELECT TOP 0 * INTO dbo.tbl_Game_Moderator_Full FROM dbo.tbl_Game_Moderator
-                                SELECT TOP 0 * INTO dbo.tbl_Game_Ruleset_Full FROM dbo.tbl_Game_Ruleset
-                                SELECT TOP 0 * INTO dbo.tbl_Game_TimingMethod_Full FROM dbo.tbl_Game_TimingMethod
-
-                                ALTER TABLE [dbo].[tbl_Game_Full] ADD CONSTRAINT [DF_tbl_Game_Full_ImportedDate] DEFAULT GETDATE() FOR [ImportedDate]");
+                                CREATE TABLE [dbo].[tbl_Level_Full] 
+                                ( 
+                                    [ID] [int] NOT NULL IDENTITY(1,1), 
+                                    [Name] [varchar] (100) NOT NULL,
+                                    [GameID] [int] NOT NULL
+                                ) ON [PRIMARY] 
+                                ALTER TABLE [dbo].[tbl_Level_Full] ADD CONSTRAINT [PK_tbl_Level_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]");
                     tran.Complete();
                 }
             }
@@ -82,30 +95,62 @@ namespace SpeedRunAppImport.Repository
                 using (var tran = db.GetTransaction())
                 {
                     db.OneTimeCommandTimeout = 32767;
-                    db.Execute(@"EXEC sp_rename 'dbo.tbl_Game', 'tbl_Game_ToRemove'
-                                EXEC sp_rename 'dbo.tbl_Level', 'tbl_Level_ToRemove'
-                                EXEC sp_rename 'dbo.tbl_Category', 'tbl_Category_ToRemove'
-                                EXEC sp_rename 'dbo.tbl_Variable', 'tbl_Variable_ToRemove'
-                                EXEC sp_rename 'dbo.tbl_VariableValue', 'tbl_VariableValue_ToRemove'
-                                EXEC sp_rename 'dbo.tbl_Game_Platform', 'tbl_Game_Platform_ToRemove'
-                                EXEC sp_rename 'dbo.tbl_Game_Region', 'tbl_Game_Region_ToRemove'
-                                EXEC sp_rename 'dbo.tbl_Game_Moderator', 'tbl_Game_Moderator_ToRemove'
-                                EXEC sp_rename 'dbo.tbl_Game_Ruleset', 'tbl_Game_Ruleset_ToRemove'
-                                EXEC sp_rename 'dbo.tbl_Game_TimingMethod', 'tbl_Game_TimingMethod_ToRemove'
+                    db.Execute(@"--tbl_Game
+		                        ALTER TABLE [dbo].[tbl_Level] DROP CONSTRAINT [FK_tbl_Level_tbl_Game]
+		                        ALTER TABLE [dbo].[tbl_Category] DROP CONSTRAINT [FK_tbl_Category_tbl_Game]
+		                        ALTER TABLE [dbo].[tbl_Variable] DROP CONSTRAINT [FK_tbl_Variable_tbl_Game]
+		                        ALTER TABLE [dbo].[tbl_VariableValue] DROP CONSTRAINT [FK_tbl_VariableValue_tbl_Game]
+		                        ALTER TABLE [dbo].[tbl_Game_Platform] DROP CONSTRAINT [FK_tbl_Game_Platform_tbl_Game]
+		                        ALTER TABLE [dbo].[tbl_Game_Region] DROP CONSTRAINT [FK_tbl_Game_Region_tbl_Game]
+		                        ALTER TABLE [dbo].[tbl_Game_Moderator] DROP CONSTRAINT [FK_tbl_Game_Moderator_tbl_Game]
+		                        ALTER TABLE [dbo].[tbl_Game_TimingMethod] DROP CONSTRAINT [FK_tbl_Game_TimingMethod_tbl_Game]
+		                        ALTER TABLE [dbo].[tbl_SpeedRun] DROP CONSTRAINT [FK_tbl_SpeedRun_tbl_Game]
+                                DROP TABLE dbo.tbl_Game
 
+                                EXEC sp_rename 'dbo.PK_tbl_Game_Full', 'PK_tbl_Game'                                
+                                EXEC sp_rename 'dbo.DF_tbl_Game_Full_ImportedDate', 'DF_tbl_Game_ImportedDate'
+
+                                ALTER TABLE [dbo].[tbl_Level] ADD CONSTRAINT [FK_tbl_Level_tbl_Game] FOREIGN KEY ([GameID]) REFERENCES [dbo].[tbl_Game] ([ID])
+                                ALTER TABLE [dbo].[tbl_Category] ADD CONSTRAINT [FK_tbl_Category_tbl_Game] FOREIGN KEY ([GameID]) REFERENCES [dbo].[tbl_Game] ([ID])
+                                ALTER TABLE [dbo].[tbl_Variable] ADD CONSTRAINT [FK_tbl_Variable_tbl_Game] FOREIGN KEY ([GameID]) REFERENCES [dbo].[tbl_Game] ([ID])
+                                ALTER TABLE [dbo].[tbl_VariableValue] ADD CONSTRAINT [FK_tbl_VariableValue_tbl_Game] FOREIGN KEY ([GameID]) REFERENCES [dbo].[tbl_Game] ([ID])
+                                ALTER TABLE [dbo].[tbl_Game_Platform] ADD CONSTRAINT [FK_tbl_Game_Platform_tbl_Game] FOREIGN KEY ([GameID]) REFERENCES [dbo].[tbl_Game] ([ID])
+                                ALTER TABLE [dbo].[tbl_Game_Region] ADD CONSTRAINT [FK_tbl_Game_Region_tbl_Game] FOREIGN KEY ([GameID]) REFERENCES [dbo].[tbl_Game] ([ID])
+                                ALTER TABLE [dbo].[tbl_Game_Moderator] ADD CONSTRAINT [FK_tbl_Game_Moderator_tbl_Game] FOREIGN KEY ([GameID]) REFERENCES [dbo].[tbl_Game] ([ID])
+                                ALTER TABLE [dbo].[tbl_Game_TimingMethod] ADD CONSTRAINT [FK_tbl_Game_TimingMethod_tbl_Game] FOREIGN KEY ([GameID]) REFERENCES [dbo].[tbl_Game] ([ID])
+                                ALTER TABLE [dbo].[tbl_SpeedRun] ADD CONSTRAINT [FK_tbl_SpeedRun_tbl_Game] FOREIGN KEY ([GameID]) REFERENCES [dbo].[tbl_Game] ([ID])
+
+                                --tbl_Game_SpeedRunComID
+                                DROP TABLE dbo.tbl_Game_SpeedRunComID
+                                
+                                EXEC sp_rename 'dbo.PK_tbl_Game_Full_SpeedRunComID', 'PK_tbl_Game_SpeedRunComID'                                
                                 EXEC sp_rename 'dbo.tbl_Game_Full', 'tbl_Game'
-                                EXEC sp_rename 'dbo.tbl_Level_Full', 'tbl_Level'
-                                EXEC sp_rename 'dbo.tbl_Category_Full', 'tbl_Category'
-                                EXEC sp_rename 'dbo.tbl_Variable_Full', 'tbl_Variable'
-                                EXEC sp_rename 'dbo.tbl_VariableValue_Full', 'tbl_VariableValue'
-                                EXEC sp_rename 'dbo.tbl_Game_Platform_Full', 'tbl_Game_Platform'
-                                EXEC sp_rename 'dbo.tbl_Game_Region_Full', 'tbl_Game_Region'
-                                EXEC sp_rename 'dbo.tbl_Game_Moderator_Full', 'tbl_Game_Moderator'
-                                EXEC sp_rename 'dbo.tbl_Game_Ruleset_Full', 'tbl_Game_Ruleset'
-                                EXEC sp_rename 'dbo.tbl_Game_TimingMethod_Full', 'tbl_Game_TimingMethod'
 
-                                DROP TABLE dbo.tbl_Game_ToRemove
-                                DROP TABLE dbo.tbl_Level_ToRemove
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_Game_SpeedRunComID_SpeedRunComID] ON [dbo].[tbl_Game_SpeedRunComID] ([SpeedRunComID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
+
+                                --tbl_Game_Link
+                                DROP TABLE dbo.tbl_Game_Link
+                                
+                                EXEC sp_rename 'dbo.PK_tbl_Game_Link_Full', 'PK_tbl_Game_Link'                                
+                                EXEC sp_rename 'dbo.tbl_Game_Link_Full', 'tbl_Game_Link'
+
+                                --tbl_Level
+		                        ALTER TABLE [dbo].[tbl_Variable] DROP CONSTRAINT [FK_tbl_Variable_tbl_Level]
+		                        ALTER TABLE [dbo].[tbl_SpeedRun] DROP CONSTRAINT [FK_tbl_SpeedRun_tbl_Level]
+
+                                DROP TABLE dbo.tbl_Level
+
+                                EXEC sp_rename 'dbo.PK_tbl_Level_Full', 'PK_tbl_Level'                                
+                                EXEC sp_rename 'dbo.tbl_Level_Full', 'tbl_Level'
+
+                                ALTER TABLE [dbo].[tbl_Level] ADD CONSTRAINT [FK_tbl_Level_tbl_Game] FOREIGN KEY ([GameID]) REFERENCES [dbo].[tbl_Game] ([ID])
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_Level_tbl_Game] ON [dbo].[tbl_Level] ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
+                                ALTER TABLE [dbo].[tbl_Variable] ADD CONSTRAINT [FK_tbl_Variable_tbl_Level] FOREIGN KEY ([LevelID]) REFERENCES [dbo].[tbl_Level] ([ID])
+                                ALTER TABLE [dbo].[tbl_SpeedRun] ADD CONSTRAINT [FK_tbl_SpeedRun_tbl_Level] FOREIGN KEY ([LevelID]) REFERENCES [dbo].[tbl_Level] ([ID])
+
+                                --
+
+
                                 DROP TABLE dbo.tbl_Category_ToRemove
                                 DROP TABLE dbo.tbl_Variable_ToRemove
                                 DROP TABLE dbo.tbl_VariableValue_ToRemove

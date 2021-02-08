@@ -267,18 +267,24 @@ namespace SpeedRunAppImport.Service
 
             var runEntities = runs.Select(i => new SpeedRunEntity() {
                 GameID = gameSpeedRunComIDs.Where(g => g.SpeedRunComID == i.GameID).Select(g => g.GameID).FirstOrDefault(),
-                CategoryID = categorySpeedRunComIDs.Where(g => g.SpeedRunComID == i.CategoryID).Select(g=>g.CategoryID).FirstOrDefault(),
+                CategoryID = categorySpeedRunComIDs.Where(g => g.SpeedRunComID == i.CategoryID).Select(g => g.CategoryID).FirstOrDefault(),
                 LevelID = !string.IsNullOrWhiteSpace(i.LevelID) ? levelSpeedRunComIDs.Where(g => g.SpeedRunComID == i.LevelID).Select(g => g.LevelID).FirstOrDefault() : (int?)null,
                 PrimaryTime = i.Times.Primary?.Ticks,
-                ExaminerUserID = !string.IsNullOrWhiteSpace(i.Status.ExaminerUserID) ? userSpeedRunComIDs.Where(g => g.SpeedRunComID == i.Status.ExaminerUserID).Select(g => g.UserID).FirstOrDefault() : (int?)null,
-                DateSubmitted = i.DateSubmitted,
-                VerifyDate = i.VerifyDate
+                RunDate = i.Date,
+                DateSubmitted = i.DateSubmitted
             }).ToList();
             var runLinkEntities = runs.Select(i => new SpeedRunLinkEntity()
             {
                 SpeedRunSpeedRunComID = i.ID,
                 SpeedRunComUrl = i.WebLink.ToString(),
                 SplitsUrl = i.SplitsUri?.ToString()
+            }).ToList();
+            var runStatusEntities = runs.Select(i => new SpeedRunStatusEntity()
+            {
+                SpeedRunSpeedRunComID = i.ID,
+                StatusTypeID = (int)i.Status.Type,
+                ExaminerUserID = !string.IsNullOrWhiteSpace(i.Status.ExaminerUserID) ? userSpeedRunComIDs.Where(g => g.SpeedRunComID == i.Status.ExaminerUserID).Select(g => g.UserID).FirstOrDefault() : (int?)null,
+                VerifyDate = i.Status.VerifyDate
             }).ToList();
             var runSystemEntities = runs.Select(i => new SpeedRunSystemEntity()
             {
@@ -321,18 +327,18 @@ namespace SpeedRunAppImport.Service
                                     })).Where(i => !string.IsNullOrWhiteSpace(i.VideoLinkUrl))
                                     .ToList();
 
-            SaveSpeedRuns(runEntities, runLinkEntities, runSystemEntities, runTimeEntities, runCommentEntities, variableValueEntities, playerEntities, videoEntities, isFullImport);
+            SaveSpeedRuns(runEntities, runLinkEntities, runStatusEntities, runSystemEntities, runTimeEntities, runCommentEntities, variableValueEntities, playerEntities, videoEntities, isFullImport);
         }
 
-        public void SaveSpeedRuns(IEnumerable<SpeedRunEntity> speedRuns, IEnumerable<SpeedRunLinkEntity> speedRunLinks, IEnumerable<SpeedRunSystemEntity> speedRunSystems, IEnumerable<SpeedRunTimeEntity> speedRunTimes, IEnumerable<SpeedRunCommentEntity> speedRunComments, IEnumerable<SpeedRunVariableValueEntity> variableValues, IEnumerable<SpeedRunPlayerEntity> players, IEnumerable<SpeedRunVideoEntity> videos, bool isFullImport)
+        public void SaveSpeedRuns(IEnumerable<SpeedRunEntity> speedRuns, IEnumerable<SpeedRunLinkEntity> speedRunLinks, IEnumerable<SpeedRunStatusEntity> speedRunStatuses, IEnumerable<SpeedRunSystemEntity> speedRunSystems, IEnumerable<SpeedRunTimeEntity> speedRunTimes, IEnumerable<SpeedRunCommentEntity> speedRunComments, IEnumerable<SpeedRunVariableValueEntity> variableValues, IEnumerable<SpeedRunPlayerEntity> players, IEnumerable<SpeedRunVideoEntity> videos, bool isFullImport)
         {
             if (isFullImport)
             {
-                _speedRunRepo.InsertSpeedRuns(speedRuns, speedRunLinks, speedRunSystems, speedRunTimes, speedRunComments, variableValues, players, videos);
+                _speedRunRepo.InsertSpeedRuns(speedRuns, speedRunLinks, speedRunStatuses, speedRunSystems, speedRunTimes, speedRunComments, variableValues, players, videos);
             }
             else
             {
-                _speedRunRepo.SaveSpeedRuns(speedRuns, speedRunLinks, speedRunSystems, speedRunTimes, speedRunComments, variableValues, players, videos);
+                _speedRunRepo.SaveSpeedRuns(speedRuns, speedRunLinks, speedRunStatuses, speedRunSystems, speedRunTimes, speedRunComments, variableValues, players, videos);
             }
         }
     }

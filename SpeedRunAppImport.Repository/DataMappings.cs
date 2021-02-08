@@ -100,22 +100,19 @@ namespace SpeedRunAppImport.Repository
             {
                 i.Column(g => g.ImportedDate).Ignore();
                 i.Column(g => g.SpeedRunComID).Ignore();
-                i.Column(g => g.GameSpeedRunComID).Ignore();
-                i.Column(g => g.CategorySpeedRunComID).Ignore();
-                i.Column(g => g.LevelSpeedRunComID).Ignore();
-                i.Column(g => g.ExaminerSpeedRunComID).Ignore();
             });
             For<SpeedRunSpeedRunComIDEntity>().PrimaryKey("SpeedRunID", false).TableName("dbo.tbl_SpeedRun_SpeedRunComID" + tblEnd);
+            For<SpeedRunStatusEntity>().PrimaryKey("ID", false).TableName("dbo.tbl_SpeedRun" + tblEnd).Columns(i =>
+            {
+                i.Column(g => g.SpeedRunSpeedRunComID).Ignore();
+            });
             For<SpeedRunVariableValueEntity>().PrimaryKey("ID", true).TableName("dbo.tbl_SpeedRun_VariableValue" + tblEnd).Columns(i =>
             {
                 i.Column(g => g.SpeedRunSpeedRunComID).Ignore();
-                i.Column(g => g.VariableSpeedRunComID).Ignore();
-                i.Column(g => g.VariableValueSpeedRunComID).Ignore();
             });
             For<SpeedRunPlayerEntity>().PrimaryKey("ID", true).TableName("dbo.tbl_SpeedRun_Player" + tblEnd).Columns(i =>
             {
                 i.Column(g => g.SpeedRunSpeedRunComID).Ignore();
-                i.Column(g => g.UserSpeedRunComID).Ignore();
             });
             For<SpeedRunVideoEntity>().PrimaryKey("ID", true).TableName("dbo.tbl_SpeedRun_Video" + tblEnd).Columns(i =>
             {

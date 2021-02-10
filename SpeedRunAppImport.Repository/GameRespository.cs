@@ -305,7 +305,7 @@ namespace SpeedRunAppImport.Repository
                                 --tbl_Game_SpeedRunComID
                                 DROP TABLE dbo.tbl_Game_SpeedRunComID
                                 
-                                EXEC sp_rename 'dbo.PK_tbl_Game_Full_SpeedRunComID', 'PK_tbl_Game_SpeedRunComID'                                
+                                EXEC sp_rename 'dbo.PK_tbl_Game_SpeedRunComID_Full', 'PK_tbl_Game_SpeedRunComID'                                
                                 EXEC sp_rename 'dbo.tbl_Game_SpeedRunComID_Full', 'tbl_Game_SpeedRunComID'
 
                                 CREATE NONCLUSTERED INDEX [IDX_tbl_Game_SpeedRunComID_SpeedRunComID] ON [dbo].[tbl_Game_SpeedRunComID] ([SpeedRunComID]) WITH (FILLFACTOR=90) ON [PRIMARY] 

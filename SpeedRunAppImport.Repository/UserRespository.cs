@@ -104,10 +104,9 @@ namespace SpeedRunAppImport.Repository
 
                                  EXEC sp_rename 'dbo.PK_tbl_User_Full', 'PK_tbl_User'                                
                                  EXEC sp_rename 'dbo.DF_tbl_User_Full_ImportedDate', 'DF_tbl_User_ImportedDate'
-                                 EXEC sp_rename 'dbo.FK_tbl_User_Full_tbl_UserRole', 'FK_tbl_User_tbl_UserRole'
                                  EXEC sp_rename 'dbo.tbl_User_Full', 'tbl_User'
 
-                                 ALTER TABLE [dbo].[tbl_User_Full] ADD CONSTRAINT [FK_tbl_User_Full_tbl_UserRole] FOREIGN KEY ([UserRoleID]) REFERENCES [dbo].[tbl_UserRole] ([ID])
+                                 ALTER TABLE [dbo].[tbl_User] ADD CONSTRAINT [FK_tbl_User_tbl_UserRole] FOREIGN KEY ([UserRoleID]) REFERENCES [dbo].[tbl_UserRole] ([ID])
                                  CREATE NONCLUSTERED INDEX [IDX_tbl_User_UserRoleID] ON [dbo].[tbl_User] ([UserRoleID]) WITH (FILLFACTOR=90) ON [PRIMARY]
                                  ALTER TABLE [dbo].[tbl_SpeedRun_Player] ADD CONSTRAINT [FK_tbl_SpeedRun_Player_tbl_User] FOREIGN KEY ([UserID]) REFERENCES [dbo].[tbl_User] ([ID])
                                  ALTER TABLE [dbo].[tbl_Game_Moderator] ADD CONSTRAINT [FK_tbl_Game_Moderator_tbl_User] FOREIGN KEY ([UserID]) REFERENCES [dbo].[tbl_User] ([ID])

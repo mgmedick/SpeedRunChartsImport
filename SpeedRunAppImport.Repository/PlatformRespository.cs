@@ -25,12 +25,33 @@ namespace SpeedRunAppImport.Repository
             {
                 using (var tran = db.GetTransaction())
                 {
-                    db.Execute(@"IF OBJECT_ID('dbo.tbl_Platform_Full') IS NOT NULL 
+                    db.Execute(@"--tbl_Platform_Full
+                                IF OBJECT_ID('dbo.tbl_Platform_Full') IS NOT NULL 
+                                BEGIN
                                     DROP TABLE dbo.tbl_Platform_Full
-                               
-                                SELECT TOP 0 * INTO dbo.tbl_Platform_Full FROM dbo.tbl_Platform
+                                END 
 
-                                ALTER TABLE [dbo].[tbl_Platform_Full] ADD CONSTRAINT [DF_tbl_Platform_Full_ImportedDate] DEFAULT GETDATE() FOR [ImportedDate]");
+                                CREATE TABLE [dbo].[tbl_Platform_Full] 
+                                ( 
+                                    [ID] [int] NOT NULL IDENTITY(1,1), 
+                                    [Name] [varchar] (50) NOT NULL,
+                                    [YearOfRelease] [int] NULL,
+                                    [ImportedDate] [datetime] NOT NULL CONSTRAINT [DF_tbl_Platform_Full_ImportedDate] DEFAULT(GETDATE())
+                                ) ON [PRIMARY] 
+                                ALTER TABLE [dbo].[tbl_Platform_Full] ADD CONSTRAINT [PK_tbl_Platform_Full] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+
+                                --tbl_Platform_SpeedRunComID_Full
+                                IF OBJECT_ID('dbo.tbl_Platform_SpeedRunComID_Full') IS NOT NULL 
+                                BEGIN
+                                    DROP TABLE dbo.tbl_Platform_SpeedRunComID_Full
+                                END 
+
+                                CREATE TABLE [dbo].[tbl_Platform_SpeedRunComID_Full] 
+                                (
+	                                [PlatformID] [int] NOT NULL,
+                                    [SpeedRunComID] [varchar] (10) NOT NULL
+                                )
+                                ALTER TABLE [dbo].[tbl_Platform_SpeedRunComID_Full] ADD CONSTRAINT [PK_tbl_Platform_SpeedRunComID_Full] PRIMARY KEY CLUSTERED ([PlatformID]) WITH (FILLFACTOR=90) ON [PRIMARY]");
                     tran.Complete();
                 }
             }
@@ -43,16 +64,26 @@ namespace SpeedRunAppImport.Repository
                 using (var tran = db.GetTransaction())
                 {
                     db.OneTimeCommandTimeout = 32767;
-                    db.Execute(@"EXEC sp_rename 'dbo.tbl_Platform', 'tbl_Platform_ToRemove'
+                    db.Execute(@"--tbl_Platform
+                                ALTER TABLE [dbo].[tbl_Game_Platform] DROP CONSTRAINT [FK_tbl_Game_Platform_tbl_Platform]
+                                ALTER TABLE [dbo].[tbl_SpeedRun_System] DROP CONSTRAINT [FK_tbl_SpeedRun_System_tbl_Platform]
 
+                                DROP TABLE dbo.tbl_Platform
+
+                                EXEC sp_rename 'dbo.PK_tbl_Platform_Full', 'PK_tbl_Platform'
+                                EXEC sp_rename 'dbo.DF_tbl_Platform_Full_ImportedDate', 'DF_tbl_Platform_ImportedDate'
                                 EXEC sp_rename 'dbo.tbl_Platform_Full', 'tbl_Platform'
 
-                                DROP TABLE dbo.tbl_Platform_ToRemove
+                                ALTER TABLE [dbo].[tbl_Game_Platform] ADD CONSTRAINT [FK_tbl_Game_Platform_tbl_Platform] FOREIGN KEY ([PlatformID]) REFERENCES [dbo].[tbl_Platform] ([ID])
+                                ALTER TABLE [dbo].[tbl_SpeedRun_System] ADD CONSTRAINT [FK_tbl_SpeedRun_System_tbl_Platform] FOREIGN KEY ([PlatformID]) REFERENCES [dbo].[tbl_Platform] ([ID])
 
-                                EXEC sp_rename 'dbo.DF_tbl_Platform_Full_ImportedDate', 'DF_tbl_Platform_ImportedDate'
+                                --tbl_Platform_SpeedRunComID
+                                DROP TABLE dbo.tbl_Platform_SpeedRunComID
+                                
+                                EXEC sp_rename 'dbo.PK_tbl_Platform_SpeedRunComID_Full', 'PK_tbl_Platform_SpeedRunComID'                                
+                                EXEC sp_rename 'dbo.tbl_Platform_SpeedRunComID_Full', 'tbl_Platform_SpeedRunComID'
 
-                                ALTER TABLE [dbo].[tbl_Platform] ADD CONSTRAINT [PK_tbl_Platform] PRIMARY KEY NONCLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                CREATE CLUSTERED INDEX [IDX_tbl_Platform_OrderValue] ON [dbo].[tbl_Platform] ([OrderValue]) WITH (FILLFACTOR=90) ON [PRIMARY]");
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_Platform_SpeedRunComID_SpeedRunComID] ON [dbo].[tbl_Platform_SpeedRunComID] ([SpeedRunComID]) WITH (FILLFACTOR=90) ON [PRIMARY]");
                     tran.Complete();
                 }
             }

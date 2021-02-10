@@ -176,7 +176,7 @@ namespace SpeedRunAppImport.Repository
                                     [SpeedRunID] [int] NOT NULL,
                                     [VideoLinkUrl] [varchar] (1000) NOT NULL
                                 ) ON [PRIMARY] 
-                                ALTER TABLE [dbo].[tbl_SpeedRun_Video] ADD CONSTRAINT [PK_tbl_SpeedRun_Video] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]");
+                                ALTER TABLE [dbo].[tbl_SpeedRun_Video_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_Video_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]");
                     tran.Complete();
                 }
             }
@@ -190,6 +190,7 @@ namespace SpeedRunAppImport.Repository
                 {
                     db.OneTimeCommandTimeout = 32767;
                     db.Execute(@"--tbl_SpeedRun
+	                            ALTER TABLE [dbo].[tbl_SpeedRun_Player] DROP CONSTRAINT [FK_tbl_SpeedRun_Player_tbl_SpeedRun]
 		                        ALTER TABLE [dbo].[tbl_SpeedRun_VariableValue] DROP CONSTRAINT [FK_tbl_SpeedRun_VariableValue_tbl_SpeedRun]
 		                        ALTER TABLE [dbo].[tbl_SpeedRun_Video] DROP CONSTRAINT [FK_tbl_SpeedRun_Video_tbl_SpeedRun]
 
@@ -206,6 +207,7 @@ namespace SpeedRunAppImport.Repository
                                 ALTER TABLE [dbo].[tbl_SpeedRun] ADD CONSTRAINT [FK_tbl_SpeedRun_tbl_Level] FOREIGN KEY ([LevelID]) REFERENCES [dbo].[tbl_Level] ([ID])
                                 CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_tbl_Level] ON [dbo].[tbl_SpeedRun] ([LevelID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
                                 CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_GameID_Rank_CategoryID_LevelID_PrimaryTime_DateSubmitted_VerifyDate] ON [dbo].[tbl_SpeedRun] ([GameID],[Rank]) INCLUDE ([CategoryID],[LevelID],[PrimaryTime],[DateSubmitted]) WITH (FILLFACTOR=90) ON [PRIMARY]
+	                            ALTER TABLE [dbo].[tbl_SpeedRun_Player] ADD CONSTRAINT [FK_tbl_SpeedRun_Player_tbl_SpeedRun] FOREIGN KEY ([SpeedRunID]) REFERENCES [dbo].[tbl_SpeedRun] ([ID])                           
                                 ALTER TABLE [dbo].[tbl_SpeedRun_VariableValue] ADD CONSTRAINT [FK_tbl_SpeedRun_VariableValue_tbl_SpeedRun] FOREIGN KEY ([SpeedRunID]) REFERENCES [dbo].[tbl_SpeedRun] ([ID])
                                 ALTER TABLE [dbo].[tbl_SpeedRun_Video] ADD CONSTRAINT [FK_tbl_SpeedRun_Video_tbl_SpeedRun] FOREIGN KEY ([SpeedRunID]) REFERENCES [dbo].[tbl_SpeedRun] ([ID])
 

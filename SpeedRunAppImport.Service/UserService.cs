@@ -63,13 +63,13 @@ namespace SpeedRunAppImport.Service
                 }
                 while (users.Count == MaxElementsPerPage && users.Min(i => i.SignUpDate ?? SqlMinDateTime) >= lastImportDateUtc);
 
+                if (!isFullImport)
+                {
+                    results.RemoveAll(i => (i.SignUpDate ?? SqlMinDateTime) < lastImportDateUtc);
+                }
+
                 if (results.Any())
                 {
-                    if (!isFullImport)
-                    {
-                        results.RemoveAll(i => (i.SignUpDate ?? SqlMinDateTime) < lastImportDateUtc);
-                    }
-
                     SaveUsers(results, isFullImport);
                     results.ClearMemory();
                 }
@@ -117,7 +117,7 @@ namespace SpeedRunAppImport.Service
         public void SaveUsers(IEnumerable<User> users, bool isFullImport)
         {
             var userEntities = users.Select(i => new UserEntity { SpeedRunComID = i.ID, Name = i.Name, UserRoleID = (int)i.Role, SignUpDate = i.SignUpDate }).ToList();
-            var userLocationEntities = users.Select(i => new UserLocationEntity { UserSpeedRunComID = i.ID, Location = i.Location?.ToString() }).ToList();
+            var userLocationEntities = users.Where(i => !string.IsNullOrWhiteSpace(i.Location?.ToString())).Select(i => new UserLocationEntity { UserSpeedRunComID = i.ID, Location = i.Location?.ToString() }).ToList();
             var userLinkEntities = users.Select(i => new UserLinkEntity
             {
                 UserSpeedRunComID = i.ID,

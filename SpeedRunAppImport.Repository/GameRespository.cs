@@ -111,6 +111,11 @@ namespace SpeedRunAppImport.Repository
                                 ALTER TABLE [dbo].[tbl_Level_Rule_Full] ADD CONSTRAINT [PK_tbl_Level_Rule_Full] PRIMARY KEY CLUSTERED ([LevelID]) WITH (FILLFACTOR=90) ON [PRIMARY]
 
                                 --tbl_Category_Full
+                                IF OBJECT_ID('dbo.tbl_Category_Full') IS NOT NULL 
+                                BEGIN
+                                    DROP TABLE dbo.tbl_Category_Full
+                                END
+
                                 CREATE TABLE [dbo].[tbl_Category_Full] 
                                 ( 
                                     [ID] [int] NOT NULL IDENTITY(1,1), 
@@ -205,6 +210,20 @@ namespace SpeedRunAppImport.Repository
                                     [SpeedRunComID] [varchar] (10) NOT NULL
                                 )
                                 ALTER TABLE [dbo].[tbl_VariableValue_SpeedRunComID_Full] ADD CONSTRAINT [PK_tbl_VariableValue_SpeedRunComID_Full] PRIMARY KEY CLUSTERED ([VariableValueID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+
+                                --tbl_Game_Platform_Full
+                                IF OBJECT_ID('dbo.tbl_Game_Platform_Full') IS NOT NULL 
+                                BEGIN 
+                                    DROP TABLE dbo.tbl_Game_Platform_Full
+                                END
+
+                                CREATE TABLE [dbo].[tbl_Game_Platform_Full]
+                                (     
+                                    [ID] [int] NOT NULL IDENTITY(1,1), 
+                                    [GameID] [int] NOT NULL,
+                                    [PlatformID] [int] NOT NULL
+                                ) ON [PRIMARY] 
+                                ALTER TABLE [dbo].[tbl_Game_Platform_Full] ADD CONSTRAINT [PK_tbl_Game_Platform_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
 
                                 --tbl_Game_Region_Full
                                 IF OBJECT_ID('dbo.tbl_Game_Region_Full') IS NOT NULL 
@@ -421,6 +440,17 @@ namespace SpeedRunAppImport.Repository
 
                                 CREATE NONCLUSTERED INDEX [IDX_tbl_VariableValue_SpeedRunComID_SpeedRunComID] ON [dbo].[tbl_VariableValue_SpeedRunComID] ([SpeedRunComID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
                 
+                                --tbl_Game_Platform
+                                DROP TABLE dbo.tbl_Game_Platform
+
+                                EXEC sp_rename 'dbo.PK_tbl_Game_Platform_Full', 'PK_tbl_Game_Platform'  
+                                EXEC sp_rename 'dbo.tbl_Game_Platform_Full', 'tbl_Game_Platform'
+
+                                ALTER TABLE [dbo].[tbl_Game_Platform] ADD CONSTRAINT [FK_tbl_Game_Platform_tbl_Game] FOREIGN KEY ([GameID]) REFERENCES [dbo].[tbl_Game] ([ID])
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_Game_Platform_tbl_Game] ON [dbo].[tbl_Game_Platform] ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
+                                ALTER TABLE [dbo].[tbl_Game_Platform] ADD CONSTRAINT [FK_tbl_Game_Platform_tbl_Platform] FOREIGN KEY ([PlatformID]) REFERENCES [dbo].[tbl_Platform] ([ID])
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_Game_Platform_tbl_Platform] ON [dbo].[tbl_Game_Platform] ([PlatformID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
+
                                 --tbl_Game_Region
                                 DROP TABLE dbo.tbl_Game_Region
 
@@ -494,7 +524,10 @@ namespace SpeedRunAppImport.Repository
                 {
                     using (var tran = db.GetTransaction())
                     {
-                        db.InsertBatch<GameEntity>(gamesBatch);
+                        foreach (var game in gamesBatch)
+                        {
+                            db.Insert(game);
+                        }
 
                         var gameSpeedRunComIDsBatch = gamesBatch.Select(i => new GameSpeedRunComIDEntity { GameID = i.ID, SpeedRunComID = i.SpeedRunComID }).ToList();
                         db.InsertBatch<GameSpeedRunComIDEntity>(gameSpeedRunComIDsBatch);
@@ -502,41 +535,47 @@ namespace SpeedRunAppImport.Repository
                         gameLinksBatch.ForEach(i => i.GameID = gamesBatch.Find(g => g.SpeedRunComID == i.GameSpeedRunComID).ID);
                         db.InsertBatch<GameLinkEntity>(gameLinksBatch);
 
-                        levelsBatch.ForEach(i => i.GameID = gamesBatch.Find(g => g.SpeedRunComID == i.GameSpeedRunComID).ID);
-                        db.InsertBatch<LevelEntity>(levelsBatch);
+                        foreach (var level in levelsBatch)
+                        {
+                            level.GameID = gamesBatch.Find(g => g.SpeedRunComID == level.GameSpeedRunComID).ID;
+                            db.Insert(level);
+                        }
 
                         var levelSpeedRunComIDsBatch = levelsBatch.Select(i => new LevelSpeedRunComIDEntity { LevelID = i.ID, SpeedRunComID = i.SpeedRunComID }).ToList();
                         db.InsertBatch<LevelSpeedRunComIDEntity>(levelSpeedRunComIDsBatch);
 
-                        levelRulesBatch.ForEach(i => i.LevelID = levelsBatch.Where(g => g.SpeedRunComID == i.LevelSpeedRunComID).Select(g => g.ID).FirstOrDefault());
+                        levelRulesBatch.ForEach(i => i.LevelID = levelsBatch.Find(g => g.SpeedRunComID == i.LevelSpeedRunComID).ID);
                         db.InsertBatch<LevelRuleEntity>(levelRulesBatch);
 
-                        categoriesBatch.ForEach(i => i.GameID = gamesBatch.Find(g => g.SpeedRunComID == i.GameSpeedRunComID).ID);
-                        db.InsertBatch<CategoryEntity>(categoriesBatch);
+                        foreach (var category in categoriesBatch)
+                        {
+                            category.GameID = gamesBatch.Find(g => g.SpeedRunComID == category.GameSpeedRunComID).ID;
+                            db.Insert(category);
+                        }
 
                         var categorySpeedRunComIDsBatch = categoriesBatch.Select(i => new CategorySpeedRunComIDEntity { CategoryID = i.ID, SpeedRunComID = i.SpeedRunComID }).ToList();
                         db.InsertBatch<CategorySpeedRunComIDEntity>(categorySpeedRunComIDsBatch);
 
-                        categoryRulesBatch.ForEach(i => i.CategoryID = categoriesBatch.Where(g => g.SpeedRunComID == i.CategorySpeedRunComID).Select(g => g.ID).FirstOrDefault());
+                        categoryRulesBatch.ForEach(i => i.CategoryID = categoriesBatch.Find(g => g.SpeedRunComID == i.CategorySpeedRunComID).ID);
                         db.InsertBatch<CategoryRuleEntity>(categoryRulesBatch);
 
-                        variablesBatch.ForEach(i =>
+                        foreach (var variable in variablesBatch)
                         {
-                            i.GameID = gamesBatch.Find(g => g.SpeedRunComID == i.GameSpeedRunComID).ID;
-                            i.CategoryID = !string.IsNullOrWhiteSpace(i.CategorySpeedRunComID) ? categoriesBatch.Find(g => g.SpeedRunComID == i.CategorySpeedRunComID).ID : (int?)null;
-                            i.LevelID = !string.IsNullOrWhiteSpace(i.LevelSpeedRunComID) ? levelsBatch.Find(g => g.SpeedRunComID == i.LevelSpeedRunComID).ID : (int?)null;
-                        });
-                        db.InsertBatch<VariableEntity>(variablesBatch);
+                            variable.GameID = gamesBatch.Find(g => g.SpeedRunComID == variable.GameSpeedRunComID).ID;
+                            variable.CategoryID = !string.IsNullOrWhiteSpace(variable.CategorySpeedRunComID) ? categoriesBatch.Find(g => g.SpeedRunComID == variable.CategorySpeedRunComID).ID : (int?)null;
+                            variable.LevelID = !string.IsNullOrWhiteSpace(variable.LevelSpeedRunComID) ? levelsBatch.Find(g => g.SpeedRunComID == variable.LevelSpeedRunComID).ID : (int?)null;
+                            db.Insert(variable);
+                        }
 
                         var variableSpeedRunComIDsBatch = variablesBatch.Select(i => new VariableSpeedRunComIDEntity { VariableID = i.ID, SpeedRunComID = i.SpeedRunComID }).ToList();
                         db.InsertBatch<VariableSpeedRunComIDEntity>(variableSpeedRunComIDsBatch);
 
-                        variablesValuesBatch.ForEach(i =>
+                        foreach (var variableValue in variablesValuesBatch)
                         {
-                            i.GameID = gamesBatch.Find(g => g.SpeedRunComID == i.GameSpeedRunComID).ID;
-                            i.VariableID = variablesBatch.Where(g => g.SpeedRunComID == i.VariableSpeedRunComID).Select(g => g.ID).FirstOrDefault();
-                        });
-                        db.InsertBatch<VariableValueEntity>(variablesValuesBatch);
+                            variableValue.GameID = gamesBatch.Find(g => g.SpeedRunComID == variableValue.GameSpeedRunComID).ID;
+                            variableValue.VariableID = variablesBatch.Find(g => g.SpeedRunComID == variableValue.VariableSpeedRunComID).ID;
+                            db.Insert(variableValue);
+                        }
 
                         var variableValueSpeedRunComIDsBatch = variablesValuesBatch.Select(i => new VariableValueSpeedRunComIDEntity { VariableValueID = i.ID, SpeedRunComID = i.SpeedRunComID }).ToList();
                         db.InsertBatch<VariableValueSpeedRunComIDEntity>(variableValueSpeedRunComIDsBatch);
@@ -599,15 +638,15 @@ namespace SpeedRunAppImport.Repository
                         {
                             game.ModifiedDate = DateTime.Now;
                             db.DeleteWhere<GameSpeedRunComIDEntity>("GameID = @gameID", new { gameID = gameSpeedRunCom.GameID });
-                            db.DeleteWhere<VariableValueSpeedRunComIDEntity>("VariableID IN (SELECT ID FROM dbo.tbl_Variable WITH (NOLOCK) WHERE GameID = @gameID)", new { gameID = gameSpeedRunCom.GameID });
+                            db.DeleteWhere<VariableValueSpeedRunComIDEntity>("VariableValueID IN (SELECT ID FROM dbo.tbl_VariableValue WITH (NOLOCK) WHERE GameID = @gameID)", new { gameID = gameSpeedRunCom.GameID });
                             db.DeleteWhere<VariableValueEntity>("GameID = @gameID", new { gameID = gameSpeedRunCom.GameID });
                             db.DeleteWhere<VariableSpeedRunComIDEntity>("VariableID IN (SELECT ID FROM dbo.tbl_Variable WITH (NOLOCK) WHERE GameID = @gameID)", new { gameID = gameSpeedRunCom.GameID });
                             db.DeleteWhere<VariableEntity>("GameID = @gameID", new { gameID = gameSpeedRunCom.GameID });
                             db.DeleteWhere<LevelSpeedRunComIDEntity>("LevelID IN (SELECT ID FROM dbo.tbl_Level WITH (NOLOCK) WHERE GameID = @gameID)", new { gameID = gameSpeedRunCom.GameID });
-                            db.DeleteWhere<LevelRuleEntity>("GameID = @gameID", new { gameID = gameSpeedRunCom.GameID });
+                            db.DeleteWhere<LevelRuleEntity>("LevelID IN (SELECT ID FROM dbo.tbl_Level WITH (NOLOCK) WHERE GameID = @gameID)", new { gameID = gameSpeedRunCom.GameID });
                             db.DeleteWhere<LevelEntity>("GameID = @gameID", new { gameID = gameSpeedRunCom.GameID });
                             db.DeleteWhere<CategorySpeedRunComIDEntity>("CategoryID IN (SELECT ID FROM dbo.tbl_Category WITH (NOLOCK) WHERE GameID = @gameID)", new { gameID = gameSpeedRunCom.GameID });
-                            db.DeleteWhere<CategoryRuleEntity>("GameID = @gameID", new { gameID = gameSpeedRunCom.GameID });
+                            db.DeleteWhere<CategoryRuleEntity>("CategoryID IN (SELECT ID FROM dbo.tbl_Category WITH (NOLOCK) WHERE GameID = @gameID)", new { gameID = gameSpeedRunCom.GameID });
                             db.DeleteWhere<CategoryEntity>("GameID = @gameID", new { gameID = gameSpeedRunCom.GameID });
                             db.DeleteWhere<GameLinkEntity>("GameID = @gameID", new { gameID = gameSpeedRunCom.GameID });
                             db.DeleteWhere<GameRulesetEntity>("GameID = @gameID", new { gameID = gameSpeedRunCom.GameID });
@@ -622,8 +661,11 @@ namespace SpeedRunAppImport.Repository
                         var gameSpeedRunComID = new GameSpeedRunComIDEntity { GameID = game.ID, SpeedRunComID = game.SpeedRunComID };
                         db.Insert<GameSpeedRunComIDEntity>(gameSpeedRunComID);
 
-                        levelsBatch.ForEach(i => i.GameID = game.ID);
-                        db.InsertBatch<LevelEntity>(levelsBatch);
+                        foreach (var level in levelsBatch)
+                        {
+                            level.GameID = game.ID;
+                            db.Insert(level);
+                        }
 
                         var levelSpeedRunComIDsBatch = levelsBatch.Select(i => new LevelSpeedRunComIDEntity { LevelID = i.ID, SpeedRunComID = i.SpeedRunComID }).ToList();
                         db.InsertBatch<LevelSpeedRunComIDEntity>(levelSpeedRunComIDsBatch);
@@ -631,8 +673,11 @@ namespace SpeedRunAppImport.Repository
                         levelRulesBatch.ForEach(i => i.LevelID = levelsBatch.Find(g => g.SpeedRunComID == i.LevelSpeedRunComID).ID);
                         db.InsertBatch<LevelRuleEntity>(levelRulesBatch);
 
-                        categoriesBatch.ForEach(i => i.GameID = game.ID);
-                        db.InsertBatch<CategoryEntity>(categoriesBatch);
+                        foreach (var category in categoriesBatch)
+                        {
+                            category.GameID = game.ID;
+                            db.Insert(category);
+                        }
 
                         var categorySpeedRunComIDsBatch = categoriesBatch.Select(i => new CategorySpeedRunComIDEntity { CategoryID = i.ID, SpeedRunComID = i.SpeedRunComID }).ToList();
                         db.InsertBatch<CategorySpeedRunComIDEntity>(categorySpeedRunComIDsBatch);
@@ -640,23 +685,23 @@ namespace SpeedRunAppImport.Repository
                         categoryRulesBatch.ForEach(i => i.CategoryID = categoriesBatch.Find(g => g.SpeedRunComID == i.CategorySpeedRunComID).ID);
                         db.InsertBatch<CategoryRuleEntity>(categoryRulesBatch);
 
-                        variablesBatch.ForEach(i =>
+                        foreach (var variable in variablesBatch)
                         {
-                            i.GameID = game.ID;
-                            i.CategoryID = !string.IsNullOrWhiteSpace(i.CategorySpeedRunComID) ? categoriesBatch.Find(g => g.SpeedRunComID == i.CategorySpeedRunComID).ID : (int?)null;
-                            i.LevelID = !string.IsNullOrWhiteSpace(i.LevelSpeedRunComID) ? levelsBatch.Find(g => g.SpeedRunComID == i.LevelSpeedRunComID).ID : (int?)null;
-                        });
-                        db.InsertBatch<VariableEntity>(variablesBatch);
+                            variable.GameID = game.ID;
+                            variable.CategoryID = !string.IsNullOrWhiteSpace(variable.CategorySpeedRunComID) ? categoriesBatch.Find(g => g.SpeedRunComID == variable.CategorySpeedRunComID).ID : (int?)null;
+                            variable.LevelID = !string.IsNullOrWhiteSpace(variable.LevelSpeedRunComID) ? levelsBatch.Find(g => g.SpeedRunComID == variable.LevelSpeedRunComID).ID : (int?)null;
+                            db.Insert(variable);
+                        }
 
                         var variableSpeedRunComIDsBatch = variablesBatch.Select(i => new VariableSpeedRunComIDEntity { VariableID = i.ID, SpeedRunComID = i.SpeedRunComID }).ToList();
                         db.InsertBatch<VariableSpeedRunComIDEntity>(variableSpeedRunComIDsBatch);
 
-                        variablesValuesBatch.ForEach(i =>
+                        foreach (var variableValue in variablesValuesBatch)
                         {
-                            i.GameID = game.ID;
-                            i.VariableID = variablesBatch.Find(g => g.SpeedRunComID == i.VariableSpeedRunComID).ID;
-                        });
-                        db.InsertBatch<VariableValueEntity>(variablesValuesBatch);
+                            variableValue.GameID = game.ID;
+                            variableValue.VariableID = variablesBatch.Find(g => g.SpeedRunComID == variableValue.VariableSpeedRunComID).ID;
+                            db.Insert(variableValue);
+                        }
 
                         var variableValueSpeedRunComIDsBatch = variablesValuesBatch.Select(i => new VariableValueSpeedRunComIDEntity { VariableValueID = i.ID, SpeedRunComID = i.SpeedRunComID }).ToList();
                         db.InsertBatch<VariableValueSpeedRunComIDEntity>(variableValueSpeedRunComIDsBatch);
@@ -714,7 +759,7 @@ namespace SpeedRunAppImport.Repository
         {
             using (IDatabase db = DBFactory.GetDatabase())
             {
-                return db.Query<GameSpeedRunComIDEntity>("SELECT GameID, SpeedRunComID FROM dbo.tbl_User_SpeedRunComID WITH(NOLOCK)").ToList();
+                return db.Query<GameSpeedRunComIDEntity>("SELECT GameID, SpeedRunComID FROM dbo.tbl_Game_SpeedRunComID WITH(NOLOCK)").ToList();
             }
         }
 
@@ -730,7 +775,7 @@ namespace SpeedRunAppImport.Repository
         {
             using (IDatabase db = DBFactory.GetDatabase())
             {
-                return db.Query<LevelSpeedRunComIDEntity>("SELECT GameID, SpeedRunComID FROM dbo.tbl_Level_SpeedRunComID WITH(NOLOCK)").ToList();
+                return db.Query<LevelSpeedRunComIDEntity>("SELECT LevelID, SpeedRunComID FROM dbo.tbl_Level_SpeedRunComID WITH(NOLOCK)").ToList();
             }
         }
 

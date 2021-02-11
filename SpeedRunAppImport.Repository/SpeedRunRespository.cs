@@ -356,7 +356,10 @@ namespace SpeedRunAppImport.Repository
                     //db.OneTimeCommandTimeout = 32767;
                     using (var tran = db.GetTransaction())
                     {
-                        db.InsertBatch<SpeedRunEntity>(runsBatch);
+                        foreach (var run in runsBatch)
+                        {
+                            db.Insert<SpeedRunEntity>(run);
+                        }
 
                         var speedRunSpeedRunComIDsBatch = runsBatch.Select(i => new SpeedRunSpeedRunComIDEntity { SpeedRunID = i.ID, SpeedRunComID = i.SpeedRunComID }).ToList();
                         db.InsertBatch<SpeedRunSpeedRunComIDEntity>(speedRunSpeedRunComIDsBatch);
@@ -422,6 +425,7 @@ namespace SpeedRunAppImport.Repository
                             speedRun.ModifiedDate = DateTime.Now;
                             db.DeleteWhere<SpeedRunSpeedRunComIDEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunSpeedRunCom.SpeedRunID });
                             db.DeleteWhere<SpeedRunLinkEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunSpeedRunCom.SpeedRunID });
+                            db.DeleteWhere<SpeedRunStatusEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunSpeedRunCom.SpeedRunID });
                             db.DeleteWhere<SpeedRunSystemEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunSpeedRunCom.SpeedRunID });
                             db.DeleteWhere<SpeedRunTimeEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunSpeedRunCom.SpeedRunID });
                             db.DeleteWhere<SpeedRunCommentEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunSpeedRunCom.SpeedRunID });

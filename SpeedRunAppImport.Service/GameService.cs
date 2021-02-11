@@ -70,13 +70,13 @@ namespace SpeedRunAppImport.Service
                 }
                 while (games.Count == MaxElementsPerPage && games.Min(i => i.CreationDate ?? SqlMinDateTime) >= lastImportDateUtc);
 
+                if (!isFullImport)
+                {
+                    results.RemoveAll(i => (i.CreationDate ?? SqlMinDateTime) < lastImportDateUtc);
+                }
+
                 if (results.Any())
                 {
-                    if (!isFullImport)
-                    {
-                        results.RemoveAll(i => (i.CreationDate ?? SqlMinDateTime) < lastImportDateUtc);
-                    }
-
                     SaveGames(results, isFullImport);
                     results.ClearMemory();
                 }
@@ -177,14 +177,18 @@ namespace SpeedRunAppImport.Service
             var gamePlatformEntities = games.SelectMany(i => i.PlatformIDs.Select(g => new GamePlatformEntity {
                 GameSpeedRunComID = i.ID,
                 PlatformID = platformSpeedRunComIDs.Where(h => h.SpeedRunComID == g).Select(h => h.PlatformID).FirstOrDefault()
-            })).ToList();
+            })).Where(i => i.PlatformID != 0)
+            .ToList();
             var gameRegionEntities = games.SelectMany(i => i.RegionIDs.Select(g => new GameRegionEntity {
                 GameSpeedRunComID = i.ID,
-                RegionID = regionSpeedRunComIDs.Where(h => h.SpeedRunComID == g).Select(h=>h.RegionID).FirstOrDefault() })).ToList();
+                RegionID = regionSpeedRunComIDs.Where(h => h.SpeedRunComID == g).Select(h=>h.RegionID).FirstOrDefault()
+            })).Where(i => i.RegionID != 0)
+            .ToList();
             var gameModeratorEntities = games.SelectMany(i => i.Moderators.Select(g => new GameModeratorEntity {
                 GameSpeedRunComID = i.ID,
                 UserID = userSpeedRunComIDs.Where(h => h.SpeedRunComID == g.UserID).Select(h => h.UserID).FirstOrDefault()
-            })).ToList();            
+            })).Where(i => i.UserID != 0)
+            .ToList();            
             var gameRulesetEntities = games.Select(i => new GameRulesetEntity {
                 GameSpeedRunComID = i.ID,
                 ShowMilliseconds = i.Ruleset.ShowMilliseconds,

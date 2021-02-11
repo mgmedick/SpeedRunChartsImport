@@ -103,10 +103,13 @@ namespace SpeedRunAppImport.Repository
                 {
                     using (var tran = db.GetTransaction())
                     {
-                        db.InsertBulk<PlatformEntity>(platformsBatch);
+                        foreach (var platform in platformsBatch)
+                        {
+                            db.Insert(platform);
+                        }
 
                         var platformSpeedRunComIDsBatch = platformsBatch.Select(i => new PlatformSpeedRunComIDEntity { PlatformID = i.ID, SpeedRunComID = i.SpeedRunComID }).ToList();
-                        db.InsertBulk<PlatformSpeedRunComIDEntity>(platformSpeedRunComIDsBatch);
+                        db.InsertBatch<PlatformSpeedRunComIDEntity>(platformSpeedRunComIDsBatch);
 
                         tran.Complete();
                     }

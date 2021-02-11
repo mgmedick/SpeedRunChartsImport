@@ -37,7 +37,8 @@ namespace SpeedRunAppImport.Repository
                                     [Name] [varchar] (100) NOT NULL,
 	                                [UserRoleID] [int] NOT NULL,
                                     [SignUpDate] [datetime] NULL,  
-                                    [ImportedDate] [datetime] NOT NULL CONSTRAINT [DF_tbl_User_Full_ImportedDate] DEFAULT(GETDATE())
+                                    [ImportedDate] [datetime] NOT NULL CONSTRAINT [DF_tbl_User_Full_ImportedDate] DEFAULT(GETDATE()),
+	                                [ModifiedDate] [datetime] NULL
                                 ) ON [PRIMARY] 
                                 ALTER TABLE [dbo].[tbl_User_Full] ADD CONSTRAINT [PK_tbl_User_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
 
@@ -100,6 +101,7 @@ namespace SpeedRunAppImport.Repository
                     db.Execute(@"--tbl_User
 		                         ALTER TABLE [dbo].[tbl_SpeedRun_Player] DROP CONSTRAINT [FK_tbl_SpeedRun_Player_tbl_User]
 		                         ALTER TABLE [dbo].[tbl_Game_Moderator] DROP CONSTRAINT [FK_tbl_Game_Moderator_tbl_User]
+		                         ALTER TABLE [dbo].[tbl_SpeedRun_Status] DROP CONSTRAINT [FK_tbl_SpeedRun_Status_tbl_User]
                                  DROP TABLE dbo.tbl_User
 
                                  EXEC sp_rename 'dbo.PK_tbl_User_Full', 'PK_tbl_User'                                
@@ -110,6 +112,7 @@ namespace SpeedRunAppImport.Repository
                                  CREATE NONCLUSTERED INDEX [IDX_tbl_User_UserRoleID] ON [dbo].[tbl_User] ([UserRoleID]) WITH (FILLFACTOR=90) ON [PRIMARY]
                                  ALTER TABLE [dbo].[tbl_SpeedRun_Player] ADD CONSTRAINT [FK_tbl_SpeedRun_Player_tbl_User] FOREIGN KEY ([UserID]) REFERENCES [dbo].[tbl_User] ([ID])
                                  ALTER TABLE [dbo].[tbl_Game_Moderator] ADD CONSTRAINT [FK_tbl_Game_Moderator_tbl_User] FOREIGN KEY ([UserID]) REFERENCES [dbo].[tbl_User] ([ID])
+                                 ALTER TABLE [dbo].[tbl_SpeedRun_Status] ADD CONSTRAINT [FK_tbl_SpeedRun_Status_tbl_User] FOREIGN KEY ([ExaminerUserID]) REFERENCES [dbo].[tbl_User] ([ID])
 
                                  --tbl_User_SpeedRunComID
                                  DROP TABLE dbo.tbl_User_SpeedRunComID
@@ -152,7 +155,10 @@ namespace SpeedRunAppImport.Repository
                 {
                     using (var tran = db.GetTransaction())
                     {
-                        db.InsertBatch<UserEntity>(usersBatch);
+                        foreach (var user in usersBatch)
+                        {
+                            db.Insert(user);
+                        }
 
                         var userSpeedRunComIDsBatch = usersBatch.Select(i => new UserSpeedRunComIDEntity { UserID = i.ID, SpeedRunComID = i.SpeedRunComID }).ToList();
                         db.InsertBatch<UserSpeedRunComIDEntity>(userSpeedRunComIDsBatch);
@@ -186,30 +192,33 @@ namespace SpeedRunAppImport.Repository
 
                 using (IDatabase db = DBFactory.GetDatabase())
                 {
-                    var userSpeedRunCom = userSpeedRunComIDs.FirstOrDefault(i => i.SpeedRunComID == user.SpeedRunComID);
-                    if (userSpeedRunCom != null)
+                    using (var tran = db.GetTransaction())
                     {
-                        user.ModifiedDate = DateTime.Now;
-                        db.DeleteWhere<UserSpeedRunComIDEntity>("UserID = @userID", new { userID = userSpeedRunCom.UserID });
-                        db.DeleteWhere<UserLocationEntity>("UserID = @userID", new { userID = userSpeedRunCom.UserID });
-                        db.DeleteWhere<UserLinkEntity>("UserID = @userID", new { userID = userSpeedRunCom.UserID });
-                    }
+                        var userSpeedRunCom = userSpeedRunComIDs.FirstOrDefault(i => i.SpeedRunComID == user.SpeedRunComID);
+                        if (userSpeedRunCom != null)
+                        {
+                            user.ModifiedDate = DateTime.Now;
+                            db.DeleteWhere<UserSpeedRunComIDEntity>("UserID = @userID", new { userID = userSpeedRunCom.UserID });
+                            db.DeleteWhere<UserLocationEntity>("UserID = @userID", new { userID = userSpeedRunCom.UserID });
+                            db.DeleteWhere<UserLinkEntity>("UserID = @userID", new { userID = userSpeedRunCom.UserID });
+                        }
 
-                    db.Save<UserEntity>(user);
+                        db.Save<UserEntity>(user);
 
-                    var userSpeedRunComID = new UserSpeedRunComIDEntity { UserID = user.ID, SpeedRunComID = user.SpeedRunComID };
-                    db.Insert<UserSpeedRunComIDEntity>(userSpeedRunComID);
+                        var userSpeedRunComID = new UserSpeedRunComIDEntity { UserID = user.ID, SpeedRunComID = user.SpeedRunComID };
+                        db.Insert<UserSpeedRunComIDEntity>(userSpeedRunComID);
 
-                    if (userLocation != null)
-                    {
-                        userLocation.UserID = user.ID;
-                        db.Insert<UserLocationEntity>(userLocation);
-                    }
+                        if (userLocation != null)
+                        {
+                            userLocation.UserID = user.ID;
+                            db.Insert<UserLocationEntity>(userLocation);
+                        }
 
-                    if (userLink != null)
-                    {
-                        userLink.UserID = user.ID;
-                        db.Insert<UserLinkEntity>(userLink);
+                        if (userLink != null)
+                        {
+                            userLink.UserID = user.ID;
+                            db.Insert<UserLinkEntity>(userLink);
+                        }
                     }
                 }
 

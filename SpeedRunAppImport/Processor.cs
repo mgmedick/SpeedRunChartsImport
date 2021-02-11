@@ -64,6 +64,7 @@ namespace SpeedRunAppImport
                 var connString = _config.GetSection("ConnectionStrings").GetSection("DBConnectionString").Value;
                 var maxBulkRows = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxBulkRows").Value);
                 IsFullImport = _config.GetValue<bool>("IsFullImport");
+                IsProcessSpeedRunsByGame = Convert.ToBoolean(_config.GetSection("ApiSettings").GetSection("IsProcessSpeedRunsByGame").Value);
                 NPocoBootstrapper.Configure(connString, maxBulkRows, IsFullImport);
 
                 Processes = _config.GetValue<string>("ProcessIDs").Split(",").Select(i => (ImportProcess)Convert.ToInt32(i)).ToList();
@@ -125,7 +126,7 @@ namespace SpeedRunAppImport
 
             if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.SpeedRun))
             {
-                _speedRunService.ProcessSpeedRuns(SpeedRunLastImportDate, IsFullImport);
+                _speedRunService.ProcessSpeedRuns(SpeedRunLastImportDate, IsFullImport, IsProcessSpeedRunsByGame);
             }
 
             if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Game) || Processes.Contains(ImportProcess.SpeedRun))
@@ -142,6 +143,7 @@ namespace SpeedRunAppImport
         public DateTime SpeedRunLastImportDate { get; set; }
         public DateTime LeaderboardLastImportDate { get; set; }
         public bool IsFullImport { get; set; }
+        public bool IsProcessSpeedRunsByGame { get; set; }
         public bool IsImportRunning { get; set; }
         public List<ImportProcess> Processes { get; set; }
     }

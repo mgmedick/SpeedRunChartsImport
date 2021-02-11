@@ -31,7 +31,6 @@ namespace SpeedRunAppImport.Service
             try
             {
                 _logger.Information("Started ProcessPlatforms: {@IsFullImport}", isFullImport);
-                var newImportDate = DateTime.UtcNow;
                 var orderBy = PlatformsOrdering.YearOfRelease;
                 var results = new List<Platform>();
                 var platforms = new List<Platform>();
@@ -71,7 +70,7 @@ namespace SpeedRunAppImport.Service
                     _platformRepo.RenameAndDropPlatformTables();
                 }
 
-                _settingService.UpdateSetting("PlatformLastImportDate", newImportDate);
+                _settingService.UpdateSetting("PlatformLastImportDate", DateTime.Now);
                 _logger.Information("Completed ProcessPlatforms");
             }
             catch (Exception ex)
@@ -106,15 +105,6 @@ namespace SpeedRunAppImport.Service
             return platforms;
         }
 
-        //public PlatformEntity ConvertToEntity()
-        //{
-        //    return new PlatformEntity
-        //    {
-        //        ID = this.ID,
-        //        Name = this.Name,
-        //        YearOfRelease = this.YearOfRelease
-        //    };
-        //}
         public void SavePlatforms(IEnumerable<Platform> platforms, bool isFullImport)
         {
             var platformEntities = platforms.Select(i => new PlatformEntity { SpeedRunComID = i.ID, Name = i.Name, YearOfRelease = i.YearOfRelease }).ToList();

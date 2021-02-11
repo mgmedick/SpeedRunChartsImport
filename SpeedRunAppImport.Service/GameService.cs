@@ -68,11 +68,11 @@ namespace SpeedRunAppImport.Service
                         results.ClearMemory();
                     }
                 }
-                while (games.Count == MaxElementsPerPage && games.Min(i => i.CreationDate ?? SqlMinDateTime) >= lastImportDateUtc);
+                while (games.Count == MaxElementsPerPage && games.Min(i => i.CreationDate ?? SqlMinDateTimeUtc) >= lastImportDateUtc);
 
                 if (!isFullImport)
                 {
-                    results.RemoveAll(i => (i.CreationDate ?? SqlMinDateTime) < lastImportDateUtc);
+                    results.RemoveAll(i => (i.CreationDate ?? SqlMinDateTimeUtc) < lastImportDateUtc);
                 }
 
                 if (results.Any())

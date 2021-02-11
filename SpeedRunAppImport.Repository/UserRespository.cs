@@ -99,40 +99,46 @@ namespace SpeedRunAppImport.Repository
                 {
                     db.OneTimeCommandTimeout = 32767;
                     db.Execute(@"--tbl_User
-		                         ALTER TABLE [dbo].[tbl_SpeedRun_Player] DROP CONSTRAINT [FK_tbl_SpeedRun_Player_tbl_User]
-		                         ALTER TABLE [dbo].[tbl_Game_Moderator] DROP CONSTRAINT [FK_tbl_Game_Moderator_tbl_User]
-		                         ALTER TABLE [dbo].[tbl_SpeedRun_Status] DROP CONSTRAINT [FK_tbl_SpeedRun_Status_tbl_User]
-                                 DROP TABLE dbo.tbl_User
+                                ALTER TABLE [dbo].[tbl_SpeedRun_Player] DROP CONSTRAINT [FK_tbl_SpeedRun_Player_tbl_User]
+                                ALTER TABLE [dbo].[tbl_Game_Moderator] DROP CONSTRAINT [FK_tbl_Game_Moderator_tbl_User]
+                                ALTER TABLE [dbo].[tbl_SpeedRun_Status] DROP CONSTRAINT [FK_tbl_SpeedRun_Status_tbl_User]
+                                DROP TABLE dbo.tbl_User
 
-                                 EXEC sp_rename 'dbo.PK_tbl_User_Full', 'PK_tbl_User'                                
-                                 EXEC sp_rename 'dbo.DF_tbl_User_Full_ImportedDate', 'DF_tbl_User_ImportedDate'
-                                 EXEC sp_rename 'dbo.tbl_User_Full', 'tbl_User'
+                                EXEC sp_rename 'dbo.PK_tbl_User_Full', 'PK_tbl_User'                                
+                                EXEC sp_rename 'dbo.DF_tbl_User_Full_ImportedDate', 'DF_tbl_User_ImportedDate'
+                                EXEC sp_rename 'dbo.tbl_User_Full', 'tbl_User'
 
-                                 ALTER TABLE [dbo].[tbl_User] ADD CONSTRAINT [FK_tbl_User_tbl_UserRole] FOREIGN KEY ([UserRoleID]) REFERENCES [dbo].[tbl_UserRole] ([ID])
-                                 CREATE NONCLUSTERED INDEX [IDX_tbl_User_UserRoleID] ON [dbo].[tbl_User] ([UserRoleID]) WITH (FILLFACTOR=90) ON [PRIMARY]
-                                 ALTER TABLE [dbo].[tbl_SpeedRun_Player] ADD CONSTRAINT [FK_tbl_SpeedRun_Player_tbl_User] FOREIGN KEY ([UserID]) REFERENCES [dbo].[tbl_User] ([ID])
-                                 ALTER TABLE [dbo].[tbl_Game_Moderator] ADD CONSTRAINT [FK_tbl_Game_Moderator_tbl_User] FOREIGN KEY ([UserID]) REFERENCES [dbo].[tbl_User] ([ID])
-                                 ALTER TABLE [dbo].[tbl_SpeedRun_Status] ADD CONSTRAINT [FK_tbl_SpeedRun_Status_tbl_User] FOREIGN KEY ([ExaminerUserID]) REFERENCES [dbo].[tbl_User] ([ID])
+                                ALTER TABLE [dbo].[tbl_User] ADD CONSTRAINT [FK_tbl_User_tbl_UserRole] FOREIGN KEY ([UserRoleID]) REFERENCES [dbo].[tbl_UserRole] ([ID])
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_User_UserRoleID] ON [dbo].[tbl_User] ([UserRoleID]) WITH (FILLFACTOR=90) ON [PRIMARY]
 
-                                 --tbl_User_SpeedRunComID
-                                 DROP TABLE dbo.tbl_User_SpeedRunComID
+                                DELETE FROM dbo.[tbl_SpeedRun_Player] WHERE UserID IS NOT NULL AND NOT EXISTS (SELECT 1 FROM dbo.tbl_User u WHERE u.ID = UserID)                           
+                                ALTER TABLE [dbo].[tbl_SpeedRun_Player] ADD CONSTRAINT [FK_tbl_SpeedRun_Player_tbl_User] FOREIGN KEY ([UserID]) REFERENCES [dbo].[tbl_User] ([ID])
+
+                                DELETE FROM dbo.[tbl_Game_Moderator] WHERE NOT EXISTS (SELECT 1 FROM dbo.tbl_User u WHERE u.ID = UserID)                           
+                                ALTER TABLE [dbo].[tbl_Game_Moderator] ADD CONSTRAINT [FK_tbl_Game_Moderator_tbl_User] FOREIGN KEY ([UserID]) REFERENCES [dbo].[tbl_User] ([ID])
+
+                                DELETE FROM dbo.[tbl_SpeedRun_Status] WHERE ExaminerUserID IS NOT NULL AND NOT EXISTS (SELECT 1 FROM dbo.tbl_User u WHERE u.ID = ExaminerUserID)                           
+                                ALTER TABLE [dbo].[tbl_SpeedRun_Status] ADD CONSTRAINT [FK_tbl_SpeedRun_Status_tbl_User] FOREIGN KEY ([ExaminerUserID]) REFERENCES [dbo].[tbl_User] ([ID])
+
+                                --tbl_User_SpeedRunComID
+                                DROP TABLE dbo.tbl_User_SpeedRunComID
                                 
-                                 EXEC sp_rename 'dbo.PK_tbl_User_SpeedRunComID_Full', 'PK_tbl_User_SpeedRunComID'  
-                                 EXEC sp_rename 'dbo.tbl_User_SpeedRunComID_Full', 'tbl_User_SpeedRunComID'
+                                EXEC sp_rename 'dbo.PK_tbl_User_SpeedRunComID_Full', 'PK_tbl_User_SpeedRunComID'  
+                                EXEC sp_rename 'dbo.tbl_User_SpeedRunComID_Full', 'tbl_User_SpeedRunComID'
 
-                                 CREATE NONCLUSTERED INDEX [IDX_tbl_User_SpeedRunComID_SpeedRunComID] ON [dbo].[tbl_User_SpeedRunComID] ([SpeedRunComID]) WITH (FILLFACTOR=90) ON [PRIMARY]
+                                CREATE NONCLUSTERED INDEX [IDX_tbl_User_SpeedRunComID_SpeedRunComID] ON [dbo].[tbl_User_SpeedRunComID] ([SpeedRunComID]) WITH (FILLFACTOR=90) ON [PRIMARY]
 
-                                 --tbl_User_Location
-                                 DROP TABLE dbo.tbl_User_Location
+                                --tbl_User_Location
+                                DROP TABLE dbo.tbl_User_Location
                                  
-                                 EXEC sp_rename 'dbo.PK_tbl_User_Location_Full', 'PK_tbl_User_Location'  
-                                 EXEC sp_rename 'dbo.tbl_User_Location_Full', 'tbl_User_Location'
+                                EXEC sp_rename 'dbo.PK_tbl_User_Location_Full', 'PK_tbl_User_Location'  
+                                EXEC sp_rename 'dbo.tbl_User_Location_Full', 'tbl_User_Location'
 
-                                 --tbl_User_Link
-                                 DROP TABLE dbo.tbl_User_Link
+                                --tbl_User_Link
+                                DROP TABLE dbo.tbl_User_Link
                                  
-                                 EXEC sp_rename 'dbo.PK_tbl_User_Link_Full', 'PK_tbl_User_Link'  
-                                 EXEC sp_rename 'dbo.tbl_User_Link_Full', 'tbl_User_Link'");
+                                EXEC sp_rename 'dbo.PK_tbl_User_Link_Full', 'PK_tbl_User_Link'  
+                                EXEC sp_rename 'dbo.tbl_User_Link_Full', 'tbl_User_Link'");
                     tran.Complete();
                 }
             }

@@ -73,14 +73,14 @@ namespace SpeedRunAppImport
                     Processes.RemoveAll(i => i != ImportProcess.All);
                 }
 
-                var sqlMinDateTime = (DateTime)SqlDateTime.MinValue;
+                var sqlMinDateTimeUtc = ((DateTime)SqlDateTime.MinValue).ToUniversalTime();
                 if (IsFullImport)
                 {
-                    GameLastImportDate = sqlMinDateTime;
-                    UserLastImportDate = sqlMinDateTime;
-                    PlatformLastImportDate = sqlMinDateTime;
-                    SpeedRunLastImportDate = sqlMinDateTime;
-                    LeaderboardLastImportDate = sqlMinDateTime;
+                    GameLastImportDate = sqlMinDateTimeUtc;
+                    UserLastImportDate = sqlMinDateTimeUtc;
+                    PlatformLastImportDate = sqlMinDateTimeUtc;
+                    SpeedRunLastImportDate = sqlMinDateTimeUtc;
+                    LeaderboardLastImportDate = sqlMinDateTimeUtc;
                 }
                 else
                 {
@@ -91,7 +91,7 @@ namespace SpeedRunAppImport
                     LeaderboardLastImportDate = _settingService.GetSetting("LeaderboardLastImportDate")?.Dte ?? DateTime.Now;
                 }
 
-                BaseService.SqlMinDateTime = sqlMinDateTime;
+                BaseService.SqlMinDateTimeUtc = sqlMinDateTimeUtc;
                 BaseService.MaxElementsPerPage = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxElementsPerPage").Value);
                 BaseService.MaxRetryCount = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxRetryCount").Value);
                 BaseService.MaxMemorySizeBytes = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxMemorySizeBytes").Value);

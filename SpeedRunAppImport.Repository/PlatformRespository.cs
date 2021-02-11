@@ -74,7 +74,10 @@ namespace SpeedRunAppImport.Repository
                                 EXEC sp_rename 'dbo.DF_tbl_Platform_Full_ImportedDate', 'DF_tbl_Platform_ImportedDate'
                                 EXEC sp_rename 'dbo.tbl_Platform_Full', 'tbl_Platform'
 
+                                DELETE FROM dbo.[tbl_Game_Platform] WHERE NOT EXISTS (SELECT 1 FROM dbo.tbl_Platform p WHERE p.ID = PlatformID)                           
                                 ALTER TABLE [dbo].[tbl_Game_Platform] ADD CONSTRAINT [FK_tbl_Game_Platform_tbl_Platform] FOREIGN KEY ([PlatformID]) REFERENCES [dbo].[tbl_Platform] ([ID])
+
+                                DELETE FROM dbo.[tbl_SpeedRun_System] WHERE PlatformID IS NOT NULL AND NOT EXISTS (SELECT 1 FROM dbo.tbl_Platform p WHERE p.ID = PlatformID)                           
                                 ALTER TABLE [dbo].[tbl_SpeedRun_System] ADD CONSTRAINT [FK_tbl_SpeedRun_System_tbl_Platform] FOREIGN KEY ([PlatformID]) REFERENCES [dbo].[tbl_Platform] ([ID])
 
                                 --tbl_Platform_SpeedRunComID

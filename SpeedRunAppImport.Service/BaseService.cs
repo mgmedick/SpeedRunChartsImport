@@ -20,7 +20,7 @@ namespace SpeedRunAppImport.Service
         public static int ErrorPullDelayMS { get; set; }
         public static int UpdateDaysBack { get; set; }
         public static bool IsFullImport { get; set; }
-        public static DateTime SqlMinDateTime { get; set; }
+        public static DateTime SqlMinDateTimeUtc { get; set; }
         public static string SpeedRunComLatestRunsUrl { get; set; }
     }
 }

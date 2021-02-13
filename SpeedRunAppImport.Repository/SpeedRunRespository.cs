@@ -347,24 +347,30 @@ namespace SpeedRunAppImport.Repository
             while (batchCount < speedRunsList.Count)
             {
                 var runsBatch = speedRunsList.Skip(batchCount).Take(MaxBulkRows).ToList();
-                var runIDs = runsBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
-                var speedRunLinksBatch = speedRunLinks.Where(i => runIDs.Contains(i.SpeedRunSpeedRunComID)).ToList();
-                var speedRunStatusesBatch = speedRunStatuses.Where(i => runIDs.Contains(i.SpeedRunSpeedRunComID)).ToList();
-                var speedRunSystemsBatch = speedRunSystems.Where(i => runIDs.Contains(i.SpeedRunSpeedRunComID)).ToList();
-                var speedRunTimesBatch = speedRunTimes.Where(i => runIDs.Contains(i.SpeedRunSpeedRunComID)).ToList();
-                var speedRunCommentsBatch = speedRunComments.Where(i => runIDs.Contains(i.SpeedRunSpeedRunComID)).ToList();
-                var variableValuesBatch = variableValues.Where(i => runIDs.Contains(i.SpeedRunSpeedRunComID)).ToList();
-                var playersBatch = players.Where(i => runIDs.Contains(i.SpeedRunSpeedRunComID)).ToList();
-                var videosBatch = videos.Where(i => runIDs.Contains(i.SpeedRunSpeedRunComID)).ToList();
+                var runSpeedRunComIDs = runsBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
+                var speedRunLinksBatch = speedRunLinks.Where(i => runSpeedRunComIDs.Contains(i.SpeedRunSpeedRunComID)).ToList();
+                var speedRunStatusesBatch = speedRunStatuses.Where(i => runSpeedRunComIDs.Contains(i.SpeedRunSpeedRunComID)).ToList();
+                var speedRunSystemsBatch = speedRunSystems.Where(i => runSpeedRunComIDs.Contains(i.SpeedRunSpeedRunComID)).ToList();
+                var speedRunTimesBatch = speedRunTimes.Where(i => runSpeedRunComIDs.Contains(i.SpeedRunSpeedRunComID)).ToList();
+                var speedRunCommentsBatch = speedRunComments.Where(i => runSpeedRunComIDs.Contains(i.SpeedRunSpeedRunComID)).ToList();
+                var variableValuesBatch = variableValues.Where(i => runSpeedRunComIDs.Contains(i.SpeedRunSpeedRunComID)).ToList();
+                var playersBatch = players.Where(i => runSpeedRunComIDs.Contains(i.SpeedRunSpeedRunComID)).ToList();
+                var videosBatch = videos.Where(i => runSpeedRunComIDs.Contains(i.SpeedRunSpeedRunComID)).ToList();
 
                 using (IDatabase db = DBFactory.GetDatabase())
                 {
                     //db.OneTimeCommandTimeout = 32767;
                     using (var tran = db.GetTransaction())
                     {
-                        foreach (var run in runsBatch)
+                        //foreach (var run in runsBatch)
+                        //{
+                        //    db.Insert<SpeedRunEntity>(run);
+                        //}
+                        db.InsertBatch<SpeedRunEntity>(runsBatch);
+                        var runIDs = db.Query<int>("SELECT TOP (@0) ID FROM dbo.tbl_SpeedRun_Full ORDER BY ID DESC", runsBatch.Count).Reverse().ToArray();
+                        for (int i = 0; i < runsBatch.Count; i++)
                         {
-                            db.Insert<SpeedRunEntity>(run);
+                            runsBatch[i].ID = runIDs[i];
                         }
 
                         var speedRunSpeedRunComIDsBatch = runsBatch.Select(i => new SpeedRunSpeedRunComIDEntity { SpeedRunID = i.ID, SpeedRunComID = i.SpeedRunComID }).ToList();

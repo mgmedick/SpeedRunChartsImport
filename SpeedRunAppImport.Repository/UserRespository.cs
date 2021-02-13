@@ -161,9 +161,15 @@ namespace SpeedRunAppImport.Repository
                 {
                     using (var tran = db.GetTransaction())
                     {
-                        foreach (var user in usersBatch)
+                        //foreach (var user in usersBatch)
+                        //{
+                        //    db.Insert(user);
+                        //}
+                        db.InsertBatch<UserEntity>(usersBatch);
+                        var userIDs = db.Query<int>("SELECT TOP (@0) ID FROM dbo.tbl_User_Full ORDER BY ID DESC", usersBatch.Count).Reverse().ToArray();
+                        for (int i = 0; i < usersBatch.Count; i++)
                         {
-                            db.Insert(user);
+                            usersBatch[i].ID = userIDs[i];
                         }
 
                         var userSpeedRunComIDsBatch = usersBatch.Select(i => new UserSpeedRunComIDEntity { UserID = i.ID, SpeedRunComID = i.SpeedRunComID }).ToList();

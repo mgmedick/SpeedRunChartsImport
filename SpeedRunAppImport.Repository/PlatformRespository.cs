@@ -106,9 +106,15 @@ namespace SpeedRunAppImport.Repository
                 {
                     using (var tran = db.GetTransaction())
                     {
-                        foreach (var platform in platformsBatch)
+                        //foreach (var platform in platformsBatch)
+                        //{
+                        //    db.Insert(platform);
+                        //}
+                        db.InsertBatch<PlatformEntity>(platformsBatch);
+                        var platformIDs = db.Query<int>("SELECT TOP (@0) ID FROM dbo.tbl_Platform_Full ORDER BY ID DESC", platformsBatch.Count).Reverse().ToArray();
+                        for (int i = 0; i < platformsBatch.Count; i++)
                         {
-                            db.Insert(platform);
+                            platformsBatch[i].ID = platformIDs[i];
                         }
 
                         var platformSpeedRunComIDsBatch = platformsBatch.Select(i => new PlatformSpeedRunComIDEntity { PlatformID = i.ID, SpeedRunComID = i.SpeedRunComID }).ToList();

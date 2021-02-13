@@ -165,7 +165,7 @@ namespace SpeedRunAppImport.Repository
                         //{
                         //    db.Insert(user);
                         //}
-                        db.InsertBatch<UserEntity>(usersBatch);
+                        db.InsertBulk<UserEntity>(usersBatch);
                         var userIDs = db.Query<int>("SELECT TOP (@0) ID FROM dbo.tbl_User_Full ORDER BY ID DESC", usersBatch.Count).Reverse().ToArray();
                         for (int i = 0; i < usersBatch.Count; i++)
                         {
@@ -173,13 +173,13 @@ namespace SpeedRunAppImport.Repository
                         }
 
                         var userSpeedRunComIDsBatch = usersBatch.Select(i => new UserSpeedRunComIDEntity { UserID = i.ID, SpeedRunComID = i.SpeedRunComID }).ToList();
-                        db.InsertBatch<UserSpeedRunComIDEntity>(userSpeedRunComIDsBatch);
+                        db.InsertBulk<UserSpeedRunComIDEntity>(userSpeedRunComIDsBatch);
 
                         userLocationsBatch.ForEach(i => i.UserID = usersBatch.Find(g => g.SpeedRunComID == i.UserSpeedRunComID).ID);
-                        db.InsertBatch<UserLocationEntity>(userLocationsBatch);
+                        db.InsertBulk<UserLocationEntity>(userLocationsBatch);
 
                         userLinksBatch.ForEach(i => i.UserID = usersBatch.Find(g => g.SpeedRunComID == i.UserSpeedRunComID).ID);
-                        db.InsertBatch<UserLinkEntity>(userLinksBatch);
+                        db.InsertBulk<UserLinkEntity>(userLinksBatch);
 
                         tran.Complete();
                     }

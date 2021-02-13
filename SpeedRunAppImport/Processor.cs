@@ -129,6 +129,11 @@ namespace SpeedRunAppImport
                 _speedRunService.ProcessSpeedRuns(SpeedRunLastImportDate, IsFullImport, IsProcessSpeedRunsByGame);
             }
 
+            if (IsFullImport)
+            {
+                _speedRunRepo.RebuildIndexes();
+            }
+
             if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Game) || Processes.Contains(ImportProcess.SpeedRun))
             {
                 var lastImportDate = GameLastImportDate > SpeedRunLastImportDate ? GameLastImportDate : SpeedRunLastImportDate;

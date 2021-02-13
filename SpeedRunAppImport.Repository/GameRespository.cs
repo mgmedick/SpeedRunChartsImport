@@ -542,7 +542,10 @@ namespace SpeedRunAppImport.Repository
                 var categoriesBatch = categories.Where(i => gameIDs.Contains(i.GameSpeedRunComID)).ToList();
                 var categoryIDs = categoriesBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
                 var categoryRulesBatch = categoryRules.Where(i => categoryIDs.Contains(i.CategorySpeedRunComID)).ToList();
-                var variablesBatch = variables.Where(i => gameIDs.Contains(i.GameSpeedRunComID)).ToList();
+                var variablesBatch = variables.Where(i => gameIDs.Contains(i.GameSpeedRunComID)
+                                                        && (string.IsNullOrWhiteSpace(i.CategorySpeedRunComID) || categoryIDs.Contains(i.CategorySpeedRunComID))
+                                                        && (string.IsNullOrWhiteSpace(i.LevelSpeedRunComID) || levelIDs.Contains(i.LevelSpeedRunComID)))
+                                              .ToList();
                 var variableIDs = variablesBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
                 var variablesValuesBatch = variableValues.Where(i => variableIDs.Contains(i.VariableSpeedRunComID)).ToList();
                 var gamePlatformsBatch = gamePlatforms.Where(i => gameIDs.Contains(i.GameSpeedRunComID)).ToList();

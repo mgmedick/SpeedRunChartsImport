@@ -269,11 +269,11 @@ namespace SpeedRunAppImport.Service
                 SpeedRunComID = i.ID,
                 GameID = gameSpeedRunComIDs.Where(g => g.SpeedRunComID == i.GameID).Select(g => g.GameID).FirstOrDefault(),
                 CategoryID = categorySpeedRunComIDs.Where(g => g.SpeedRunComID == i.CategoryID).Select(g => g.CategoryID).FirstOrDefault(),
-                LevelID = levelSpeedRunComIDs.Where(g => g.SpeedRunComID == i.LevelID).Select(g => (int?)g.LevelID).FirstOrDefault(),
+                LevelID = !string.IsNullOrWhiteSpace(i.LevelID) ? levelSpeedRunComIDs.Where(g => g.SpeedRunComID == i.LevelID).Select(g => g.LevelID).FirstOrDefault() : (int?)null,
                 PrimaryTime = i.Times.Primary?.Ticks,
                 RunDate = i.Date,
                 DateSubmitted = i.DateSubmitted
-            }).Where(i => i.GameID != 0 && i.CategoryID != 0)
+            }).Where(i => i.GameID != 0 && i.CategoryID != 0 && i.LevelID != 0)
             .ToList();
             var runLinkEntities = runs.Select(i => new SpeedRunLinkEntity()
             {
@@ -285,16 +285,18 @@ namespace SpeedRunAppImport.Service
             {
                 SpeedRunSpeedRunComID = i.ID,
                 StatusTypeID = (int)i.Status.Type,
-                ExaminerUserID = userSpeedRunComIDs.Where(g => g.SpeedRunComID == i.Status.ExaminerUserID).Select(g => (int?)g.UserID).FirstOrDefault(),
+                ExaminerUserID = !string.IsNullOrWhiteSpace(i.Status.ExaminerUserID) ? userSpeedRunComIDs.Where(g => g.SpeedRunComID == i.Status.ExaminerUserID).Select(g => g.UserID).FirstOrDefault() : (int?)null,
                 VerifyDate = i.Status.VerifyDate
-            }).ToList();
+            }).Where(i => i.ExaminerUserID != 0)
+            .ToList();
             var runSystemEntities = runs.Select(i => new SpeedRunSystemEntity()
             {
                 SpeedRunSpeedRunComID = i.ID,
-                PlatformID = platformSpeedRunComIDs.Where(g => g.SpeedRunComID == i.LevelID).Select(g => (int?)g.PlatformID).FirstOrDefault(),
-                RegionID = regionSpeedRunComIDs.Where(g => g.SpeedRunComID == i.System.RegionID).Select(g => (int?)g.RegionID).FirstOrDefault(),
+                PlatformID = !string.IsNullOrWhiteSpace(i.System.PlatformID) ? platformSpeedRunComIDs.Where(g => g.SpeedRunComID == i.System.PlatformID).Select(g => g.PlatformID).FirstOrDefault() : (int?)null,
+                RegionID = !string.IsNullOrWhiteSpace(i.System.RegionID) ? regionSpeedRunComIDs.Where(g => g.SpeedRunComID == i.System.RegionID).Select(g => g.RegionID).FirstOrDefault() : (int?)null,
                 IsEmulated = i.System.IsEmulated
-            }).ToList();
+            }).Where(i => i.PlatformID != 0 && i.RegionID != 0)
+            .ToList();
             var runTimeEntities = runs.Select(i => new SpeedRunTimeEntity()
             {
                 SpeedRunSpeedRunComID = i.ID,
@@ -319,9 +321,10 @@ namespace SpeedRunAppImport.Service
             {
                 SpeedRunSpeedRunComID = i.ID,
                 IsUser = g.IsUser,
-                UserID = userSpeedRunComIDs.Where(h => h.SpeedRunComID == g.UserID).Select(h => (int?)h.UserID).FirstOrDefault(),
+                UserID = !string.IsNullOrWhiteSpace(g.UserID) ? userSpeedRunComIDs.Where(h => h.SpeedRunComID == g.UserID).Select(h => h.UserID).FirstOrDefault() : (int?)null,
                 GuestName = g.GuestName
-            })).ToList();
+            })).Where(i => i.UserID != 0)
+            .ToList();
             var videoEntities = runs.Where(i => i.Videos?.Links != null && i.Videos.Links.Any(g => g != null))
             .SelectMany(i => i.Videos?.Links?.Select((g, n) => new SpeedRunVideoEntity()
             {

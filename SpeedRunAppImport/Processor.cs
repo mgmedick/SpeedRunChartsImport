@@ -63,11 +63,19 @@ namespace SpeedRunAppImport
                 _logger.Information("Started Init");
                 var connString = _config.GetSection("ConnectionStrings").GetSection("DBConnectionString").Value;
                 var maxBulkRows = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxBulkRows").Value);
+                IsBulkReload = _config.GetValue<bool>("IsBulkReload");
                 IsFullImport = _config.GetValue<bool>("IsFullImport");
                 IsProcessSpeedRunsByGame = Convert.ToBoolean(_config.GetSection("ApiSettings").GetSection("IsProcessSpeedRunsByGame").Value);
-                NPocoBootstrapper.Configure(connString, maxBulkRows, IsFullImport);
+                NPocoBootstrapper.Configure(connString, maxBulkRows, IsBulkReload);
 
                 Processes = _config.GetValue<string>("ProcessIDs").Split(",").Select(i => (ImportProcess)Convert.ToInt32(i)).ToList();
+                if (IsBulkReload)
+                {
+                    Processes.Clear();
+                    Processes.Add(ImportProcess.All);
+                    IsFullImport = true;
+                }
+
                 if (Processes.Contains(ImportProcess.All))
                 {
                     Processes.RemoveAll(i => i != ImportProcess.All);
@@ -111,22 +119,22 @@ namespace SpeedRunAppImport
         {
             if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Platform))
             {
-                _platformService.ProcessPlatforms(IsFullImport);
+                _platformService.ProcessPlatforms(IsBulkReload);
             }
 
             if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.User))
             {
-                _userService.ProcessUsers(UserLastImportDate, IsFullImport);
+                _userService.ProcessUsers(UserLastImportDate, IsFullImport, IsBulkReload);
             }
 
             if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Game))
             {
-                _gameService.ProcessGames(GameLastImportDate, IsFullImport);
+                _gameService.ProcessGames(GameLastImportDate, IsFullImport, IsBulkReload);
             }
 
             if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.SpeedRun))
             {
-                _speedRunService.ProcessSpeedRuns(SpeedRunLastImportDate, IsFullImport, IsProcessSpeedRunsByGame);
+                _speedRunService.ProcessSpeedRuns(SpeedRunLastImportDate, IsFullImport, IsBulkReload, IsProcessSpeedRunsByGame);
             }
 
             if (IsFullImport)
@@ -148,6 +156,7 @@ namespace SpeedRunAppImport
         public DateTime SpeedRunLastImportDate { get; set; }
         public DateTime LeaderboardLastImportDate { get; set; }
         public bool IsFullImport { get; set; }
+        public bool IsBulkReload { get; set; }
         public bool IsProcessSpeedRunsByGame { get; set; }
         public bool IsImportRunning { get; set; }
         public List<ImportProcess> Processes { get; set; }

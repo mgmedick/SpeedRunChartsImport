@@ -8,14 +8,14 @@ namespace SpeedRunAppImport.Repository
 {
     public class DataMappings : Mappings
     {
-        public DataMappings(bool isFullImport)
+        public DataMappings(bool isBulkReload)
         {
             List<IMap> blahs = new List<IMap>();
             For<SettingEntity>().PrimaryKey("ID").TableName("dbo.tbl_Setting");
             For<SettingEntity>().PrimaryKey("ID").TableName("dbo.tbl_Setting");
             For<GameView>().PrimaryKey("ID").TableName("dbo.vw_Game");
 
-            string tblEnd = (isFullImport ? "_Full" : string.Empty);
+            string tblEnd = (isBulkReload ? "_Full" : string.Empty);
             //user
             For<UserEntity>().PrimaryKey("ID").TableName("dbo.tbl_User" + tblEnd).Columns(i =>
             {

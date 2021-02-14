@@ -33,12 +33,12 @@ namespace SpeedRunAppImport.Service
             _logger = logger;
         }
 
-        public void ProcessGames(DateTime lastImportDate, bool isFullImport)
+        public void ProcessGames(DateTime lastImportDate, bool isFullImport, bool isBulkReload)
         {
             try
             {
                 var lastImportDateUtc = lastImportDate.ToUniversalTime();
-                _logger.Information("Started ProcessGames: {@LastImportDate}, {@LastImportDateUtc}, {@IsFullImport}", lastImportDate, lastImportDateUtc, isFullImport);
+                _logger.Information("Started ProcessGames: {@LastImportDate}, {@LastImportDateUtc}, {@IsFullImport}, {@IsBulkReload}", lastImportDate, lastImportDateUtc, isFullImport, isBulkReload);
 
                 GamesOrdering orderBy = isFullImport ? GamesOrdering.CreationDate : GamesOrdering.CreationDateDescending;
                 var gameEmbeds = new GameEmbeds { EmbedCategories = true, EmbedLevels = true, EmbedModerators = false, EmbedPlatforms = false, EmbedVariables = true };
@@ -46,7 +46,7 @@ namespace SpeedRunAppImport.Service
                 var games = new List<Game>();
                 var prevTotal = 0;
 
-                if (isFullImport)
+                if (isBulkReload)
                 {
                     _gameRepo.CopyGameTables();
                 }
@@ -64,7 +64,7 @@ namespace SpeedRunAppImport.Service
                     {
                         prevTotal += results.Count;
                         _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
-                        SaveGames(results, isFullImport);
+                        SaveGames(results, isBulkReload);
                         results.ClearMemory();
                     }
                 }
@@ -77,11 +77,11 @@ namespace SpeedRunAppImport.Service
 
                 if (results.Any())
                 {
-                    SaveGames(results, isFullImport);
+                    SaveGames(results, isBulkReload);
                     results.ClearMemory();
                 }
 
-                if (isFullImport)
+                if (isBulkReload)
                 {
                     _gameRepo.RenameAndDropGameTables();
                 }
@@ -122,13 +122,19 @@ namespace SpeedRunAppImport.Service
             return games;
         }
 
-        public void SaveGames(IEnumerable<Game> games, bool isFullImport)
+        public void SaveGames(IEnumerable<Game> games, bool isBulkReload)
         {
             var platformSpeedRunComIDs = _platformRepo.GetPlatformSpeedRunComIDs().ToList();
             var regionSpeedRunComIDs = _gameRepo.GetRegionSpeedRunComIDs().ToList();
             var userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs().ToList();
+            var gameSpeedRunComIDs = !isBulkReload ? _gameRepo.GetGameSpeedRunComIDs() : new List<GameSpeedRunComIDEntity>();
+            var levelSpeedRunComIDs = !isBulkReload ? _gameRepo.GetLevelSpeedRunComIDs() : new List<LevelSpeedRunComIDEntity>();
+            var categorySpeedRunComIDs = !isBulkReload ? _gameRepo.GetCategorySpeedRunComIDs() : new List<CategorySpeedRunComIDEntity>();
+            var variableSpeedRunComIDs = !isBulkReload ? _gameRepo.GetVariableSpeedRunComIDs() : new List<VariableSpeedRunComIDEntity>();
+            var variableValueSpeedRunComIDs = !isBulkReload ? _gameRepo.GetVariableValueSpeedRunComIDs() : new List<VariableValueSpeedRunComIDEntity>();
 
             var gameEntities = games.Select(i => new GameEntity() {
+                ID = gameSpeedRunComIDs.Where(g => g.SpeedRunComID == i.ID).Select(g => g.GameID).FirstOrDefault(),
                 SpeedRunComID = i.ID,
                 Name = i.Name,
                 YearOfRelease = i.YearOfRelease,
@@ -141,6 +147,7 @@ namespace SpeedRunAppImport.Service
                 CoverImageUrl = i.Assets?.CoverLarge?.Uri.ToString()
             }).ToList();
             var levelEntities = games.SelectMany(i => i.Levels.Select(g => new LevelEntity {
+                ID = levelSpeedRunComIDs.Where(g => g.SpeedRunComID == i.ID).Select(g => g.LevelID).FirstOrDefault(),
                 SpeedRunComID = g.ID,
                 Name = g.Name,
                 GameSpeedRunComID = i.ID
@@ -150,6 +157,7 @@ namespace SpeedRunAppImport.Service
                 Rules = g.Rules
             })).ToList();
             var categoryEntities = games.SelectMany(i => i.Categories.Select(g => new CategoryEntity {
+                ID = categorySpeedRunComIDs.Where(g => g.SpeedRunComID == i.ID).Select(g => g.CategoryID).FirstOrDefault(),
                 SpeedRunComID = g.ID,
                 Name = g.Name,
                 GameSpeedRunComID = i.ID,
@@ -160,6 +168,7 @@ namespace SpeedRunAppImport.Service
                 Rules = g.Rules
             })).ToList();
             var variableEntities = games.SelectMany(i => i.Variables.Select(g => new VariableEntity {
+                ID = variableSpeedRunComIDs.Where(g => g.SpeedRunComID == i.ID).Select(g => g.VariableID).FirstOrDefault(),
                 SpeedRunComID = g.ID,
                 Name= g.Name,
                 GameSpeedRunComID = i.ID,
@@ -168,6 +177,7 @@ namespace SpeedRunAppImport.Service
                 IsSubCategory = g.IsSubCategory
             })).ToList();
             var variableValueEntities = games.SelectMany(i => i.Variables.SelectMany(g => g.Values.Select(h => new VariableValueEntity {
+                ID = variableValueSpeedRunComIDs.Where(g => g.SpeedRunComID == i.ID).Select(g => g.VariableValueID).FirstOrDefault(),
                 SpeedRunComID = h.ID,
                 GameSpeedRunComID = g.GameID,
                 VariableSpeedRunComID = h.VariableID,
@@ -177,17 +187,20 @@ namespace SpeedRunAppImport.Service
             var gamePlatformEntities = games.SelectMany(i => i.PlatformIDs.Select(g => new GamePlatformEntity {
                 GameSpeedRunComID = i.ID,
                 PlatformID = platformSpeedRunComIDs.Where(h => h.SpeedRunComID == g).Select(h => h.PlatformID).FirstOrDefault()
-            })).Where(i => i.PlatformID != 0)
+            }))
+            .Where(i => i.PlatformID != 0)
             .ToList();
             var gameRegionEntities = games.SelectMany(i => i.RegionIDs.Select(g => new GameRegionEntity {
                 GameSpeedRunComID = i.ID,
                 RegionID = regionSpeedRunComIDs.Where(h => h.SpeedRunComID == g).Select(h=>h.RegionID).FirstOrDefault()
-            })).Where(i => i.RegionID != 0)
+            }))
+            .Where(i => i.RegionID != 0)
             .ToList();
             var gameModeratorEntities = games.SelectMany(i => i.Moderators.Select(g => new GameModeratorEntity {
                 GameSpeedRunComID = i.ID,
                 UserID = userSpeedRunComIDs.Where(h => h.SpeedRunComID == g.UserID).Select(h => h.UserID).FirstOrDefault()
-            })).Where(i => i.UserID != 0)
+            }))
+            .Where(i => i.UserID != 0)
             .ToList();            
             var gameRulesetEntities = games.Select(i => new GameRulesetEntity {
                 GameSpeedRunComID = i.ID,
@@ -202,12 +215,12 @@ namespace SpeedRunAppImport.Service
                 TimingMethodID = (int)g
             })).ToList();
 
-            SaveGames(gameEntities, gameLinkEntities, levelEntities, levelRuleEntities, categoryEntities, categoryRuleEntities, variableEntities, variableValueEntities, gamePlatformEntities, gameRegionEntities, gameModeratorEntities, gameRulesetEntities, gameTimingMethodEntities, isFullImport);
+            SaveGames(gameEntities, gameLinkEntities, levelEntities, levelRuleEntities, categoryEntities, categoryRuleEntities, variableEntities, variableValueEntities, gamePlatformEntities, gameRegionEntities, gameModeratorEntities, gameRulesetEntities, gameTimingMethodEntities, isBulkReload);
         }
 
-        public void SaveGames(IEnumerable<GameEntity> games, IEnumerable<GameLinkEntity> gameLinks, IEnumerable<LevelEntity> levels, IEnumerable<LevelRuleEntity> levelRules, IEnumerable<CategoryEntity> categories, IEnumerable<CategoryRuleEntity> CategoryRules, IEnumerable<VariableEntity> variables, IEnumerable<VariableValueEntity> variableValues, IEnumerable<GamePlatformEntity> gamePlatforms, IEnumerable<GameRegionEntity> gameRegions, IEnumerable<GameModeratorEntity> gameModerators, IEnumerable<GameRulesetEntity> gameRulesets, IEnumerable<GameTimingMethodEntity> gameTimingMethods, bool isFullImport)
+        public void SaveGames(IEnumerable<GameEntity> games, IEnumerable<GameLinkEntity> gameLinks, IEnumerable<LevelEntity> levels, IEnumerable<LevelRuleEntity> levelRules, IEnumerable<CategoryEntity> categories, IEnumerable<CategoryRuleEntity> CategoryRules, IEnumerable<VariableEntity> variables, IEnumerable<VariableValueEntity> variableValues, IEnumerable<GamePlatformEntity> gamePlatforms, IEnumerable<GameRegionEntity> gameRegions, IEnumerable<GameModeratorEntity> gameModerators, IEnumerable<GameRulesetEntity> gameRulesets, IEnumerable<GameTimingMethodEntity> gameTimingMethods, bool isBulkReload)
         {
-            if (isFullImport)
+            if (isBulkReload)
             {
                 _gameRepo.InsertGames(games, gameLinks, levels, levelRules, categories, CategoryRules, variables, variableValues, gamePlatforms, gameRegions, gameModerators, gameRulesets, gameTimingMethods);
             }

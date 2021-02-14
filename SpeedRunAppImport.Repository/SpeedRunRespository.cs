@@ -529,7 +529,7 @@ namespace SpeedRunAppImport.Repository
 
                                     EXEC (@Sql)
 
-                                    SELECT @RowCount + 1
+                                    SELECT @RowCount = @RowCount + 1
                                 END");
                     tran.Complete();
                 }

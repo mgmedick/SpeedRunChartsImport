@@ -26,17 +26,17 @@ namespace SpeedRunAppImport.Service
             _logger = logger;
         }
 
-        public void ProcessPlatforms(bool isFullImport)
+        public void ProcessPlatforms(bool isBulkReload)
         {
             try
             {
-                _logger.Information("Started ProcessPlatforms: {@IsFullImport}", isFullImport);
+                _logger.Information("Started ProcessPlatforms: {@IsBulkReload}", isBulkReload);
                 var orderBy = PlatformsOrdering.YearOfRelease;
                 var results = new List<Platform>();
                 var platforms = new List<Platform>();
                 var prevTotal = 0;
 
-                if (isFullImport)
+                if (isBulkReload)
                 {
                     _platformRepo.CopyPlatformTables();
                 }
@@ -53,7 +53,7 @@ namespace SpeedRunAppImport.Service
                     {
                         prevTotal += results.Count;
                         _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
-                        SavePlatforms(results, isFullImport);
+                        SavePlatforms(results, isBulkReload);
                         results.ClearMemory();
                     }
                 }
@@ -61,11 +61,11 @@ namespace SpeedRunAppImport.Service
 
                 if (results.Any())
                 {
-                    SavePlatforms(results, isFullImport);
+                    SavePlatforms(results, isBulkReload);
                     results.ClearMemory();
                 }
 
-                if (isFullImport)
+                if (isBulkReload)
                 {
                     _platformRepo.RenameAndDropPlatformTables();
                 }
@@ -105,15 +105,15 @@ namespace SpeedRunAppImport.Service
             return platforms;
         }
 
-        public void SavePlatforms(IEnumerable<Platform> platforms, bool isFullImport)
+        public void SavePlatforms(IEnumerable<Platform> platforms, bool isBulkReload)
         {
             var platformEntities = platforms.Select(i => new PlatformEntity { SpeedRunComID = i.ID, Name = i.Name, YearOfRelease = i.YearOfRelease }).ToList();
-            SavePlatforms(platformEntities, isFullImport);
+            SavePlatforms(platformEntities, isBulkReload);
         }
 
-        public void SavePlatforms(IEnumerable<PlatformEntity> platformEntities, bool isFullImport)
+        public void SavePlatforms(IEnumerable<PlatformEntity> platformEntities, bool isBulkReload)
         {
-            if (!isFullImport)
+            if (!isBulkReload)
             {
                 var platformSpeedRunComIDs = _platformRepo.GetPlatformSpeedRunComIDs().ToList();
                 platformEntities = platformEntities.Where(i => !platformSpeedRunComIDs.Any(g => g.SpeedRunComID == i.SpeedRunComID)).ToList();

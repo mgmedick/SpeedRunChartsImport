@@ -36,7 +36,7 @@ namespace SpeedRunAppImport.Service
             _logger = logger;
         }
 
-        public void ProcessSpeedRuns(DateTime lastImportDate, bool isFullImport, bool isProcessSpeedRunsByGame)
+        public void ProcessSpeedRuns(DateTime lastImportDate, bool isFullImport, bool isBulkReload, bool isProcessSpeedRunsByGame)
         {
             try
             {
@@ -47,7 +47,7 @@ namespace SpeedRunAppImport.Service
                 {
                     if (isFullImport)
                     {
-                        ProcessSpeedRunsByGameFullImport();
+                        ProcessSpeedRunsByGameFullImport(isBulkReload);
                     }
                     else
                     {
@@ -56,7 +56,7 @@ namespace SpeedRunAppImport.Service
                 }
                 else
                 {
-                    ProcessSpeedRunsDefault(lastImportDateUtc, isFullImport);
+                    ProcessSpeedRunsDefault(lastImportDateUtc, isFullImport, isBulkReload);
                 }
 
                 _settingService.UpdateSetting("SpeedRunLastImportDate", DateTime.Now);
@@ -68,14 +68,14 @@ namespace SpeedRunAppImport.Service
             }
         }
 
-        public void ProcessSpeedRunsDefault(DateTime lastImportDateUtc, bool isFullImport)
+        public void ProcessSpeedRunsDefault(DateTime lastImportDateUtc, bool isFullImport, bool isBulkReload)
         {
             RunsOrdering orderBy = isFullImport ? RunsOrdering.DateSubmitted : RunsOrdering.DateSubmittedDescending;
             var results = new List<SpeedRun>();
             var runs = new List<SpeedRun>();
             var prevTotal = 0;
 
-            if (isFullImport)
+            if (isBulkReload)
             {
                 _speedRunRepo.CopySpeedRunTables();
             }
@@ -105,18 +105,18 @@ namespace SpeedRunAppImport.Service
 
             if (results.Any())
             {
-                SaveSpeedRuns(results, isFullImport);
+                SaveSpeedRuns(results, isBulkReload);
                 results.ClearMemory();
             }
 
-            if (isFullImport)
+            if (isBulkReload)
             {
                 _speedRunRepo.RenameAndDropSpeedRunTables();
             }
         }
 
         #region ProcessSpeedRunsByGame
-        public void ProcessSpeedRunsByGameFullImport()
+        public void ProcessSpeedRunsByGameFullImport(bool isBulkReload)
         {
             RunsOrdering orderBy = RunsOrdering.DateSubmitted;
             var results = new List<SpeedRun>();
@@ -124,7 +124,10 @@ namespace SpeedRunAppImport.Service
             var gameSpeedRunComIDs = _gameRepo.GetGameSpeedRunComIDs();
             var prevTotal = 0;
 
-            _speedRunRepo.CopySpeedRunTables();
+            if (isBulkReload)
+            {
+                _speedRunRepo.CopySpeedRunTables();
+            }
 
             foreach (var gameSpeedRunComID in gameSpeedRunComIDs)
             {
@@ -151,11 +154,14 @@ namespace SpeedRunAppImport.Service
 
             if (results.Any())
             {
-                SaveSpeedRuns(results, true);
+                SaveSpeedRuns(results, isBulkReload);
                 results.ClearMemory();
             }
 
-            _speedRunRepo.RenameAndDropSpeedRunTables();
+            if (isBulkReload)
+            {
+                _speedRunRepo.RenameAndDropSpeedRunTables();
+            }
         }
 
         public void ProcessSpeedRunsByScreenScrape()
@@ -254,7 +260,7 @@ namespace SpeedRunAppImport.Service
             return run;
         }
 
-        public void SaveSpeedRuns(IEnumerable<SpeedRun> runs, bool isFullImport)
+        public void SaveSpeedRuns(IEnumerable<SpeedRun> runs, bool isBulkReload)
         {
             var gameSpeedRunComIDs = _gameRepo.GetGameSpeedRunComIDs().ToList();
             var categorySpeedRunComIDs = _gameRepo.GetCategorySpeedRunComIDs().ToList();
@@ -333,12 +339,12 @@ namespace SpeedRunAppImport.Service
             })).Where(i => !string.IsNullOrWhiteSpace(i.VideoLinkUrl))
             .ToList();
 
-            SaveSpeedRuns(runEntities, runLinkEntities, runStatusEntities, runSystemEntities, runTimeEntities, runCommentEntities, variableValueEntities, playerEntities, videoEntities, isFullImport);
+            SaveSpeedRuns(runEntities, runLinkEntities, runStatusEntities, runSystemEntities, runTimeEntities, runCommentEntities, variableValueEntities, playerEntities, videoEntities, isBulkReload);
         }
 
-        public void SaveSpeedRuns(IEnumerable<SpeedRunEntity> speedRuns, IEnumerable<SpeedRunLinkEntity> speedRunLinks, IEnumerable<SpeedRunStatusEntity> speedRunStatuses, IEnumerable<SpeedRunSystemEntity> speedRunSystems, IEnumerable<SpeedRunTimeEntity> speedRunTimes, IEnumerable<SpeedRunCommentEntity> speedRunComments, IEnumerable<SpeedRunVariableValueEntity> variableValues, IEnumerable<SpeedRunPlayerEntity> players, IEnumerable<SpeedRunVideoEntity> videos, bool isFullImport)
+        public void SaveSpeedRuns(IEnumerable<SpeedRunEntity> speedRuns, IEnumerable<SpeedRunLinkEntity> speedRunLinks, IEnumerable<SpeedRunStatusEntity> speedRunStatuses, IEnumerable<SpeedRunSystemEntity> speedRunSystems, IEnumerable<SpeedRunTimeEntity> speedRunTimes, IEnumerable<SpeedRunCommentEntity> speedRunComments, IEnumerable<SpeedRunVariableValueEntity> variableValues, IEnumerable<SpeedRunPlayerEntity> players, IEnumerable<SpeedRunVideoEntity> videos, bool isBulkReload)
         {
-            if (isFullImport)
+            if (isBulkReload)
             {
                 _speedRunRepo.InsertSpeedRuns(speedRuns, speedRunLinks, speedRunStatuses, speedRunSystems, speedRunTimes, speedRunComments, variableValues, players, videos);
             }

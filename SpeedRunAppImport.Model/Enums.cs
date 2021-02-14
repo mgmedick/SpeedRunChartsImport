@@ -223,6 +223,7 @@ namespace SpeedRunAppImport.Model
 
     public enum ImportProcess
     {
+        ReloadAll = -1,
         All = 0,
         Platform = 1,
         Game = 2,

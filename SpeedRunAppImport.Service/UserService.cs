@@ -28,19 +28,19 @@ namespace SpeedRunAppImport.Service
             _logger = logger;
         }
 
-        public void ProcessUsers(DateTime lastImportDate, bool isFullImport)
+        public void ProcessUsers(DateTime lastImportDate, bool isFullImport, bool isBulkReload)
         {
             try
             {
                 var lastImportDateUtc = lastImportDate.ToUniversalTime();
-                _logger.Information("Started ProcessUsers: {@LastImportDate}, {@LastImportDateUtc}, {@IsFullImport}", lastImportDate, lastImportDateUtc, isFullImport);
+                _logger.Information("Started ProcessUsers: {@LastImportDate}, {@LastImportDateUtc}, {@IsFullImport}, {@IsBulkReload}", lastImportDate, lastImportDateUtc, isFullImport, isBulkReload);
 
                 UsersOrdering orderBy = isFullImport ? UsersOrdering.SignUpDate : UsersOrdering.SignUpDateDescending;
                 var results = new List<User>();
                 var users = new List<User>();
                 var prevTotal = 0;
 
-                if (isFullImport)
+                if (isBulkReload)
                 {
                     _userRepo.CopyUserTables();
                 }
@@ -57,7 +57,7 @@ namespace SpeedRunAppImport.Service
                     {
                         prevTotal += results.Count;
                         _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
-                        SaveUsers(results, isFullImport);
+                        SaveUsers(results, isBulkReload);
                         results.ClearMemory();
                     }
                 }
@@ -70,11 +70,11 @@ namespace SpeedRunAppImport.Service
 
                 if (results.Any())
                 {
-                    SaveUsers(results, isFullImport);
+                    SaveUsers(results, isBulkReload);
                     results.ClearMemory();
                 }
 
-                if (isFullImport)
+                if (isBulkReload)
                 {
                     _userRepo.RenameAndDropUserTables();
                 }
@@ -114,7 +114,7 @@ namespace SpeedRunAppImport.Service
             return users;
         }
 
-        public void SaveUsers(IEnumerable<User> users, bool isFullImport)
+        public void SaveUsers(IEnumerable<User> users, bool isBulkReload)
         {
             var userEntities = users.Select(i => new UserEntity { SpeedRunComID = i.ID, Name = i.Name, UserRoleID = (int)i.Role, SignUpDate = i.SignUpDate }).ToList();
             var userLocationEntities = users.Where(i => !string.IsNullOrWhiteSpace(i.Location?.ToString())).Select(i => new UserLocationEntity { UserSpeedRunComID = i.ID, Location = i.Location?.ToString() }).ToList();
@@ -129,12 +129,12 @@ namespace SpeedRunAppImport.Service
                 TwitterProfileUrl = i.TwitterProfile?.ToString()
             }).ToList();
 
-            SaveUsers(userEntities, userLocationEntities, userLinkEntities, isFullImport);
+            SaveUsers(userEntities, userLocationEntities, userLinkEntities, isBulkReload);
         }
 
-        public void SaveUsers(IEnumerable<UserEntity> userEntities, IEnumerable<UserLocationEntity> userLocationEntities, IEnumerable<UserLinkEntity> userLinkEntities, bool isFullImport)
+        public void SaveUsers(IEnumerable<UserEntity> userEntities, IEnumerable<UserLocationEntity> userLocationEntities, IEnumerable<UserLinkEntity> userLinkEntities, bool isBulkReload)
         {
-            if (isFullImport)
+            if (isBulkReload)
             {
                 _userRepo.InsertUsers(userEntities, userLocationEntities, userLinkEntities);
             }

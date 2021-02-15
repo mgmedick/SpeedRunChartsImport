@@ -68,7 +68,8 @@ namespace SpeedRunAppImport.Service
                         results.ClearMemory();
                     }
                 }
-                while (games.Count == MaxElementsPerPage && games.Min(i => i.CreationDate ?? SqlMinDateTimeUtc) >= lastImportDateUtc);
+                //while (games.Count == MaxElementsPerPage && games.Min(i => i.CreationDate ?? SqlMinDateTimeUtc) >= lastImportDateUtc);
+                while (results.Count <= 1000);
 
                 if (!isFullImport)
                 {
@@ -124,14 +125,30 @@ namespace SpeedRunAppImport.Service
 
         public void SaveGames(IEnumerable<Game> games, bool isBulkReload)
         {
-            var platformSpeedRunComIDs = _platformRepo.GetPlatformSpeedRunComIDs().ToList();
-            var regionSpeedRunComIDs = _gameRepo.GetRegionSpeedRunComIDs().ToList();
-            var userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs().ToList();
-            var gameSpeedRunComIDs = !isBulkReload ? _gameRepo.GetGameSpeedRunComIDs() : new List<GameSpeedRunComIDEntity>();
-            var levelSpeedRunComIDs = !isBulkReload ? _gameRepo.GetLevelSpeedRunComIDs() : new List<LevelSpeedRunComIDEntity>();
-            var categorySpeedRunComIDs = !isBulkReload ? _gameRepo.GetCategorySpeedRunComIDs() : new List<CategorySpeedRunComIDEntity>();
-            var variableSpeedRunComIDs = !isBulkReload ? _gameRepo.GetVariableSpeedRunComIDs() : new List<VariableSpeedRunComIDEntity>();
-            var variableValueSpeedRunComIDs = !isBulkReload ? _gameRepo.GetVariableValueSpeedRunComIDs() : new List<VariableValueSpeedRunComIDEntity>();
+            var gameIDs = games.Select(i => i.ID).ToList();
+            //var gameSpeedRunComIDs = _gameRepo.GetGameSpeedRunComIDs(i => gameIDs.Contains(i.SpeedRunComID));
+            var gameSpeedRunComIDs = _gameRepo.GetGameSpeedRunComIDs().Where(i => gameIDs.Contains(i.SpeedRunComID)).ToList();
+            var userIDs = games.SelectMany(i => i.Moderators.Select(i => i.UserID)).Distinct().ToList();
+            //var userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs(i => userIDs.Contains(i.SpeedRunComID));
+            var userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs().Where(i => userIDs.Contains(i.SpeedRunComID)).ToList();
+            var levelIDs = games.SelectMany(i => i.Levels.Select(i => i.ID)).Distinct().ToList();
+            //var levelSpeedRunComIDs = _gameRepo.GetLevelSpeedRunComIDs(i => levelIDs.Contains(i.SpeedRunComID));
+            var levelSpeedRunComIDs = _gameRepo.GetLevelSpeedRunComIDs().Where(i => levelIDs.Contains(i.SpeedRunComID)).ToList();
+            var categoryIDs = games.SelectMany(i => i.Categories.Select(i => i.ID)).Distinct().ToList();
+            //var categorySpeedRunComIDs = _gameRepo.GetCategorySpeedRunComIDs(i => categoryIDs.Contains(i.SpeedRunComID));
+            var categorySpeedRunComIDs = _gameRepo.GetCategorySpeedRunComIDs().Where(i => categoryIDs.Contains(i.SpeedRunComID)).ToList();
+            var variableIDs = games.SelectMany(i => i.Variables.Select(i => i.ID)).Distinct().ToList();
+            //var variableSpeedRunComIDs = _gameRepo.GetVaraibleSpeedRunComIDs(i => variableIDs.Contains(i.SpeedRunComID));
+            var variableSpeedRunComIDs = _gameRepo.GetVaraibleSpeedRunComIDs().Where(i => variableIDs.Contains(i.SpeedRunComID)).ToList();
+            var variableValueIDs = games.SelectMany(i => i.Variables.SelectMany(g => g.Values.Select(h => h.ID))).Distinct().ToList();
+            //var variableValueSpeedRunComIDs = _gameRepo.GetVariableValueSpeedRunComIDs(i => variableValueIDs.Contains(i.SpeedRunComID));
+            var variableValueSpeedRunComIDs = _gameRepo.GetVariableValueSpeedRunComIDs().Where(i => variableValueIDs.Contains(i.SpeedRunComID)).ToList();
+            var platformIDs = games.SelectMany(i => i.PlatformIDs).Distinct().ToList();
+            //var platformSpeedRunComIDs = _platformRepo.GetPlatformSpeedRunComIDs(i => platformIDs.Contains(i.SpeedRunComID));
+            var platformSpeedRunComIDs = _platformRepo.GetPlatformSpeedRunComIDs().Where(i => platformIDs.Contains(i.SpeedRunComID)).ToList();
+            var regionIDs = games.SelectMany(i => i.RegionIDs).Distinct().ToList();
+            //var regionSpeedRunComIDs = _gameRepo.GetRegionSpeedRunComIDs(i => regionIDs.Contains(i.SpeedRunComID));
+            var regionSpeedRunComIDs = _gameRepo.GetRegionSpeedRunComIDs().Where(i => regionIDs.Contains(i.SpeedRunComID)).ToList();
 
             var gameEntities = games.Select(i => new GameEntity() {
                 ID = gameSpeedRunComIDs.Where(g => g.SpeedRunComID == i.ID).Select(g => g.GameID).FirstOrDefault(),

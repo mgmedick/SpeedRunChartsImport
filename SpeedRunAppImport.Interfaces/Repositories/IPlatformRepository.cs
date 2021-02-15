@@ -13,6 +13,7 @@ namespace SpeedRunAppImport.Interfaces.Repositories
         void RenameAndDropPlatformTables();
         IEnumerable<PlatformEntity> GetPlatforms();
         IEnumerable<PlatformSpeedRunComIDEntity> GetPlatformSpeedRunComIDs();
+        IEnumerable<PlatformSpeedRunComIDEntity> GetPlatformSpeedRunComIDs(Expression<Func<PlatformSpeedRunComIDEntity, bool>> predicate = null);
     }
 }
 

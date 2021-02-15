@@ -246,5 +246,13 @@ namespace SpeedRunAppImport.Repository
                 return db.Query<UserSpeedRunComIDEntity>("SELECT UserID, SpeedRunComID FROM dbo.tbl_User_SpeedRunComID WITH(NOLOCK)").ToList();
             }
         }
+
+        public IEnumerable<UserSpeedRunComIDEntity> GetUserSpeedRunComIDs(Expression<Func<UserSpeedRunComIDEntity, bool>> predicate = null)
+        {
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                return db.Query<UserSpeedRunComIDEntity>().Where(predicate ?? (x => true)).ToList();
+            }
+        }
     }
 }

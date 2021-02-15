@@ -13,6 +13,7 @@ namespace SpeedRunAppImport.Interfaces.Repositories
         void InsertUsers(IEnumerable<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, IEnumerable<UserLinkEntity> userLinks);
         void SaveUsers(IEnumerable<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, IEnumerable<UserLinkEntity> userLinks);
         IEnumerable<UserSpeedRunComIDEntity> GetUserSpeedRunComIDs();
+        IEnumerable<UserSpeedRunComIDEntity> GetUserSpeedRunComIDs(Expression<Func<UserSpeedRunComIDEntity, bool>> predicate = null);
     }
 }
 

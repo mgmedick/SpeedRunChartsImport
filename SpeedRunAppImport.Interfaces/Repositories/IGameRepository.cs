@@ -15,11 +15,17 @@ namespace SpeedRunAppImport.Interfaces.Repositories
         //IEnumerable<VariableEntity> GetVariables();
         //IEnumerable<GameEntity> GetGames();
         IEnumerable<GameSpeedRunComIDEntity> GetGameSpeedRunComIDs();
+        IEnumerable<GameSpeedRunComIDEntity> GetGameSpeedRunComIDs(Expression<Func<GameSpeedRunComIDEntity, bool>> predicate = null);
+        IEnumerable<CategorySpeedRunComIDEntity> GetCategorySpeedRunComIDs(Expression<Func<CategorySpeedRunComIDEntity, bool>> predicate = null);
         IEnumerable<CategorySpeedRunComIDEntity> GetCategorySpeedRunComIDs();
         IEnumerable<LevelSpeedRunComIDEntity> GetLevelSpeedRunComIDs();
+        IEnumerable<LevelSpeedRunComIDEntity> GetLevelSpeedRunComIDs(Expression<Func<LevelSpeedRunComIDEntity, bool>> predicate = null);
         IEnumerable<VariableSpeedRunComIDEntity> GetVariableSpeedRunComIDs();
+        IEnumerable<VariableSpeedRunComIDEntity> GetVaraibleSpeedRunComIDs(Expression<Func<VariableSpeedRunComIDEntity, bool>> predicate = null);
         IEnumerable<VariableValueSpeedRunComIDEntity> GetVariableValueSpeedRunComIDs();
+        IEnumerable<VariableValueSpeedRunComIDEntity> GetVariableValueSpeedRunComIDs(Expression<Func<VariableValueSpeedRunComIDEntity, bool>> predicate = null);
         IEnumerable<RegionSpeedRunComIDEntity> GetRegionSpeedRunComIDs();
+        IEnumerable<RegionSpeedRunComIDEntity> GetRegionSpeedRunComIDs(Expression<Func<RegionSpeedRunComIDEntity, bool>> predicate = null);
     }
 }
 

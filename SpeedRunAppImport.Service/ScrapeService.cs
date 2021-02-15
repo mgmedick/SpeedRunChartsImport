@@ -30,8 +30,8 @@ namespace SpeedRunAppImport.Service
             var context = BrowsingContext.New(angleSharpConfig);
             var document = Task.Run(async () => await context.OpenAsync(SpeedRunComLatestRunsUrl)).Result;
             var speedRunComIDs = document.QuerySelectorAll(".linked").Select(i => i.GetAttribute("data-target").Substring(i.GetAttribute("data-target").LastIndexOf('/') + 1)).ToList();
-            var existingSpeedRunComIDs = _speedRunRepo.GetExistingSpeedRunComIDs(speedRunComIDs);
-            var results = speedRunComIDs.Where(i => !existingSpeedRunComIDs.Contains(i)).ToList();
+            var existingSpeedRunComIDs = _speedRunRepo.GetSpeedRunSpeedRunComIDs(i => speedRunComIDs.Contains(i.SpeedRunComID));
+            var results = speedRunComIDs.Where(i => !existingSpeedRunComIDs.Any(g => g.SpeedRunComID == i)).ToList();
 
             return results;
         }

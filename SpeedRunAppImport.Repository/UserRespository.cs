@@ -19,6 +19,7 @@ namespace SpeedRunAppImport.Repository
             _logger = logger;
         }
 
+        /*
         public void CopyUserTables()
         {
             using (IDatabase db = DBFactory.GetDatabase())
@@ -143,6 +144,7 @@ namespace SpeedRunAppImport.Repository
                 }
             }
         }
+        */
 
         public void InsertUsers(IEnumerable<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, IEnumerable<UserLinkEntity> userLinks)
         {
@@ -195,7 +197,6 @@ namespace SpeedRunAppImport.Repository
         {
             int count = 1;
             var usersList = users.ToList();
-            var userSpeedRunComIDs = GetUserSpeedRunComIDs();
 
             foreach (var user in usersList)
             {
@@ -206,13 +207,12 @@ namespace SpeedRunAppImport.Repository
                 {
                     using (var tran = db.GetTransaction())
                     {
-                        var userSpeedRunCom = userSpeedRunComIDs.FirstOrDefault(i => i.SpeedRunComID == user.SpeedRunComID);
-                        if (userSpeedRunCom != null)
+                        if (user.ID != 0)
                         {
                             user.ModifiedDate = DateTime.Now;
-                            db.DeleteWhere<UserSpeedRunComIDEntity>("UserID = @userID", new { userID = userSpeedRunCom.UserID });
-                            db.DeleteWhere<UserLocationEntity>("UserID = @userID", new { userID = userSpeedRunCom.UserID });
-                            db.DeleteWhere<UserLinkEntity>("UserID = @userID", new { userID = userSpeedRunCom.UserID });
+                            db.DeleteWhere<UserSpeedRunComIDEntity>("UserID = @userID", new { userID = user.ID });
+                            db.DeleteWhere<UserLocationEntity>("UserID = @userID", new { userID = user.ID });
+                            db.DeleteWhere<UserLinkEntity>("UserID = @userID", new { userID = user.ID });
                         }
 
                         db.Save<UserEntity>(user);
@@ -236,14 +236,6 @@ namespace SpeedRunAppImport.Repository
 
                 _logger.Information("Saved users {@Count} / {@Total}", count, usersList.Count);
                 count++;
-            }
-        }
-
-        public IEnumerable<UserSpeedRunComIDEntity> GetUserSpeedRunComIDs()
-        {
-            using (IDatabase db = DBFactory.GetDatabase())
-            {
-                return db.Query<UserSpeedRunComIDEntity>("SELECT UserID, SpeedRunComID FROM dbo.tbl_User_SpeedRunComID WITH(NOLOCK)").ToList();
             }
         }
 

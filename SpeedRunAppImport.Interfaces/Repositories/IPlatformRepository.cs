@@ -9,10 +9,8 @@ namespace SpeedRunAppImport.Interfaces.Repositories
     public interface IPlatformRepository
     {
         void InsertPlatforms(IEnumerable<PlatformEntity> users);
-        void CopyPlatformTables();
-        void RenameAndDropPlatformTables();
-        IEnumerable<PlatformEntity> GetPlatforms();
-        IEnumerable<PlatformSpeedRunComIDEntity> GetPlatformSpeedRunComIDs();
+        //void CopyPlatformTables();
+        //void RenameAndDropPlatformTables();
         IEnumerable<PlatformSpeedRunComIDEntity> GetPlatformSpeedRunComIDs(Expression<Func<PlatformSpeedRunComIDEntity, bool>> predicate = null);
     }
 }

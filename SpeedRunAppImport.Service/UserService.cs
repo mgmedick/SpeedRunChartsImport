@@ -40,11 +40,6 @@ namespace SpeedRunAppImport.Service
                 var users = new List<User>();
                 var prevTotal = 0;
 
-                if (isBulkReload)
-                {
-                    _userRepo.CopyUserTables();
-                }
-
                 do
                 {
                     users = GetUsersWithRetry(MaxElementsPerPage, results.Count + prevTotal, orderBy);
@@ -72,11 +67,6 @@ namespace SpeedRunAppImport.Service
                 {
                     SaveUsers(results, isBulkReload);
                     results.ClearMemory();
-                }
-
-                if (isBulkReload)
-                {
-                    _userRepo.RenameAndDropUserTables();
                 }
 
                 _settingService.UpdateSetting("UserLastImportDate", DateTime.Now);
@@ -116,8 +106,34 @@ namespace SpeedRunAppImport.Service
 
         public void SaveUsers(IEnumerable<User> users, bool isBulkReload)
         {
-            var userEntities = users.Select(i => new UserEntity { SpeedRunComID = i.ID, Name = i.Name, UserRoleID = (int)i.Role, SignUpDate = i.SignUpDate }).ToList();
-            var userLocationEntities = users.Where(i => !string.IsNullOrWhiteSpace(i.Location?.ToString())).Select(i => new UserLocationEntity { UserSpeedRunComID = i.ID, Location = i.Location?.ToString() }).ToList();
+            var maxBatchCount = 2000;
+            var batchCount = 0;
+
+            var userIDs = users.Select(i => i.ID).ToList();
+            var userSpeedRunComIDs = new List<UserSpeedRunComIDEntity>();
+            batchCount = 0;
+            while (batchCount < userIDs.Count())
+            {
+                var userIDsBatch = userIDs.Skip(batchCount).Take(maxBatchCount).ToList();
+                userSpeedRunComIDs.AddRange(_userRepo.GetUserSpeedRunComIDs(i => userIDsBatch.Contains(i.SpeedRunComID)));
+                batchCount += maxBatchCount;
+            }
+
+            var userEntities = users.Select(i => new UserEntity {
+                ID = userSpeedRunComIDs.Where(g => g.SpeedRunComID == i.ID).Select(g => g.UserID).FirstOrDefault(),
+                SpeedRunComID = i.ID,
+                Name = i.Name,
+                UserRoleID = (int)i.Role,
+                SignUpDate = i.SignUpDate 
+            })
+            .ToList();
+            var userLocationEntities = users.Where(i => !string.IsNullOrWhiteSpace(i.Location?.ToString()))
+                                            .Select(i => new UserLocationEntity
+                                            {
+                                                UserSpeedRunComID = i.ID,
+                                                Location = i.Location?.ToString()
+                                            })
+                                            .ToList();
             var userLinkEntities = users.Select(i => new UserLinkEntity
             {
                 UserSpeedRunComID = i.ID,
@@ -127,13 +143,9 @@ namespace SpeedRunAppImport.Service
                 HitboxProfileUrl = i.HitboxProfile?.ToString(),
                 YoutubeProfileUrl = i.YoutubeProfile?.ToString(),
                 TwitterProfileUrl = i.TwitterProfile?.ToString()
-            }).ToList();
+            })
+            .ToList();
 
-            SaveUsers(userEntities, userLocationEntities, userLinkEntities, isBulkReload);
-        }
-
-        public void SaveUsers(IEnumerable<UserEntity> userEntities, IEnumerable<UserLocationEntity> userLocationEntities, IEnumerable<UserLinkEntity> userLinkEntities, bool isBulkReload)
-        {
             if (isBulkReload)
             {
                 _userRepo.InsertUsers(userEntities, userLocationEntities, userLinkEntities);

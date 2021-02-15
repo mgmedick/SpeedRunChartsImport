@@ -19,6 +19,7 @@ namespace SpeedRunAppImport.Repository
             _logger = logger;
         }
 
+        /*
         public void CopyPlatformTables()
         {
             using (IDatabase db = DBFactory.GetDatabase())
@@ -91,6 +92,7 @@ namespace SpeedRunAppImport.Repository
                 }
             }
         }
+        */
 
         public void InsertPlatforms(IEnumerable<PlatformEntity> platforms)
         {
@@ -106,11 +108,7 @@ namespace SpeedRunAppImport.Repository
                 {
                     using (var tran = db.GetTransaction())
                     {
-                        //foreach (var platform in platformsBatch)
-                        //{
-                        //    db.Insert(platform);
-                        //}
-                        db.InsertBatch<PlatformEntity>(platformsBatch);
+                        db.InsertBulk<PlatformEntity>(platformsBatch);
                         var platformIDs = db.Query<int>("SELECT TOP (@0) ID FROM dbo.tbl_Platform_Full ORDER BY ID DESC", platformsBatch.Count).Reverse().ToArray();
                         for (int i = 0; i < platformsBatch.Count; i++)
                         {
@@ -128,22 +126,6 @@ namespace SpeedRunAppImport.Repository
                 batchCount += MaxBulkRows;
             }
             _logger.Information("Completed InsertPlatforms");
-        }
-
-        public IEnumerable<PlatformEntity> GetPlatforms()
-        {
-            using (IDatabase db = DBFactory.GetDatabase())
-            {
-                return db.Query<PlatformEntity>("SELECT ID, [Name], YearOfRelease FROM dbo.tbl_Platform ORDER BY ID").ToList();
-            }
-        }
-
-        public IEnumerable<PlatformSpeedRunComIDEntity> GetPlatformSpeedRunComIDs()
-        {
-            using (IDatabase db = DBFactory.GetDatabase())
-            {
-                return db.Query<PlatformSpeedRunComIDEntity>("SELECT PlatformID, SpeedRunComID FROM dbo.tbl_Platform_SpeedRunComID WITH(NOLOCK)").ToList();
-            }
         }
 
         public IEnumerable<PlatformSpeedRunComIDEntity> GetPlatformSpeedRunComIDs(Expression<Func<PlatformSpeedRunComIDEntity, bool>> predicate = null)

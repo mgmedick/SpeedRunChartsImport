@@ -21,6 +21,7 @@ namespace SpeedRunAppImport.Repository
             _logger = logger;
         }
 
+        /*
         public void CopySpeedRunTables()
         {
             using (IDatabase db = DBFactory.GetDatabase())
@@ -287,6 +288,7 @@ namespace SpeedRunAppImport.Repository
                 }
             }
         }
+        */
 
         public void InsertSpeedRuns(IEnumerable<SpeedRunEntity> speedRuns, IEnumerable<SpeedRunLinkEntity> speedRunLinks, IEnumerable<SpeedRunStatusEntity> speedRunStatuses, IEnumerable<SpeedRunSystemEntity> speedRunSystems, IEnumerable<SpeedRunTimeEntity> speedRunTimes, IEnumerable<SpeedRunCommentEntity> speedRunComments, IEnumerable<SpeedRunVariableValueEntity> variableValues, IEnumerable<SpeedRunPlayerEntity> players, IEnumerable<SpeedRunVideoEntity> videos)
         {
@@ -309,13 +311,8 @@ namespace SpeedRunAppImport.Repository
 
                 using (IDatabase db = DBFactory.GetDatabase())
                 {
-                    //db.OneTimeCommandTimeout = 32767;
                     using (var tran = db.GetTransaction())
                     {
-                        //foreach (var run in runsBatch)
-                        //{
-                        //    db.Insert<SpeedRunEntity>(run);
-                        //}
                         db.InsertBulk<SpeedRunEntity>(runsBatch);
                         var runIDs = db.Query<int>("SELECT TOP (@0) ID FROM dbo.tbl_SpeedRun_Full ORDER BY ID DESC", runsBatch.Count).Reverse().ToArray();
                         for (int i = 0; i < runsBatch.Count; i++)
@@ -364,7 +361,6 @@ namespace SpeedRunAppImport.Repository
         {
             int count = 1;
             var speedRunsList = speedRuns.ToList();
-            var speedRunSpeedRunComIDs = GetSpeedRunSpeedRunComIDs();
 
             foreach (var speedRun in speedRuns)
             {
@@ -381,19 +377,18 @@ namespace SpeedRunAppImport.Repository
                 {
                     using (var tran = db.GetTransaction())
                     {
-                        var speedRunSpeedRunCom = speedRunSpeedRunComIDs.FirstOrDefault(i => i.SpeedRunComID == speedRun.SpeedRunComID);
-                        if (speedRunSpeedRunCom != null)
+                        if (speedRun.ID != 0)
                         {
                             speedRun.ModifiedDate = DateTime.Now;
-                            db.DeleteWhere<SpeedRunSpeedRunComIDEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunSpeedRunCom.SpeedRunID });
-                            db.DeleteWhere<SpeedRunLinkEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunSpeedRunCom.SpeedRunID });
-                            db.DeleteWhere<SpeedRunStatusEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunSpeedRunCom.SpeedRunID });
-                            db.DeleteWhere<SpeedRunSystemEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunSpeedRunCom.SpeedRunID });
-                            db.DeleteWhere<SpeedRunTimeEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunSpeedRunCom.SpeedRunID });
-                            db.DeleteWhere<SpeedRunCommentEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunSpeedRunCom.SpeedRunID });
-                            db.DeleteWhere<SpeedRunVariableValueEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunSpeedRunCom.SpeedRunID });
-                            db.DeleteWhere<SpeedRunPlayerEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunSpeedRunCom.SpeedRunID });
-                            db.DeleteWhere<SpeedRunVideoEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunSpeedRunCom.SpeedRunID });
+                            db.DeleteWhere<SpeedRunSpeedRunComIDEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
+                            db.DeleteWhere<SpeedRunLinkEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
+                            db.DeleteWhere<SpeedRunStatusEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
+                            db.DeleteWhere<SpeedRunSystemEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
+                            db.DeleteWhere<SpeedRunTimeEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
+                            db.DeleteWhere<SpeedRunCommentEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
+                            db.DeleteWhere<SpeedRunVariableValueEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
+                            db.DeleteWhere<SpeedRunPlayerEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
+                            db.DeleteWhere<SpeedRunVideoEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
                         }
 
                         db.Save<SpeedRunEntity>(speedRun);
@@ -449,91 +444,50 @@ namespace SpeedRunAppImport.Repository
             }
         }
 
-        public IEnumerable<SpeedRunSpeedRunComIDEntity> GetSpeedRunSpeedRunComIDs()
+        public IEnumerable<SpeedRunSpeedRunComIDEntity> GetSpeedRunSpeedRunComIDs(Expression<Func<SpeedRunSpeedRunComIDEntity, bool>> predicate = null)
         {
             using (IDatabase db = DBFactory.GetDatabase())
             {
-                return db.Query<SpeedRunSpeedRunComIDEntity>("SELECT SpeedRunID, SpeedRunComID FROM dbo.tbl_SpeedRun_SpeedRunComID WITH(NOLOCK)").ToList();
+                return db.Query<SpeedRunSpeedRunComIDEntity>().Where(predicate ?? (x => true)).ToList();
             }
         }
 
-        //public IEnumerable<SpeedRunEntity> GetSpeedRuns(Expression<Func<SpeedRunEntity, bool>> predicate)
-        //{
-        //    using (IDatabase db = DBFactory.GetDatabase())
-        //    {
-        //        return db.Query<SpeedRunEntity>().Where(predicate).ToList();
-        //    }
-        //}
-
-        public IEnumerable<string> GetExistingSpeedRunComIDs(IEnumerable<string> speedRunComIDs)
+        public void CreateFullTables()
         {
+            _logger.Information("Started CreateFullTables");
+
             using (IDatabase db = DBFactory.GetDatabase())
             {
-                var runIDString = "'" + string.Join("','", speedRunComIDs) + "'";
-                return db.Query<string>("SELECT SpeedRunComID FROM dbo.tbl_SpeedRun_SpeedRunComID WITH (NOLOCK) WHERE SpeedRunComID IN (@0)", speedRunComIDs).ToList();
+                db.Execute("EXEC dbo.ImportCreateFullTables");
             }
+
+            _logger.Information("Completed CreateFullTables");
         }
 
-        //public IEnumerable<string> GetExistingSpeedRunPlayerIDs()
-        //{
-        //    using (IDatabase db = DBFactory.GetDatabase())
-        //    {
-        //        db.OneTimeCommandTimeout = 32767;
-        //        return db.Query<string>("SELECT DISTINCT UserID FROM dbo.tbl_SpeedRun_Player WITH (NOLOCK) WHERE UserID IS NOT NULL").ToList();
-        //    }
-        //}
+        public void RenameFullTables()
+        {
+            _logger.Information("Started RenameFullTables");
+
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                db.OneTimeCommandTimeout = 32767;
+                db.Execute("EXEC dbo.ImportRenameFullTables");
+            }
+
+            _logger.Information("Completed RenameFullTables");
+        }
 
         public void RebuildIndexes()
         {
+            _logger.Information("Started RebuildIndexes");
+
             using (IDatabase db = DBFactory.GetDatabase())
             {
-                using (var tran = db.GetTransaction())
-                {
-                    db.OneTimeCommandTimeout = 32767;
-                    db.Execute(@"IF OBJECT_ID('tempdb..#IndexPercentages') IS NOT NULL 
-                                BEGIN 
-                                    DROP TABLE #IndexPercentages
-                                END
-
-                                CREATE TABLE #IndexPercentages 
-                                ( 
-                                    [ID] INT IDENTITY(1,1),
-                                    [Schema] VARCHAR (255),
-                                    [Table] VARCHAR (255),
-                                    [Index] VARCHAR (255)
-                                )
-
-                                INSERT INTO #IndexPercentages ([Schema],[Table],[Index])
-                                SELECT S.name, T.name, I.name
-                                FROM sys.dm_db_index_physical_stats (DB_ID(), NULL, NULL, NULL, NULL) AS DDIPS
-                                INNER JOIN sys.tables T on T.object_id = DDIPS.object_id
-                                INNER JOIN sys.schemas S on T.schema_id = S.schema_id
-                                INNER JOIN sys.indexes I ON I.object_id = DDIPS.object_id
-                                AND DDIPS.index_id = I.index_id
-                                WHERE DDIPS.database_id = DB_ID()
-                                and I.name is not null
-                                AND DDIPS.avg_fragmentation_in_percent >= 3
-                                ORDER BY DDIPS.avg_fragmentation_in_percent desc
-
-                                DECLARE @Sql NVARCHAR(500)
-                                DECLARE @RowCount INT = 1
-                                DECLARE @MaxRowCount INT
-                                SELECT @MaxRowCount = MAX(ID)
-                                FROM #IndexPercentages
-
-                                WHILE @RowCount <= @MaxRowCount
-                                BEGIN
-                                    SELECT @Sql = 'ALTER INDEX [' + [Index] + '] ON [' + [Schema] + '].[' + [Table] + '] REBUILD WITH (FILLFACTOR = 90)'
-                                    FROM #IndexPercentages
-                                    WHERE ID = @RowCount
-
-                                    EXEC (@Sql)
-
-                                    SELECT @RowCount = @RowCount + 1
-                                END");
-                    tran.Complete();
-                }
+                db.OneTimeCommandTimeout = 32767;
+                db.Execute("EXEC ImportRebuildIndexes");
             }
+
+            _logger.Information("Completed RebuildIndexes");
         }
 
         public void UpdateSpeedRunRanks(DateTime lastImportDate)

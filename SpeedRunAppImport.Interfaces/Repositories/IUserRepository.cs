@@ -8,11 +8,10 @@ namespace SpeedRunAppImport.Interfaces.Repositories
 {
     public interface IUserRepository
     {
-        void CopyUserTables();
-        void RenameAndDropUserTables();
+        //void CopyUserTables();
+        //void RenameAndDropUserTables();
         void InsertUsers(IEnumerable<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, IEnumerable<UserLinkEntity> userLinks);
         void SaveUsers(IEnumerable<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, IEnumerable<UserLinkEntity> userLinks);
-        IEnumerable<UserSpeedRunComIDEntity> GetUserSpeedRunComIDs();
         IEnumerable<UserSpeedRunComIDEntity> GetUserSpeedRunComIDs(Expression<Func<UserSpeedRunComIDEntity, bool>> predicate = null);
     }
 }

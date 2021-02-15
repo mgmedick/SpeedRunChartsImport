@@ -71,7 +71,6 @@ namespace SpeedRunAppImport
                 Processes = _config.GetValue<string>("ProcessIDs").Split(",").Select(i => (ImportProcess)Convert.ToInt32(i)).ToList();
                 if (IsBulkReload)
                 {
-                    Processes.Clear();
                     Processes.Add(ImportProcess.All);
                     IsFullImport = true;
                 }
@@ -117,6 +116,11 @@ namespace SpeedRunAppImport
 
         public void RunProcesses()
         {
+            if (IsBulkReload)
+            {
+                _speedRunRepo.CreateFullTables();
+            }
+
             if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Platform))
             {
                 _platformService.ProcessPlatforms(IsBulkReload);
@@ -137,6 +141,11 @@ namespace SpeedRunAppImport
                 _speedRunService.ProcessSpeedRuns(SpeedRunLastImportDate, IsFullImport, IsBulkReload, IsProcessSpeedRunsByGame);
             }
 
+            if (IsBulkReload)
+            {
+                _speedRunRepo.RenameFullTables();
+            }
+
             if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Game) || Processes.Contains(ImportProcess.SpeedRun))
             {
                 var lastImportDate = GameLastImportDate > SpeedRunLastImportDate ? GameLastImportDate : SpeedRunLastImportDate;
@@ -144,10 +153,7 @@ namespace SpeedRunAppImport
                 _speedRunRepo.UpdateSpeedRunRanks(lastImportDate);
             }
 
-            if (IsBulkReload || IsFullImport)
-            {
-                _speedRunRepo.RebuildIndexes();
-            }
+            _speedRunRepo.RebuildIndexes();
         }
 
         public DateTime PlatformLastImportDate { get; set; }

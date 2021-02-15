@@ -75,11 +75,6 @@ namespace SpeedRunAppImport.Service
             var runs = new List<SpeedRun>();
             var prevTotal = 0;
 
-            if (isBulkReload)
-            {
-                _speedRunRepo.CopySpeedRunTables();
-            }
-
             do
             {
                 runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count() + prevTotal, null, orderBy, RunStatusType.Verified);
@@ -108,11 +103,6 @@ namespace SpeedRunAppImport.Service
                 SaveSpeedRuns(results, isBulkReload);
                 results.ClearMemory();
             }
-
-            if (isBulkReload)
-            {
-                _speedRunRepo.RenameAndDropSpeedRunTables();
-            }
         }
 
         #region ProcessSpeedRunsByGame
@@ -123,11 +113,6 @@ namespace SpeedRunAppImport.Service
             var runs = new List<SpeedRun>();
             var gameSpeedRunComIDs = _gameRepo.GetGameSpeedRunComIDs();
             var prevTotal = 0;
-
-            if (isBulkReload)
-            {
-                _speedRunRepo.CopySpeedRunTables();
-            }
 
             foreach (var gameSpeedRunComID in gameSpeedRunComIDs)
             {
@@ -156,11 +141,6 @@ namespace SpeedRunAppImport.Service
             {
                 SaveSpeedRuns(results, isBulkReload);
                 results.ClearMemory();
-            }
-
-            if (isBulkReload)
-            {
-                _speedRunRepo.RenameAndDropSpeedRunTables();
             }
         }
 
@@ -262,16 +242,88 @@ namespace SpeedRunAppImport.Service
 
         public void SaveSpeedRuns(IEnumerable<SpeedRun> runs, bool isBulkReload)
         {
-            var gameSpeedRunComIDs = _gameRepo.GetGameSpeedRunComIDs().ToList();
-            var categorySpeedRunComIDs = _gameRepo.GetCategorySpeedRunComIDs().ToList();
-            var levelSpeedRunComIDs = _gameRepo.GetLevelSpeedRunComIDs().ToList();
-            var variableSpeedRunComIDs = _gameRepo.GetVariableSpeedRunComIDs().ToList();
-            var variableValueSpeedRunComIDs = _gameRepo.GetVariableValueSpeedRunComIDs().ToList();
-            var regionSpeedRunComIDs = _gameRepo.GetRegionSpeedRunComIDs().ToList();
-            var userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs().ToList();
-            var platformSpeedRunComIDs = _platformRepo.GetPlatformSpeedRunComIDs().ToList();
+            var maxBatchCount = 2000;
+            var batchCount = 0;
 
-            var runEntities = runs.Select(i => new SpeedRunEntity() {
+            var runIDs = runs.Select(i => i.ID).ToList();
+            var speedRunSpeedRunComIDs = new List<SpeedRunSpeedRunComIDEntity>();
+            batchCount = 0;
+            while (batchCount < runIDs.Count())
+            {
+                var runIDsBatch = runIDs.Skip(batchCount).Take(maxBatchCount).ToList();
+                speedRunSpeedRunComIDs.AddRange(_speedRunRepo.GetSpeedRunSpeedRunComIDs(i => runIDsBatch.Contains(i.SpeedRunComID)));
+                batchCount += maxBatchCount;
+            }
+
+            var gameIDs = runs.Select(i => i.GameID).Distinct().ToList();
+            var gameSpeedRunComIDs = new List<GameSpeedRunComIDEntity>();
+            batchCount = 0;
+            while (batchCount < gameIDs.Count())
+            {
+                var gameIDsBatch = gameIDs.Skip(batchCount).Take(maxBatchCount).ToList();
+                gameSpeedRunComIDs.AddRange(_gameRepo.GetGameSpeedRunComIDs(i => gameIDsBatch.Contains(i.SpeedRunComID)));                
+                batchCount += maxBatchCount;
+            }
+
+            var categoryIDs = runs.Select(i => i.CategoryID).Distinct().ToList();
+            var categorySpeedRunComIDs = new List<CategorySpeedRunComIDEntity>();
+            batchCount = 0;
+            while (batchCount < categoryIDs.Count())
+            {
+                var categoryIDsBatch = categoryIDs.Skip(batchCount).Take(maxBatchCount).ToList();
+                categorySpeedRunComIDs.AddRange(_gameRepo.GetCategorySpeedRunComIDs(i => categoryIDsBatch.Contains(i.SpeedRunComID)));
+                batchCount += maxBatchCount;
+            }
+
+            var levelIDs = runs.Where(i => !string.IsNullOrWhiteSpace(i.LevelID)).Select(i => i.LevelID).Distinct().ToList();
+            var levelSpeedRunComIDs = new List<LevelSpeedRunComIDEntity>();
+            batchCount = 0;
+            while (batchCount < levelIDs.Count())
+            {
+                var levelIDsBatch = levelIDs.Skip(batchCount).Take(maxBatchCount).ToList();
+                levelSpeedRunComIDs.AddRange(_gameRepo.GetLevelSpeedRunComIDs(i => levelIDsBatch.Contains(i.SpeedRunComID)));
+                batchCount += maxBatchCount;
+            }
+
+            var variableIDs = runs.SelectMany(i => i.VariableValueMappings.Select(g => g.VariableID)).Distinct().ToList();
+            var variableSpeedRunComIDs = new List<VariableSpeedRunComIDEntity>();
+            batchCount = 0;
+            while (batchCount < variableIDs.Count())
+            {
+                var variableIDsBatch = variableIDs.Skip(batchCount).Take(maxBatchCount).ToList();
+                variableSpeedRunComIDs.AddRange(_gameRepo.GetVaraibleSpeedRunComIDs(i => variableIDsBatch.Contains(i.SpeedRunComID)));
+                batchCount += maxBatchCount;
+            }
+
+            var variableValueIDs = runs.SelectMany(i => i.VariableValueMappings.Select(g => g.VariableValueID)).Distinct().ToList();
+            var variableValueSpeedRunComIDs = new List<VariableValueSpeedRunComIDEntity>();
+            batchCount = 0;
+            while (batchCount < variableValueIDs.Count())
+            {
+                var variableValueIDsBatch = variableValueIDs.Skip(batchCount).Take(maxBatchCount).ToList();
+                variableValueSpeedRunComIDs.AddRange(_gameRepo.GetVariableValueSpeedRunComIDs(i => variableValueIDsBatch.Contains(i.SpeedRunComID)));
+                batchCount += maxBatchCount;
+            }
+
+            var userIDs = runs.SelectMany(i => i.Players.Select(i => i.UserID)).Distinct().ToList();
+            var userSpeedRunComIDs = new List<UserSpeedRunComIDEntity>();
+            batchCount = 0;
+            while (batchCount < userIDs.Count())
+            {
+                var userIDsBatch = userIDs.Skip(batchCount).Take(maxBatchCount).ToList();
+                userSpeedRunComIDs.AddRange(_userRepo.GetUserSpeedRunComIDs(i => userIDsBatch.Contains(i.SpeedRunComID)));
+                batchCount += maxBatchCount;
+            }
+
+            var regionIDs = runs.Select(i => i.System.RegionID).Distinct().ToList();
+            var regionSpeedRunComIDs = _gameRepo.GetRegionSpeedRunComIDs(i => regionIDs.Contains(i.SpeedRunComID)).ToList();
+
+            var platformIDs = runs.Select(i => i.System.PlatformID).Distinct().ToList();
+            var platformSpeedRunComIDs = _platformRepo.GetPlatformSpeedRunComIDs(i => platformIDs.Contains(i.SpeedRunComID)).ToList();
+
+            var runEntities = runs.Select(i => new SpeedRunEntity()
+            {
+                ID = speedRunSpeedRunComIDs.Where(g => g.SpeedRunComID == i.ID).Select(g => g.SpeedRunID).FirstOrDefault(),
                 SpeedRunComID = i.ID,
                 GameID = gameSpeedRunComIDs.Where(g => g.SpeedRunComID == i.GameID).Select(g => g.GameID).FirstOrDefault(),
                 CategoryID = categorySpeedRunComIDs.Where(g => g.SpeedRunComID == i.CategoryID).Select(g => g.CategoryID).FirstOrDefault(),
@@ -319,7 +371,7 @@ namespace SpeedRunAppImport.Service
             var variableValueEntities = runs.SelectMany(i => i.VariableValueMappings.Select(g => new SpeedRunVariableValueEntity()
             {
                 SpeedRunSpeedRunComID = i.ID,
-                VariableID = variableSpeedRunComIDs.Where(h => h.SpeedRunComID == g.VariableID).Select(g=> g.VariableID).FirstOrDefault(),
+                VariableID = variableSpeedRunComIDs.Where(h => h.SpeedRunComID == g.VariableID).Select(g => g.VariableID).FirstOrDefault(),
                 VariableValueID = variableValueSpeedRunComIDs.Where(h => h.SpeedRunComID == g.VariableValueID).Select(g => g.VariableValueID).FirstOrDefault(),
             })).Where(i => i.VariableID != 0 && i.VariableValueID != 0)
             .ToList();
@@ -339,18 +391,13 @@ namespace SpeedRunAppImport.Service
             })).Where(i => !string.IsNullOrWhiteSpace(i.VideoLinkUrl))
             .ToList();
 
-            SaveSpeedRuns(runEntities, runLinkEntities, runStatusEntities, runSystemEntities, runTimeEntities, runCommentEntities, variableValueEntities, playerEntities, videoEntities, isBulkReload);
-        }
-
-        public void SaveSpeedRuns(IEnumerable<SpeedRunEntity> speedRuns, IEnumerable<SpeedRunLinkEntity> speedRunLinks, IEnumerable<SpeedRunStatusEntity> speedRunStatuses, IEnumerable<SpeedRunSystemEntity> speedRunSystems, IEnumerable<SpeedRunTimeEntity> speedRunTimes, IEnumerable<SpeedRunCommentEntity> speedRunComments, IEnumerable<SpeedRunVariableValueEntity> variableValues, IEnumerable<SpeedRunPlayerEntity> players, IEnumerable<SpeedRunVideoEntity> videos, bool isBulkReload)
-        {
             if (isBulkReload)
             {
-                _speedRunRepo.InsertSpeedRuns(speedRuns, speedRunLinks, speedRunStatuses, speedRunSystems, speedRunTimes, speedRunComments, variableValues, players, videos);
+                _speedRunRepo.InsertSpeedRuns(runEntities, runLinkEntities, runStatusEntities, runSystemEntities, runTimeEntities, runCommentEntities, variableValueEntities, playerEntities, videoEntities);
             }
             else
             {
-                _speedRunRepo.SaveSpeedRuns(speedRuns, speedRunLinks, speedRunStatuses, speedRunSystems, speedRunTimes, speedRunComments, variableValues, players, videos);
+                _speedRunRepo.SaveSpeedRuns(runEntities, runLinkEntities, runStatusEntities, runSystemEntities, runTimeEntities, runCommentEntities, variableValueEntities, playerEntities, videoEntities);
             }
         }
     }

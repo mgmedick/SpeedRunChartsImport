@@ -97,6 +97,8 @@ namespace SpeedRunAppImport.Service
 
         public void SavePlatforms(IEnumerable<Platform> platforms, bool isBulkReload)
         {
+            _logger.Information("Started SavePlatforms: {@Count}, {@IsBulkReload}", platforms.Count(), isBulkReload);
+
             var platformEntities = platforms.Select(i => new PlatformEntity { SpeedRunComID = i.ID, Name = i.Name, YearOfRelease = i.YearOfRelease }).ToList();
             
             if (!isBulkReload)
@@ -109,6 +111,8 @@ namespace SpeedRunAppImport.Service
             {
                 _platformRepo.InsertPlatforms(platformEntities);
             }
+
+            _logger.Information("Completed SavePlatforms");
         }
     }
 }

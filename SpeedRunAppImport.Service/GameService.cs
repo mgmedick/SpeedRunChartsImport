@@ -114,6 +114,8 @@ namespace SpeedRunAppImport.Service
 
         public void SaveGames(IEnumerable<Game> games, bool isBulkReload)
         {
+            _logger.Information("Started SaveGames: {@Count}, {@IsBulkReload}", games.Count(), isBulkReload);
+
             var maxBatchCount = 2000;
             var batchCount = 0;
             
@@ -285,6 +287,8 @@ namespace SpeedRunAppImport.Service
             {
                 _gameRepo.SaveGames(gameEntities, gameLinkEntities, levelEntities, levelRuleEntities, categoryEntities, categoryRuleEntities, variableEntities, variableValueEntities, gamePlatformEntities, gameRegionEntities, gameModeratorEntities, gameRulesetEntities, gameTimingMethodEntities);
             }
+
+            _logger.Information("Completed SaveGames");
         }
     }
 }

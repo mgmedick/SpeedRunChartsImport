@@ -242,6 +242,8 @@ namespace SpeedRunAppImport.Service
 
         public void SaveSpeedRuns(IEnumerable<SpeedRun> runs, bool isBulkReload)
         {
+            _logger.Information("Started SaveSpeedRuns: {@Count}, {@IsBulkReload}", runs.Count(), isBulkReload);
+
             var maxBatchCount = 2000;
             var batchCount = 0;
 
@@ -399,6 +401,8 @@ namespace SpeedRunAppImport.Service
             {
                 _speedRunRepo.SaveSpeedRuns(runEntities, runLinkEntities, runStatusEntities, runSystemEntities, runTimeEntities, runCommentEntities, variableValueEntities, playerEntities, videoEntities);
             }
+
+            _logger.Information("Completed SaveSpeedRuns");
         }
     }
 }

@@ -168,10 +168,10 @@ namespace SpeedRunAppImport.Client
             return DoRequest(uri, x => Client.Common.ParseRecord(x) as SpeedRunRecord);
         }
 
-        public Uri GetUserProfileImageUri(string userName)
-        {
-            return Task.Run(async () => await ParseProfileImageUri(userName)).Result;
-        }
+        //public Uri GetUserProfileImageUri(string userName)
+        //{
+        //    return Task.Run(async () => await ParseProfileImageUri(userName)).Result;
+        //}
 
         public User Parse(dynamic userElement, IEnumerable<Embeds> embeds = null)
         {
@@ -196,6 +196,8 @@ namespace SpeedRunAppImport.Client
             }
 
             user.Location = ParseLocation(userElement.location) as Location;
+
+            user.ProfileImage = ParseProfileImageUri(user.Name);
 
             var twitchLink = userElement.twitch;
             if (twitchLink != null)
@@ -269,6 +271,14 @@ namespace SpeedRunAppImport.Client
             return style;
         }
 
+        private Uri ParseProfileImageUri(string userName)
+        {
+            var subUri = string.Format("/themes/user/{0}/image.png", userName);
+            var uri = GetSiteUri(subUri);
+
+            return uri;
+        }
+
         private Location ParseLocation(dynamic locationElement)
         {
             var location = new Location();
@@ -306,23 +316,23 @@ namespace SpeedRunAppImport.Client
             return region;
         }
 
-        private async Task<Uri> ParseProfileImageUri(string userName)
-        {
-            var subUri = string.Format("/themes/user/{0}/image.png", userName);
-            var uri = GetSiteUri(subUri);
+        //private async Task<Uri> ParseProfileImageUri(string userName)
+        //{
+        //    var subUri = string.Format("/themes/user/{0}/image.png", userName);
+        //    var uri = GetSiteUri(subUri);
 
-            using (HttpClient client = new HttpClient())
-            {
-                using (var response = await client.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead))
-                {
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        uri = null;
-                    }
-                }
-            }
+        //    using (HttpClient client = new HttpClient())
+        //    {
+        //        using (var response = await client.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead))
+        //        {
+        //            if (!response.IsSuccessStatusCode)
+        //            {
+        //                uri = null;
+        //            }
+        //        }
+        //    }
 
-            return uri;
-        }
+        //    return uri;
+        //}
     }
 }

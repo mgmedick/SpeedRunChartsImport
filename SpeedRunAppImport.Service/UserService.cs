@@ -106,6 +106,8 @@ namespace SpeedRunAppImport.Service
 
         public void SaveUsers(IEnumerable<User> users, bool isBulkReload)
         {
+            _logger.Information("Started SaveUsers: {@Count}, {@IsBulkReload}", users.Count(), isBulkReload);
+
             var maxBatchCount = 2000;
             var batchCount = 0;
 
@@ -154,6 +156,8 @@ namespace SpeedRunAppImport.Service
             {
                 _userRepo.SaveUsers(userEntities, userLocationEntities, userLinkEntities);
             }
+
+            _logger.Information("Completed SaveUsers");
         }
     }
 }

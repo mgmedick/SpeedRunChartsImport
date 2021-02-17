@@ -470,8 +470,12 @@ namespace SpeedRunAppImport.Repository
 
             using (IDatabase db = DBFactory.GetDatabase())
             {
-                db.OneTimeCommandTimeout = 32767;
-                db.Execute("EXEC dbo.ImportRenameFullTables");
+                using (var tran = db.GetTransaction())
+                {
+                    db.OneTimeCommandTimeout = 32767;
+                    db.Execute("EXEC dbo.ImportRenameFullTables");
+                    tran.Complete();
+                }
             }
 
             _logger.Information("Completed RenameFullTables");

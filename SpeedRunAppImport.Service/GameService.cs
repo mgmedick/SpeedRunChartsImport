@@ -116,69 +116,18 @@ namespace SpeedRunAppImport.Service
         {
             _logger.Information("Started SaveGames: {@Count}, {@IsBulkReload}", games.Count(), isBulkReload);
 
-            var maxBatchCount = 2000;
-            var batchCount = 0;
-            
             var gameIDs = games.Select(i => i.ID).ToList();
-            var gameSpeedRunComIDs = new List<GameSpeedRunComIDEntity>();
-            batchCount = 0;
-            while (batchCount < gameIDs.Count())
-            {
-                var gameIDsBatch = gameIDs.Skip(batchCount).Take(maxBatchCount).ToList();
-                gameSpeedRunComIDs.AddRange(_gameRepo.GetGameSpeedRunComIDs(i => gameIDsBatch.Contains(i.SpeedRunComID)));
-                batchCount += maxBatchCount;
-            }
-            
+            var gameSpeedRunComIDs = _gameRepo.GetGameSpeedRunComIDs().Where(i => gameIDs.Contains(i.SpeedRunComID)).ToList();
             var userIDs = games.SelectMany(i => i.Moderators.Select(i => i.UserID)).Distinct().ToList();
-            var userSpeedRunComIDs = new List<UserSpeedRunComIDEntity>();
-            batchCount = 0;
-            while (batchCount < userIDs.Count())
-            {
-                var userIDsBatch = userIDs.Skip(batchCount).Take(maxBatchCount).ToList();
-                userSpeedRunComIDs.AddRange(_userRepo.GetUserSpeedRunComIDs(i => userIDsBatch.Contains(i.SpeedRunComID)));
-                batchCount += maxBatchCount;
-            }
-
+            var userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs().Where(i => userIDs.Contains(i.SpeedRunComID)).ToList();
             var levelIDs = games.SelectMany(i => i.Levels.Select(i => i.ID)).Distinct().ToList();
-            var levelSpeedRunComIDs = new List<LevelSpeedRunComIDEntity>();
-            batchCount = 0;
-            while (batchCount < levelIDs.Count())
-            {
-                var levelIDsBatch = levelIDs.Skip(batchCount).Take(maxBatchCount).ToList();
-                levelSpeedRunComIDs.AddRange(_gameRepo.GetLevelSpeedRunComIDs(i => levelIDsBatch.Contains(i.SpeedRunComID)));
-                batchCount += maxBatchCount;
-            }
-
+            var levelSpeedRunComIDs = _gameRepo.GetLevelSpeedRunComIDs().Where(i => levelIDs.Contains(i.SpeedRunComID)).ToList();
             var categoryIDs = games.SelectMany(i => i.Categories.Select(i => i.ID)).Distinct().ToList();
-            var categorySpeedRunComIDs = new List<CategorySpeedRunComIDEntity>();
-            batchCount = 0;
-            while (batchCount < categoryIDs.Count())
-            {
-                var categoryIDsBatch = categoryIDs.Skip(batchCount).Take(maxBatchCount).ToList();
-                categorySpeedRunComIDs.AddRange(_gameRepo.GetCategorySpeedRunComIDs(i => categoryIDsBatch.Contains(i.SpeedRunComID)));
-                batchCount += maxBatchCount;
-            }
-
+            var categorySpeedRunComIDs = _gameRepo.GetCategorySpeedRunComIDs().Where(i => categoryIDs.Contains(i.SpeedRunComID)).ToList();
             var variableIDs = games.SelectMany(i => i.Variables.Select(i => i.ID)).Distinct().ToList();
-            var variableSpeedRunComIDs = new List<VariableSpeedRunComIDEntity>();
-            batchCount = 0;
-            while (batchCount < variableIDs.Count())
-            {
-                var variableIDsBatch = variableIDs.Skip(batchCount).Take(maxBatchCount).ToList();
-                variableSpeedRunComIDs.AddRange(_gameRepo.GetVaraibleSpeedRunComIDs(i => variableIDsBatch.Contains(i.SpeedRunComID)));
-                batchCount += maxBatchCount;
-            }
-
+            var variableSpeedRunComIDs = _gameRepo.GetVaraibleSpeedRunComIDs().Where(i => variableIDs.Contains(i.SpeedRunComID)).ToList();
             var variableValueIDs = games.SelectMany(i => i.Variables.SelectMany(g => g.Values.Select(h => h.ID))).Distinct().ToList();
-            var variableValueSpeedRunComIDs = new List<VariableValueSpeedRunComIDEntity>();
-            batchCount = 0;
-            while (batchCount < variableValueIDs.Count())
-            {
-                var variableValueIDsBatch = variableValueIDs.Skip(batchCount).Take(maxBatchCount).ToList();
-                variableValueSpeedRunComIDs.AddRange(_gameRepo.GetVariableValueSpeedRunComIDs(i => variableValueIDsBatch.Contains(i.SpeedRunComID)));
-                batchCount += maxBatchCount;
-            }
-
+            var variableValueSpeedRunComIDs = _gameRepo.GetVariableValueSpeedRunComIDs().Where(i => variableValueIDs.Contains(i.SpeedRunComID)).ToList();
             var platformIDs = games.SelectMany(i => i.PlatformIDs).Distinct().ToList();
             var platformSpeedRunComIDs = _platformRepo.GetPlatformSpeedRunComIDs(i => platformIDs.Contains(i.SpeedRunComID)).ToList();
             var regionIDs = games.SelectMany(i => i.RegionIDs).Distinct().ToList();

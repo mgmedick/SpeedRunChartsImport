@@ -132,6 +132,7 @@ namespace SpeedRunAppImport.Repository
         {
             using (IDatabase db = DBFactory.GetDatabase())
             {
+                db.OneTimeCommandTimeout = 32767;
                 return db.Query<PlatformSpeedRunComIDEntity>().Where(predicate ?? (x => true)).ToList();
             }
         }

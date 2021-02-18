@@ -862,6 +862,7 @@ namespace SpeedRunAppImport.Repository
         {
             using (IDatabase db = DBFactory.GetDatabase())
             {
+                db.OneTimeCommandTimeout = 32767;
                 return db.Query<GameSpeedRunComIDEntity>().Where(predicate ?? (x => true)).ToList();
             }
         }
@@ -870,6 +871,7 @@ namespace SpeedRunAppImport.Repository
         {
             using (IDatabase db = DBFactory.GetDatabase())
             {
+                db.OneTimeCommandTimeout = 32767;
                 return db.Query<CategorySpeedRunComIDEntity>().Where(predicate ?? (x => true)).ToList();
             }
         }
@@ -878,6 +880,7 @@ namespace SpeedRunAppImport.Repository
         {
             using (IDatabase db = DBFactory.GetDatabase())
             {
+                db.OneTimeCommandTimeout = 32767;
                 return db.Query<LevelSpeedRunComIDEntity>().Where(predicate ?? (x => true)).ToList();
             }
         }
@@ -886,6 +889,7 @@ namespace SpeedRunAppImport.Repository
         {
             using (IDatabase db = DBFactory.GetDatabase())
             {
+                db.OneTimeCommandTimeout = 32767;
                 return db.Query<VariableSpeedRunComIDEntity>().Where(predicate ?? (x => true)).ToList();
             }
         }
@@ -894,6 +898,7 @@ namespace SpeedRunAppImport.Repository
         {
             using (IDatabase db = DBFactory.GetDatabase())
             {
+                db.OneTimeCommandTimeout = 32767;
                 return db.Query<VariableValueSpeedRunComIDEntity>().Where(predicate ?? (x => true)).ToList();
             }
         }
@@ -902,6 +907,7 @@ namespace SpeedRunAppImport.Repository
         {
             using (IDatabase db = DBFactory.GetDatabase())
             {
+                db.OneTimeCommandTimeout = 32767;
                 return db.Query<RegionSpeedRunComIDEntity>().Where(predicate ?? (x => true)).ToList();
             }
         }

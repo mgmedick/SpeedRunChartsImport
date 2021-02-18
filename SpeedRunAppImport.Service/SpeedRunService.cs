@@ -256,7 +256,7 @@ namespace SpeedRunAppImport.Service
             var variableSpeedRunComIDs = _gameRepo.GetVaraibleSpeedRunComIDs().Where(i => variableIDs.Contains(i.SpeedRunComID)).ToList();
             var variableValueIDs = runs.SelectMany(i => i.VariableValueMappings.Select(g => g.VariableValueID)).Distinct().ToList();
             var variableValueSpeedRunComIDs = _gameRepo.GetVariableValueSpeedRunComIDs().Where(i => variableValueIDs.Contains(i.SpeedRunComID)).ToList();
-            var userIDs = runs.SelectMany(i => i.Players.Select(i => i.UserID)).Distinct().ToList();
+            var userIDs = runs.SelectMany(i => i.Players.Where(i => !string.IsNullOrWhiteSpace(i.UserID)).Select(i => i.UserID)).Distinct().ToList();
             var userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs().Where(i => userIDs.Contains(i.SpeedRunComID)).ToList();
             var regionIDs = runs.Select(i => i.System.RegionID).Distinct().ToList();
             var regionSpeedRunComIDs = _gameRepo.GetRegionSpeedRunComIDs(i => regionIDs.Contains(i.SpeedRunComID)).ToList();

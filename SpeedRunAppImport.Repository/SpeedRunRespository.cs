@@ -448,6 +448,7 @@ namespace SpeedRunAppImport.Repository
         {
             using (IDatabase db = DBFactory.GetDatabase())
             {
+                db.OneTimeCommandTimeout = 32767;
                 return db.Query<SpeedRunSpeedRunComIDEntity>().Where(predicate ?? (x => true)).ToList();
             }
         }
@@ -458,7 +459,11 @@ namespace SpeedRunAppImport.Repository
 
             using (IDatabase db = DBFactory.GetDatabase())
             {
-                db.Execute("EXEC dbo.ImportCreateFullTables");
+                using (var tran = db.GetTransaction())
+                {
+                    db.Execute("EXEC dbo.ImportCreateFullTables");
+                    tran.Complete();
+                }
             }
 
             _logger.Information("Completed CreateFullTables");

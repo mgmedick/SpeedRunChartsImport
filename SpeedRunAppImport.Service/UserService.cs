@@ -108,18 +108,8 @@ namespace SpeedRunAppImport.Service
         {
             _logger.Information("Started SaveUsers: {@Count}, {@IsBulkReload}", users.Count(), isBulkReload);
 
-            var maxBatchCount = 2000;
-            var batchCount = 0;
-
             var userIDs = users.Select(i => i.ID).ToList();
-            var userSpeedRunComIDs = new List<UserSpeedRunComIDEntity>();
-            batchCount = 0;
-            while (batchCount < userIDs.Count())
-            {
-                var userIDsBatch = userIDs.Skip(batchCount).Take(maxBatchCount).ToList();
-                userSpeedRunComIDs.AddRange(_userRepo.GetUserSpeedRunComIDs(i => userIDsBatch.Contains(i.SpeedRunComID)));
-                batchCount += maxBatchCount;
-            }
+            var userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs().Where(i => userIDs.Contains(i.SpeedRunComID)).ToList();
 
             var userEntities = users.Select(i => new UserEntity {
                 ID = userSpeedRunComIDs.Where(g => g.SpeedRunComID == i.ID).Select(g => g.UserID).FirstOrDefault(),

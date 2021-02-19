@@ -36,8 +36,10 @@ namespace SpeedRunAppImport.Service
             _logger = logger;
         }
 
-        public void ProcessSpeedRuns(DateTime lastImportDate, bool isFullImport, bool isBulkReload, bool isProcessSpeedRunsByGame)
+        public bool ProcessSpeedRuns(DateTime lastImportDate, bool isFullImport, bool isBulkReload, bool isProcessSpeedRunsByGame)
         {
+            bool result = true;
+
             try
             {
                 var lastImportDateUtc = lastImportDate.ToUniversalTime();
@@ -64,8 +66,11 @@ namespace SpeedRunAppImport.Service
             }
             catch (Exception ex)
             {
+                result = false;
                 _logger.Error(ex, "ProcessSpeedRuns");
             }
+
+            return result;
         }
 
         public void ProcessSpeedRunsDefault(DateTime lastImportDateUtc, bool isFullImport, bool isBulkReload)
@@ -258,10 +263,9 @@ namespace SpeedRunAppImport.Service
             var variableValueSpeedRunComIDs = _gameRepo.GetVariableValueSpeedRunComIDs().Where(i => variableValueIDs.Contains(i.SpeedRunComID)).ToList();
             var userIDs = runs.SelectMany(i => i.Players.Where(i => !string.IsNullOrWhiteSpace(i.UserID)).Select(i => i.UserID)).Distinct().ToList();
             var userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs().Where(i => userIDs.Contains(i.SpeedRunComID)).ToList();
-            var regionIDs = runs.Select(i => i.System.RegionID).Distinct().ToList();
+            var regionIDs = runs.Where(i => !string.IsNullOrWhiteSpace(i.System.RegionID)).Select(i => i.System.RegionID).Distinct().ToList();
             var regionSpeedRunComIDs = _gameRepo.GetRegionSpeedRunComIDs(i => regionIDs.Contains(i.SpeedRunComID)).ToList();
-
-            var platformIDs = runs.Select(i => i.System.PlatformID).Distinct().ToList();
+            var platformIDs = runs.Where(i => !string.IsNullOrWhiteSpace(i.System.PlatformID)).Select(i => i.System.PlatformID).Distinct().ToList();
             var platformSpeedRunComIDs = _platformRepo.GetPlatformSpeedRunComIDs(i => platformIDs.Contains(i.SpeedRunComID)).ToList();
 
             var runEntities = runs.Select(i => new SpeedRunEntity()

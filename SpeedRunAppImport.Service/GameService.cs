@@ -33,8 +33,10 @@ namespace SpeedRunAppImport.Service
             _logger = logger;
         }
 
-        public void ProcessGames(DateTime lastImportDate, bool isFullImport, bool isBulkReload)
+        public bool ProcessGames(DateTime lastImportDate, bool isFullImport, bool isBulkReload)
         {
+            bool result = true;
+
             try
             {
                 var lastImportDateUtc = lastImportDate.ToUniversalTime();
@@ -81,8 +83,11 @@ namespace SpeedRunAppImport.Service
             }
             catch (Exception ex)
             {
+                result = false;
                 _logger.Error(ex, "ProcessGames");
             }
+
+            return result;
         }
 
         public List<Game> GetGamesWithRetry(int elementsPerPage, int elementsOffset, GameEmbeds embeds, GamesOrdering orderBy, int retryCount = 0)

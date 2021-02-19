@@ -9,7 +9,7 @@ namespace SpeedRunAppImport.Interfaces.Services
 {
     public interface ISpeedRunService
     {
-        void ProcessSpeedRuns(DateTime lastImportDate, bool isFullImport, bool isBulkReload, bool isProcessSpeedRunsByGame);
+        bool ProcessSpeedRuns(DateTime lastImportDate, bool isFullImport, bool isBulkReload, bool isProcessSpeedRunsByGame);
         void ProcessSpeedRunsDefault(DateTime lastImportDateUtc, bool isFullImport, bool isBulkReload);
         void ProcessSpeedRunsByGameFullImport(bool isBulkReload);
         void ProcessSpeedRunsByScreenScrape();

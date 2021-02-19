@@ -148,14 +148,14 @@ namespace SpeedRunAppImport
                 result = _speedRunRepo.RenameFullTables();
             }
 
+            if (result && Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Game) || Processes.Contains(ImportProcess.SpeedRun))
+            {
+                var lastImportDate = GameLastImportDate > SpeedRunLastImportDate ? GameLastImportDate : SpeedRunLastImportDate;
+                result = _speedRunRepo.UpdateSpeedRunRanks(lastImportDate);
+            }
+
             if (result)
             {
-                if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Game) || Processes.Contains(ImportProcess.SpeedRun))
-                {
-                    var lastImportDate = GameLastImportDate > SpeedRunLastImportDate ? GameLastImportDate : SpeedRunLastImportDate;
-                    _speedRunRepo.UpdateSpeedRunRanks(lastImportDate);
-                }
-
                 _speedRunRepo.RebuildIndexes();
             }
         }

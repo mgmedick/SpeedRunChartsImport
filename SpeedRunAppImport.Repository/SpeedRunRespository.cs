@@ -473,6 +473,7 @@ namespace SpeedRunAppImport.Repository
             catch (Exception ex)
             {
                 result = false;
+                _logger.Error(ex, "CreateFullTables");
             }
 
             return result;
@@ -498,37 +499,57 @@ namespace SpeedRunAppImport.Repository
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, "ProcessGames");
                 result = false;
+                _logger.Error(ex, "RenameFullTables");
             }
 
             return result;
         }
 
-        public void RebuildIndexes()
+        public bool UpdateSpeedRunRanks(DateTime lastImportDate)
         {
-            _logger.Information("Started RebuildIndexes");
+            bool result = true;
 
-            using (IDatabase db = DBFactory.GetDatabase())
+            try
             {
-                db.OneTimeCommandTimeout = 32767;
-                db.Execute("EXEC ImportRebuildIndexes");
+                _logger.Information("Started UpdateSpeedRunRanks {@LastImportDate}", lastImportDate);
+                using (IDatabase db = DBFactory.GetDatabase())
+                {
+                    db.OneTimeCommandTimeout = 32767;
+                    db.Execute("EXEC dbo.UpdateSpeedRunRanks @0", lastImportDate);
+                }
+                _logger.Information("Completed UpdateSpeedRunRanks");
+            }
+            catch (Exception ex)
+            {
+                result = false;
+                _logger.Error(ex, "UpdateSpeedRunRanks");
             }
 
-            _logger.Information("Completed RebuildIndexes");
+            return result;
         }
 
-        public void UpdateSpeedRunRanks(DateTime lastImportDate)
+        public bool RebuildIndexes()
         {
-            _logger.Information("Started UpdateSpeedRunRanks {@LastImportDate}", lastImportDate);
+            bool result = true;
 
-            using (IDatabase db = DBFactory.GetDatabase())
+            try
             {
-                db.OneTimeCommandTimeout = 32767;
-                db.Execute("EXEC dbo.UpdateSpeedRunRanks @0", lastImportDate);
+                _logger.Information("Started RebuildIndexes");
+                using (IDatabase db = DBFactory.GetDatabase())
+                {
+                    db.OneTimeCommandTimeout = 32767;
+                    db.Execute("EXEC ImportRebuildIndexes");
+                }
+                _logger.Information("Completed RebuildIndexes");
+            }
+            catch (Exception ex)
+            {
+                result = false;
+                _logger.Error(ex, "RebuildIndexes");
             }
 
-            _logger.Information("Completed UpdateSpeedRunRanks");
+            return result;
         }
     }
 }

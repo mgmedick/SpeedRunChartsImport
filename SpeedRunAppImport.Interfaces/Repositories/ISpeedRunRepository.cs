@@ -16,8 +16,8 @@ namespace SpeedRunAppImport.Interfaces.Repositories
         IEnumerable<SpeedRunSpeedRunComIDEntity> GetSpeedRunSpeedRunComIDs(Expression<Func<SpeedRunSpeedRunComIDEntity, bool>> predicate = null);
         bool CreateFullTables();
         bool RenameFullTables();
-        void RebuildIndexes();
-        void UpdateSpeedRunRanks(DateTime lastImportDate);
+        bool UpdateSpeedRunRanks(DateTime lastImportDate);
+        bool RebuildIndexes();
     }
 }
 

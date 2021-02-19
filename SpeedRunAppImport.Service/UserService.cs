@@ -28,8 +28,10 @@ namespace SpeedRunAppImport.Service
             _logger = logger;
         }
 
-        public void ProcessUsers(DateTime lastImportDate, bool isFullImport, bool isBulkReload)
+        public bool ProcessUsers(DateTime lastImportDate, bool isFullImport, bool isBulkReload)
         {
+            bool result = true;
+
             try
             {
                 var lastImportDateUtc = lastImportDate.ToUniversalTime();
@@ -74,8 +76,11 @@ namespace SpeedRunAppImport.Service
             }
             catch (Exception ex)
             {
+                result = false;
                 _logger.Error(ex, "ProcessUsers");
             }
+
+            return result;
         }
 
         public List<User> GetUsersWithRetry(int elementsPerPage, int elementsOffset, UsersOrdering orderBy, int retryCount = 0)

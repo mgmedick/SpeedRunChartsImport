@@ -116,44 +116,48 @@ namespace SpeedRunAppImport
 
         public void RunProcesses()
         {
-            if (IsBulkReload)
-            {
-                _speedRunRepo.CreateFullTables();
-            }
-
-            if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Platform))
-            {
-                _platformService.ProcessPlatforms(IsBulkReload);
-            }
-
-            if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.User))
-            {
-                _userService.ProcessUsers(UserLastImportDate, IsFullImport, IsBulkReload);
-            }
-
-            if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Game))
-            {
-                _gameService.ProcessGames(GameLastImportDate, IsFullImport, IsBulkReload);
-            }
-
-            if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.SpeedRun))
-            {
-                _speedRunService.ProcessSpeedRuns(SpeedRunLastImportDate, IsFullImport, IsBulkReload, IsProcessSpeedRunsByGame);
-            }
+            bool result = true;
 
             if (IsBulkReload)
             {
-                _speedRunRepo.RenameFullTables();
+                result = _speedRunRepo.CreateFullTables();
             }
 
-            if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Game) || Processes.Contains(ImportProcess.SpeedRun))
+            if (result && (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Platform)))
             {
-                var lastImportDate = GameLastImportDate > SpeedRunLastImportDate ? GameLastImportDate : SpeedRunLastImportDate;
-
-                _speedRunRepo.UpdateSpeedRunRanks(lastImportDate);
+                result = _platformService.ProcessPlatforms(IsBulkReload);
             }
 
-            _speedRunRepo.RebuildIndexes();
+            if (result && (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.User)))
+            {
+                result = _userService.ProcessUsers(UserLastImportDate, IsFullImport, IsBulkReload);
+            }
+
+            if (result && (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Game)))
+            {
+                result = _gameService.ProcessGames(GameLastImportDate, IsFullImport, IsBulkReload);
+            }
+
+            if (result && Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.SpeedRun))
+            {
+                result = _speedRunService.ProcessSpeedRuns(SpeedRunLastImportDate, IsFullImport, IsBulkReload, IsProcessSpeedRunsByGame);
+            }
+
+            if (result && IsBulkReload)
+            {
+                result = _speedRunRepo.RenameFullTables();
+            }
+
+            if (result)
+            {
+                if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Game) || Processes.Contains(ImportProcess.SpeedRun))
+                {
+                    var lastImportDate = GameLastImportDate > SpeedRunLastImportDate ? GameLastImportDate : SpeedRunLastImportDate;
+                    _speedRunRepo.UpdateSpeedRunRanks(lastImportDate);
+                }
+
+                _speedRunRepo.RebuildIndexes();
+            }
         }
 
         public DateTime PlatformLastImportDate { get; set; }

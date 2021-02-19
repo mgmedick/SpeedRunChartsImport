@@ -26,8 +26,10 @@ namespace SpeedRunAppImport.Service
             _logger = logger;
         }
 
-        public void ProcessPlatforms(bool isBulkReload)
+        public bool ProcessPlatforms(bool isBulkReload)
         {
+            bool result = true;
+
             try
             {
                 _logger.Information("Started ProcessPlatforms: {@IsBulkReload}", isBulkReload);
@@ -65,8 +67,11 @@ namespace SpeedRunAppImport.Service
             }
             catch (Exception ex)
             {
+                result = false;
                 _logger.Error(ex, "ProcessPlatforms");
             }
+
+            return result;
         }
 
         public List<Platform> GetPlatformsWithRetry(int elementsPerPage, int elementsOffset, PlatformsOrdering orderBy, int retryCount = 0)

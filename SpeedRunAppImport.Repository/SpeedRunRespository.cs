@@ -453,33 +453,56 @@ namespace SpeedRunAppImport.Repository
             }
         }
 
-        public void CreateFullTables()
+        public bool CreateFullTables()
         {
-            _logger.Information("Started CreateFullTables");
+            bool result = true;
 
-            using (IDatabase db = DBFactory.GetDatabase())
+            try
             {
-                using (var tran = db.GetTransaction())
+                _logger.Information("Started CreateFullTables");
+                using (IDatabase db = DBFactory.GetDatabase())
                 {
-                    db.Execute("EXEC dbo.ImportCreateFullTables");
-                    tran.Complete();
+                    using (var tran = db.GetTransaction())
+                    {
+                        db.Execute("EXEC dbo.ImportCreateFullTables");
+                        tran.Complete();
+                    }
                 }
+                _logger.Information("Completed CreateFullTables");
+            }
+            catch (Exception ex)
+            {
+                result = false;
             }
 
-            _logger.Information("Completed CreateFullTables");
+            return result;
         }
 
-        public void RenameFullTables()
+        public bool RenameFullTables()
         {
-            _logger.Information("Started RenameFullTables");
+            bool result = true;
 
-            using (IDatabase db = DBFactory.GetDatabase())
+            try
             {
-                db.OneTimeCommandTimeout = 32767;
-                db.Execute("EXEC dbo.ImportRenameFullTables");
+                _logger.Information("Started RenameFullTables");
+                using (IDatabase db = DBFactory.GetDatabase())
+                {
+                    using (var tran = db.GetTransaction())
+                    {
+                        db.OneTimeCommandTimeout = 32767;
+                        db.Execute("EXEC dbo.ImportRenameFullTables");
+                        tran.Complete();
+                    }
+                }
+                _logger.Information("Completed RenameFullTables");
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "ProcessGames");
+                result = false;
             }
 
-            _logger.Information("Completed RenameFullTables");
+            return result;
         }
 
         public void RebuildIndexes()

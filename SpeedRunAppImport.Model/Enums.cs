@@ -227,7 +227,6 @@ namespace SpeedRunAppImport.Model
         Platform = 1,
         Game = 2,
         User = 3,
-        SpeedRun = 4,
-        Leaderboard = 5
+        SpeedRun = 4
     }
 }

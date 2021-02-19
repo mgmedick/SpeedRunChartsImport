@@ -71,7 +71,7 @@ namespace SpeedRunAppImport
                 Processes = _config.GetValue<string>("ProcessIDs").Split(",").Select(i => (ImportProcess)Convert.ToInt32(i)).ToList();
                 if (IsBulkReload)
                 {
-                    Processes.Add(ImportProcess.All);
+                    //Processes.Add(ImportProcess.All);
                     IsFullImport = true;
                 }
 

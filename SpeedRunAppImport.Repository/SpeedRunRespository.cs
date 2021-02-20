@@ -516,7 +516,7 @@ namespace SpeedRunAppImport.Repository
                 using (IDatabase db = DBFactory.GetDatabase())
                 {
                     db.OneTimeCommandTimeout = 32767;
-                    db.Execute("EXEC dbo.UpdateSpeedRunRanks @0", lastImportDate);
+                    db.Execute("EXEC dbo.ImportUpdateSpeedRunRanks @0", lastImportDate);
                 }
                 _logger.Information("Completed UpdateSpeedRunRanks");
             }

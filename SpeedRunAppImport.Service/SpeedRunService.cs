@@ -249,6 +249,7 @@ namespace SpeedRunAppImport.Service
         {
             _logger.Information("Started SaveSpeedRuns: {@Count}, {@IsBulkReload}", runs.Count(), isBulkReload);
 
+            runs = runs.GroupBy(i => i.ID).Select(i => i.FirstOrDefault()).ToList();
             var runIDs = runs.Select(i => i.ID).ToList();
             var speedRunSpeedRunComIDs = _speedRunRepo.GetSpeedRunSpeedRunComIDs().Where(i => runIDs.Contains(i.SpeedRunComID)).ToList();
             var gameIDs = runs.Select(i => i.GameID).Distinct().ToList();

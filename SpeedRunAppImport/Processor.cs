@@ -138,7 +138,7 @@ namespace SpeedRunAppImport
                 result = _gameService.ProcessGames(GameLastImportDate, IsFullImport, IsBulkReload);
             }
 
-            if (result && Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.SpeedRun))
+            if (result && (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.SpeedRun)))
             {
                 result = _speedRunService.ProcessSpeedRuns(SpeedRunLastImportDate, IsFullImport, IsBulkReload, IsProcessSpeedRunsByGame);
             }
@@ -148,7 +148,7 @@ namespace SpeedRunAppImport
                 result = _speedRunRepo.RenameFullTables();
             }
 
-            if (result && Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Game) || Processes.Contains(ImportProcess.SpeedRun))
+            if (result && (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Game) || Processes.Contains(ImportProcess.SpeedRun)))
             {
                 var lastImportDate = GameLastImportDate > SpeedRunLastImportDate ? GameLastImportDate : SpeedRunLastImportDate;
                 result = _speedRunRepo.UpdateSpeedRunRanks(lastImportDate);

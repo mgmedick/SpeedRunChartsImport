@@ -43,6 +43,7 @@ namespace SpeedRunAppImport.Service
             try
             {
                 var lastImportDateUtc = lastImportDate.ToUniversalTime();
+                var updatedLastImportDate = DateTime.Now;
                 _logger.Information("Started ProcessSpeedRuns: {@LastImportDate}, {@LastImportDateUtc}, {@IsFullImport}", lastImportDate, lastImportDateUtc, isFullImport);
 
                 if (isProcessSpeedRunsByGame)
@@ -61,7 +62,12 @@ namespace SpeedRunAppImport.Service
                     ProcessSpeedRunsDefault(lastImportDateUtc, isFullImport, isBulkReload);
                 }
 
-                _settingService.UpdateSetting("SpeedRunLastImportDate", DateTime.Now);
+                if (isFullImport)
+                {
+                    updatedLastImportDate = DateTime.Now;
+                }
+
+                _settingService.UpdateSetting("SpeedRunLastImportDate", updatedLastImportDate);
                 _logger.Information("Completed ProcessSpeedRuns");
             }
             catch (Exception ex)

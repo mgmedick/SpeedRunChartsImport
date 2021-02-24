@@ -28,20 +28,18 @@ namespace SpeedRunAppImport.Service
             _logger = logger;
         }
 
-        public bool ProcessUsers(DateTime lastImportDate, bool isFullImport, bool isBulkReload)
+        public bool ProcessUsers(DateTime lastImportDateUtc, bool isFullImport, bool isBulkReload)
         {
             bool result = true;
 
             try
             {
-                var lastImportDateUtc = lastImportDate.ToUniversalTime();
-                _logger.Information("Started ProcessUsers: {@LastImportDate}, {@LastImportDateUtc}, {@IsFullImport}, {@IsBulkReload}", lastImportDate, lastImportDateUtc, isFullImport, isBulkReload);
-
+                _logger.Information("Started ProcessUsers: {@LastImportDate}, {@LastImportDateUtc}, {@IsFullImport}, {@IsBulkReload}", lastImportDateUtc.ToLocalTime(), lastImportDateUtc, isFullImport, isBulkReload);
                 UsersOrdering orderBy = isFullImport ? UsersOrdering.SignUpDate : UsersOrdering.SignUpDateDescending;
                 var results = new List<User>();
                 var users = new List<User>();
                 var prevTotal = 0;
-                var updatedLastImportDate = DateTime.Now;
+                var updatedLastImportDateUtc = DateTime.UtcNow;
 
                 do
                 {
@@ -59,11 +57,11 @@ namespace SpeedRunAppImport.Service
                         results.ClearMemory();
                     }
                 }
-                while (users.Count == MaxElementsPerPage && users.Min(i => i.SignUpDate ?? SqlMinDateTimeUtc) >= lastImportDateUtc);
+                while (users.Count == MaxElementsPerPage && users.Min(i => i.SignUpDate ?? SqlMinDateTime) >= lastImportDateUtc);
 
                 if (!isFullImport)
                 {
-                    results.RemoveAll(i => (i.SignUpDate ?? SqlMinDateTimeUtc) < lastImportDateUtc);
+                    results.RemoveAll(i => (i.SignUpDate ?? SqlMinDateTime) < lastImportDateUtc);
                 }
 
                 if (results.Any())
@@ -74,10 +72,10 @@ namespace SpeedRunAppImport.Service
 
                 if (isFullImport)
                 {
-                    updatedLastImportDate = DateTime.Now;
+                    updatedLastImportDateUtc = DateTime.UtcNow;
                 }
 
-                _settingService.UpdateSetting("UserLastImportDate", updatedLastImportDate);
+                _settingService.UpdateSetting("UserLastImportDate", updatedLastImportDateUtc);
                 _logger.Information("Completed ProcessUsers");
             }
             catch (Exception ex)

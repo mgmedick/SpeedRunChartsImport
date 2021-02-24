@@ -379,7 +379,7 @@ namespace SpeedRunAppImport.Repository
                     {
                         if (speedRun.ID != 0)
                         {
-                            speedRun.ModifiedDate = DateTime.Now;
+                            speedRun.ModifiedDate = DateTime.UtcNow;
                             db.DeleteWhere<SpeedRunSpeedRunComIDEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
                             db.DeleteWhere<SpeedRunLinkEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
                             db.DeleteWhere<SpeedRunStatusEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
@@ -506,17 +506,17 @@ namespace SpeedRunAppImport.Repository
             return result;
         }
 
-        public bool UpdateSpeedRunRanks(DateTime lastImportDate)
+        public bool UpdateSpeedRunRanks(DateTime lastImportDateUtc)
         {
             bool result = true;
 
             try
             {
-                _logger.Information("Started UpdateSpeedRunRanks {@LastImportDate}", lastImportDate);
+                _logger.Information("Started UpdateSpeedRunRanks {@LastImportDate}", lastImportDateUtc);
                 using (IDatabase db = DBFactory.GetDatabase())
                 {
                     db.OneTimeCommandTimeout = 32767;
-                    db.Execute("EXEC dbo.ImportUpdateSpeedRunRanks @0", lastImportDate);
+                    db.Execute("EXEC dbo.ImportUpdateSpeedRunRanks @0", lastImportDateUtc);
                 }
                 _logger.Information("Completed UpdateSpeedRunRanks");
             }

@@ -33,26 +33,23 @@ namespace SpeedRunAppImport.Service
             _logger = logger;
         }
 
-        public bool ProcessGames(DateTime lastImportDate, bool isFullImport, bool isBulkReload)
+        public bool ProcessGames(DateTime lastImportDateUtc, bool isFullImport, bool isBulkReload)
         {
             bool result = true;
 
             try
             {
-                var lastImportDateUtc = lastImportDate.ToUniversalTime();
-                _logger.Information("Started ProcessGames: {@LastImportDate}, {@LastImportDateUtc}, {@IsFullImport}, {@IsBulkReload}", lastImportDate, lastImportDateUtc, isFullImport, isBulkReload);
-
+                _logger.Information("Started ProcessGames: {@LastImportDate}, {@LastImportDateUtc}, {@IsFullImport}, {@IsBulkReload}", lastImportDateUtc.ToLocalTime(), lastImportDateUtc, isFullImport, isBulkReload);
                 GamesOrdering orderBy = isFullImport ? GamesOrdering.CreationDate : GamesOrdering.CreationDateDescending;
                 var gameEmbeds = new GameEmbeds { EmbedCategories = true, EmbedLevels = true, EmbedModerators = false, EmbedPlatforms = false, EmbedVariables = true };
                 var results = new List<Game>();
                 var games = new List<Game>();
                 var prevTotal = 0;
-                var updatedLastImportDate = DateTime.Now;
+                var updatedLastImportDateUtc = DateTime.UtcNow;
 
                 do
                 {
                     games = GetGamesWithRetry(MaxElementsPerPage, results.Count + prevTotal, gameEmbeds, orderBy);
-                    //games = new List<Game> { new ClientContainer().Games.GetGame("268eg076", gameEmbeds) };
                     results.AddRange(games);
                     _logger.Information("Pulled games: {@New}, total games: {@Total}", games.Count, results.Count + prevTotal);
                     Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
@@ -66,11 +63,11 @@ namespace SpeedRunAppImport.Service
                         results.ClearMemory();
                     }
                 }
-                while (games.Count == MaxElementsPerPage && games.Min(i => i.CreationDate ?? SqlMinDateTimeUtc) >= lastImportDateUtc);
+                while (games.Count == MaxElementsPerPage && games.Min(i => i.CreationDate ?? SqlMinDateTime) >= lastImportDateUtc);
 
                 if (!isFullImport)
                 {
-                    results.RemoveAll(i => (i.CreationDate ?? SqlMinDateTimeUtc) < lastImportDateUtc);
+                    results.RemoveAll(i => (i.CreationDate ?? SqlMinDateTime) < lastImportDateUtc);
                 }
 
                 if (results.Any())
@@ -81,10 +78,10 @@ namespace SpeedRunAppImport.Service
 
                 if (isFullImport)
                 {
-                    updatedLastImportDate = DateTime.Now;
+                    updatedLastImportDateUtc = DateTime.UtcNow;
                 }
 
-                _settingService.UpdateSetting("GameLastImportDate", updatedLastImportDate);
+                _settingService.UpdateSetting("GameLastImportDate", updatedLastImportDateUtc);
                 _logger.Information("Completed ProcessGames");
             }
             catch (Exception ex)

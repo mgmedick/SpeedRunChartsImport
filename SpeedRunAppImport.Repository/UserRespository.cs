@@ -209,7 +209,7 @@ namespace SpeedRunAppImport.Repository
                     {
                         if (user.ID != 0)
                         {
-                            user.ModifiedDate = DateTime.Now;
+                            user.ModifiedDate = DateTime.UtcNow;
                             db.DeleteWhere<UserSpeedRunComIDEntity>("UserID = @userID", new { userID = user.ID });
                             db.DeleteWhere<UserLocationEntity>("UserID = @userID", new { userID = user.ID });
                             db.DeleteWhere<UserLinkEntity>("UserID = @userID", new { userID = user.ID });

@@ -43,7 +43,7 @@ namespace SpeedRunAppImport.Service
             try
             {
                 var lastImportDateUtc = lastImportDate.ToUniversalTime();
-                var updatedLastImportDate = DateTime.Now;
+                var updatedLastImportDateUtc = DateTime.UtcNow;
                 _logger.Information("Started ProcessSpeedRuns: {@LastImportDate}, {@LastImportDateUtc}, {@IsFullImport}", lastImportDate, lastImportDateUtc, isFullImport);
 
                 if (isProcessSpeedRunsByGame)
@@ -64,10 +64,10 @@ namespace SpeedRunAppImport.Service
 
                 if (isFullImport)
                 {
-                    updatedLastImportDate = DateTime.Now;
+                    updatedLastImportDateUtc = DateTime.UtcNow;
                 }
 
-                _settingService.UpdateSetting("SpeedRunLastImportDate", updatedLastImportDate);
+                _settingService.UpdateSetting("SpeedRunLastImportDate", updatedLastImportDateUtc);
                 _logger.Information("Completed ProcessSpeedRuns");
             }
             catch (Exception ex)
@@ -102,11 +102,11 @@ namespace SpeedRunAppImport.Service
                     results.ClearMemory();
                 }
             }
-            while (runs.Count == MaxElementsPerPage && runs.Min(i => i.DateSubmitted ?? SqlMinDateTimeUtc) >= lastImportDateUtc);
+            while (runs.Count == MaxElementsPerPage && runs.Min(i => i.DateSubmitted ?? SqlMinDateTime) >= lastImportDateUtc);
 
             if (!isFullImport)
             {
-                results.RemoveAll(i => (i.DateSubmitted ?? SqlMinDateTimeUtc) < lastImportDateUtc);
+                results.RemoveAll(i => (i.DateSubmitted ?? SqlMinDateTime) < lastImportDateUtc);
             }
 
             if (results.Any())

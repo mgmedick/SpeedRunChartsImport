@@ -719,7 +719,7 @@ namespace SpeedRunAppImport.Repository
                     {
                         if (game.ID != 0)
                         {
-                            game.ModifiedDate = DateTime.Now;
+                            game.ModifiedDate = DateTime.UtcNow;
                             db.DeleteWhere<GameSpeedRunComIDEntity>("GameID = @gameID", new { gameID = game.ID });
                             db.DeleteWhere<VariableValueSpeedRunComIDEntity>("VariableValueID IN (SELECT ID FROM dbo.tbl_VariableValue WITH (NOLOCK) WHERE GameID = @gameID)", new { gameID = game.ID });
                             db.DeleteWhere<VariableSpeedRunComIDEntity>("VariableID IN (SELECT ID FROM dbo.tbl_Variable WITH (NOLOCK) WHERE GameID = @gameID)", new { gameID = game.ID });

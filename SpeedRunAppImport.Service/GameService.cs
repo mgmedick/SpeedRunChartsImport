@@ -45,7 +45,6 @@ namespace SpeedRunAppImport.Service
                 var results = new List<Game>();
                 var games = new List<Game>();
                 var prevTotal = 0;
-                var updatedLastImportDateUtc = DateTime.UtcNow;
 
                 do
                 {
@@ -76,12 +75,7 @@ namespace SpeedRunAppImport.Service
                     results.ClearMemory();
                 }
 
-                if (isFullImport)
-                {
-                    updatedLastImportDateUtc = DateTime.UtcNow;
-                }
-
-                _settingService.UpdateSetting("GameLastImportDate", updatedLastImportDateUtc);
+                _settingService.UpdateSetting("GameLastImportDate", DateTime.UtcNow);
                 _logger.Information("Completed ProcessGames");
             }
             catch (Exception ex)

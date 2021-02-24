@@ -148,7 +148,7 @@ namespace SpeedRunAppImport
 
             if (result && (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Game) || Processes.Contains(ImportProcess.SpeedRun)))
             {
-                var lastImportDateUtc = (GameLastImportDateUtc < SpeedRunLastImportDateUtc ? GameLastImportDateUtc : SpeedRunLastImportDateUtc).ToUniversalTime();
+                var lastImportDateUtc = GameLastImportDateUtc < SpeedRunLastImportDateUtc ? GameLastImportDateUtc : SpeedRunLastImportDateUtc;
                 result = _speedRunRepo.UpdateSpeedRunRanks(lastImportDateUtc);
             }
 

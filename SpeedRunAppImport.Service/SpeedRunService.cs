@@ -36,15 +36,14 @@ namespace SpeedRunAppImport.Service
             _logger = logger;
         }
 
-        public bool ProcessSpeedRuns(DateTime lastImportDate, bool isFullImport, bool isBulkReload, bool isProcessSpeedRunsByGame)
+        public bool ProcessSpeedRuns(DateTime lastImportDateUtc, bool isFullImport, bool isBulkReload, bool isProcessSpeedRunsByGame)
         {
             bool result = true;
 
             try
             {
-                var lastImportDateUtc = lastImportDate.ToUniversalTime();
                 var updatedLastImportDateUtc = DateTime.UtcNow;
-                _logger.Information("Started ProcessSpeedRuns: {@LastImportDate}, {@LastImportDateUtc}, {@IsFullImport}", lastImportDate, lastImportDateUtc, isFullImport);
+                _logger.Information("Started ProcessSpeedRuns: {@LastImportDate}, {@LastImportDateUtc}, {@IsFullImport}", lastImportDateUtc.ToLocalTime(), lastImportDateUtc, isFullImport);
 
                 if (isProcessSpeedRunsByGame)
                 {

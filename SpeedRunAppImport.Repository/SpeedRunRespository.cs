@@ -512,7 +512,7 @@ namespace SpeedRunAppImport.Repository
 
             try
             {
-                _logger.Information("Started UpdateSpeedRunRanks {@LastImportDate}", lastImportDateUtc);
+                _logger.Information("Started UpdateSpeedRunRanks {@LastImportDate}, {@LastImportDateUtc}", lastImportDateUtc.ToLocalTime(), lastImportDateUtc);
                 using (IDatabase db = DBFactory.GetDatabase())
                 {
                     db.OneTimeCommandTimeout = 32767;

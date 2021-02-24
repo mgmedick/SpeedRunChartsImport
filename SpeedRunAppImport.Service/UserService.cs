@@ -39,7 +39,6 @@ namespace SpeedRunAppImport.Service
                 var results = new List<User>();
                 var users = new List<User>();
                 var prevTotal = 0;
-                var updatedLastImportDateUtc = DateTime.UtcNow;
 
                 do
                 {
@@ -70,12 +69,7 @@ namespace SpeedRunAppImport.Service
                     results.ClearMemory();
                 }
 
-                if (isFullImport)
-                {
-                    updatedLastImportDateUtc = DateTime.UtcNow;
-                }
-
-                _settingService.UpdateSetting("UserLastImportDate", updatedLastImportDateUtc);
+                _settingService.UpdateSetting("UserLastImportDate", DateTime.UtcNow);
                 _logger.Information("Completed ProcessUsers");
             }
             catch (Exception ex)

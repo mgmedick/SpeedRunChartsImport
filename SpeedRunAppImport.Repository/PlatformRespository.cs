@@ -128,6 +128,34 @@ namespace SpeedRunAppImport.Repository
             _logger.Information("Completed InsertPlatforms");
         }
 
+        public void SavePlatforms(IEnumerable<PlatformEntity> platforms)
+        {
+            int count = 1;
+            var platformsList = platforms.ToList();
+
+            foreach (var platform in platformsList)
+            {
+                using (IDatabase db = DBFactory.GetDatabase())
+                {
+                    using (var tran = db.GetTransaction())
+                    {
+                        if (platform.ID != 0)
+                        {
+                            db.DeleteWhere<PlatformSpeedRunComIDEntity>("PlatformID = @platformID", new { platformID = platform.ID });
+                        }
+
+                        db.Save<PlatformEntity>(platform);
+
+                        var platformSpeedRunComID = new PlatformSpeedRunComIDEntity { PlatformID = platform.ID, SpeedRunComID = platform.SpeedRunComID };
+                        db.Insert<PlatformSpeedRunComIDEntity>(platformSpeedRunComID);
+                    }
+                }
+
+                _logger.Information("Saved Platforms {@Count} / {@Total}", count, platformsList.Count);
+                count++;
+            }
+        }
+
         public IEnumerable<PlatformSpeedRunComIDEntity> GetPlatformSpeedRunComIDs(Expression<Func<PlatformSpeedRunComIDEntity, bool>> predicate = null)
         {
             using (IDatabase db = DBFactory.GetDatabase())

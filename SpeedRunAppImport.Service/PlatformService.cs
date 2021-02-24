@@ -105,16 +105,20 @@ namespace SpeedRunAppImport.Service
             _logger.Information("Started SavePlatforms: {@Count}, {@IsBulkReload}", platforms.Count(), isBulkReload);
 
             var platformEntities = platforms.Select(i => new PlatformEntity { SpeedRunComID = i.ID, Name = i.Name, YearOfRelease = i.YearOfRelease }).ToList();
-            
-            if (!isBulkReload)
+
+            if (isBulkReload)
+            {
+                _platformRepo.InsertPlatforms(platformEntities);
+            }
+            else
             {
                 var platformSpeedRunComIDs = _platformRepo.GetPlatformSpeedRunComIDs();
                 platformEntities = platformEntities.Where(i => !platformSpeedRunComIDs.Any(g => g.SpeedRunComID == i.SpeedRunComID)).ToList();
-            }
 
-            if (platformEntities.Any())
-            {
-                _platformRepo.InsertPlatforms(platformEntities);
+                if (platformEntities.Any())
+                {
+                    _platformRepo.SavePlatforms(platformEntities);
+                }
             }
 
             _logger.Information("Completed SavePlatforms");

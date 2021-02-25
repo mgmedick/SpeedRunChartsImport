@@ -148,6 +148,8 @@ namespace SpeedRunAppImport.Repository
 
                         var platformSpeedRunComID = new PlatformSpeedRunComIDEntity { PlatformID = platform.ID, SpeedRunComID = platform.SpeedRunComID };
                         db.Insert<PlatformSpeedRunComIDEntity>(platformSpeedRunComID);
+
+                        tran.Complete();
                     }
                 }
 

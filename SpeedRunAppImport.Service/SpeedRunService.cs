@@ -261,8 +261,11 @@ namespace SpeedRunAppImport.Service
             var variableSpeedRunComIDs = _gameRepo.GetVaraibleSpeedRunComIDs().Where(i => variableIDs.Contains(i.SpeedRunComID)).ToList();
             var variableValueIDs = runs.SelectMany(i => i.VariableValueMappings.Select(g => g.VariableValueID)).Distinct().ToList();
             var variableValueSpeedRunComIDs = _gameRepo.GetVariableValueSpeedRunComIDs().Where(i => variableValueIDs.Contains(i.SpeedRunComID)).ToList();
-            var userIDs = runs.SelectMany(i => i.Players.Where(i => !string.IsNullOrWhiteSpace(i.UserID)).Select(i => i.UserID)).Distinct().ToList();
-            var userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs().Where(i => userIDs.Contains(i.SpeedRunComID)).ToList();
+            var playerUserIDs = runs.SelectMany(i => i.Players.Where(i => !string.IsNullOrWhiteSpace(i.UserID)).Select(i => i.UserID)).Distinct().ToList();
+            var examinerUserIDs = runs.Where(i => !string.IsNullOrWhiteSpace(i.Status.ExaminerUserID)).Select(i => i.Status.ExaminerUserID).Distinct().ToList();
+            var userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs();
+            var playerUserSpeedRunComIDs = userSpeedRunComIDs.Where(i => playerUserIDs.Contains(i.SpeedRunComID)).ToList();
+            var examinerUserSpeedRunComIDs = userSpeedRunComIDs.Where(i => examinerUserIDs.Contains(i.SpeedRunComID)).ToList();
             var regionIDs = runs.Where(i => !string.IsNullOrWhiteSpace(i.System.RegionID)).Select(i => i.System.RegionID).Distinct().ToList();
             var regionSpeedRunComIDs = _gameRepo.GetRegionSpeedRunComIDs(i => regionIDs.Contains(i.SpeedRunComID)).ToList();
             var platformIDs = runs.Where(i => !string.IsNullOrWhiteSpace(i.System.PlatformID)).Select(i => i.System.PlatformID).Distinct().ToList();
@@ -290,7 +293,7 @@ namespace SpeedRunAppImport.Service
             {
                 SpeedRunSpeedRunComID = i.ID,
                 StatusTypeID = (int)i.Status.Type,
-                ExaminerUserID = !string.IsNullOrWhiteSpace(i.Status.ExaminerUserID) ? userSpeedRunComIDs.Where(g => g.SpeedRunComID == i.Status.ExaminerUserID).Select(g => g.UserID).FirstOrDefault() : (int?)null,
+                ExaminerUserID = !string.IsNullOrWhiteSpace(i.Status.ExaminerUserID) ? examinerUserSpeedRunComIDs.Where(g => g.SpeedRunComID == i.Status.ExaminerUserID).Select(g => g.UserID).FirstOrDefault() : (int?)null,
                 VerifyDate = i.Status.VerifyDate
             }).Where(i => i.ExaminerUserID != 0)
             .ToList();
@@ -326,7 +329,7 @@ namespace SpeedRunAppImport.Service
             {
                 SpeedRunSpeedRunComID = i.ID,
                 IsUser = g.IsUser,
-                UserID = !string.IsNullOrWhiteSpace(g.UserID) ? userSpeedRunComIDs.Where(h => h.SpeedRunComID == g.UserID).Select(h => h.UserID).FirstOrDefault() : (int?)null,
+                UserID = !string.IsNullOrWhiteSpace(g.UserID) ? playerUserSpeedRunComIDs.Where(h => h.SpeedRunComID == g.UserID).Select(h => h.UserID).FirstOrDefault() : (int?)null,
                 GuestName = g.GuestName
             })).Where(i => i.UserID != 0)
             .ToList();

@@ -8,6 +8,7 @@ namespace SpeedRunAppImport.Model.Entity
     {
         public int ID { get; set; }
         public string SpeedRunComID { get; set; }
+        public int StatusTypeID { get; set; }
         public int GameID { get; set; }
         public int CategoryID { get; set; }
         public int? LevelID { get; set; }
@@ -19,6 +20,7 @@ namespace SpeedRunAppImport.Model.Entity
         //public bool IsEmulated { get; set; }
         public int? Rank { get; set; }
         public long? PrimaryTime { get; set; }
+        public int? ExaminerUserID { get; set; }
         //public long? RealTime { get; set; }
         //public long? RealTimeWithoutLoads { get; set; }
         //public long? GameTime { get; set; }
@@ -29,6 +31,7 @@ namespace SpeedRunAppImport.Model.Entity
         //public string SplitsUrl { get; set; }
         public DateTime? RunDate { get; set; }
         public DateTime? DateSubmitted { get; set; }
+        public DateTime? VerifyDate { get; set; }
         public DateTime ImportedDate { get; set; }
         public DateTime? ModifiedDate { get; set; }
     }

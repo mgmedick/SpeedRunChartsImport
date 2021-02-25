@@ -121,10 +121,6 @@ namespace SpeedRunAppImport.Repository
             {
                 i.Column(g => g.SpeedRunSpeedRunComID).Ignore();
             });
-            For<SpeedRunStatusEntity>().PrimaryKey("SpeedRunID", false).TableName("dbo.tbl_SpeedRun_Status" + tblEnd).Columns(i =>
-            {
-                i.Column(g => g.SpeedRunSpeedRunComID).Ignore();
-            });
             For<SpeedRunSystemEntity>().PrimaryKey("SpeedRunID", false).TableName("dbo.tbl_SpeedRun_System" + tblEnd).Columns(i =>
             {
                 i.Column(g => g.SpeedRunSpeedRunComID).Ignore();

@@ -275,12 +275,15 @@ namespace SpeedRunAppImport.Service
             {
                 ID = speedRunSpeedRunComIDs.Where(g => g.SpeedRunComID == i.ID).Select(g => g.SpeedRunID).FirstOrDefault(),
                 SpeedRunComID = i.ID,
+                StatusTypeID = (int)i.Status.Type,
                 GameID = gameSpeedRunComIDs.Where(g => g.SpeedRunComID == i.GameID).Select(g => g.GameID).FirstOrDefault(),
                 CategoryID = categorySpeedRunComIDs.Where(g => g.SpeedRunComID == i.CategoryID).Select(g => g.CategoryID).FirstOrDefault(),
                 LevelID = !string.IsNullOrWhiteSpace(i.LevelID) ? levelSpeedRunComIDs.Where(g => g.SpeedRunComID == i.LevelID).Select(g => g.LevelID).FirstOrDefault() : (int?)null,
                 PrimaryTime = i.Times.Primary?.Ticks,
+                ExaminerUserID = examinerUserSpeedRunComIDs.Where(g => g.SpeedRunComID == i.Status.ExaminerUserID).Select(g => (int?)g.UserID).FirstOrDefault(),
                 RunDate = i.Date,
-                DateSubmitted = i.DateSubmitted
+                DateSubmitted = i.DateSubmitted,
+                VerifyDate = i.Status.VerifyDate
             }).Where(i => i.GameID != 0 && i.CategoryID != 0 && i.LevelID != 0)
             .ToList();
             var runLinkEntities = runs.Select(i => new SpeedRunLinkEntity()
@@ -289,14 +292,6 @@ namespace SpeedRunAppImport.Service
                 SpeedRunComUrl = i.WebLink.ToString(),
                 SplitsUrl = i.SplitsUri?.ToString()
             }).ToList();
-            var runStatusEntities = runs.Select(i => new SpeedRunStatusEntity()
-            {
-                SpeedRunSpeedRunComID = i.ID,
-                StatusTypeID = (int)i.Status.Type,
-                ExaminerUserID = !string.IsNullOrWhiteSpace(i.Status.ExaminerUserID) ? examinerUserSpeedRunComIDs.Where(g => g.SpeedRunComID == i.Status.ExaminerUserID).Select(g => g.UserID).FirstOrDefault() : (int?)null,
-                VerifyDate = i.Status.VerifyDate
-            }).Where(i => i.ExaminerUserID != 0)
-            .ToList();
             var runSystemEntities = runs.Select(i => new SpeedRunSystemEntity()
             {
                 SpeedRunSpeedRunComID = i.ID,
@@ -343,11 +338,11 @@ namespace SpeedRunAppImport.Service
 
             if (isBulkReload)
             {
-                _speedRunRepo.InsertSpeedRuns(runEntities, runLinkEntities, runStatusEntities, runSystemEntities, runTimeEntities, runCommentEntities, variableValueEntities, playerEntities, videoEntities);
+                _speedRunRepo.InsertSpeedRuns(runEntities, runLinkEntities, runSystemEntities, runTimeEntities, runCommentEntities, variableValueEntities, playerEntities, videoEntities);
             }
             else
             {
-                _speedRunRepo.SaveSpeedRuns(runEntities, runLinkEntities, runStatusEntities, runSystemEntities, runTimeEntities, runCommentEntities, variableValueEntities, playerEntities, videoEntities);
+                _speedRunRepo.SaveSpeedRuns(runEntities, runLinkEntities, runSystemEntities, runTimeEntities, runCommentEntities, variableValueEntities, playerEntities, videoEntities);
             }
 
             _logger.Information("Completed SaveSpeedRuns");

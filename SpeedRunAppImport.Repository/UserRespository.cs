@@ -231,6 +231,8 @@ namespace SpeedRunAppImport.Repository
                             userLink.UserID = user.ID;
                             db.Insert<UserLinkEntity>(userLink);
                         }
+
+                        tran.Complete();
                     }
                 }
 

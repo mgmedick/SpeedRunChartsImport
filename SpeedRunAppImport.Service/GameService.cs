@@ -180,6 +180,7 @@ namespace SpeedRunAppImport.Service
                 ID = variableSpeedRunComIDs.Where(g => g.SpeedRunComID == i.ID).Select(g => g.VariableID).FirstOrDefault(),
                 SpeedRunComID = g.ID,
                 Name = g.Name,
+                VariableScopeTypeID = (int)g.Scope.Type,
                 GameSpeedRunComID = i.ID,
                 CategorySpeedRunComID = g.CategoryID,
                 LevelSpeedRunComID = g.Scope.LevelID,

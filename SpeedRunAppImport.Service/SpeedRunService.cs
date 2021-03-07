@@ -74,7 +74,7 @@ namespace SpeedRunAppImport.Service
 
         public void ProcessSpeedRunsDefault(DateTime lastImportDateUtc, bool isFullImport, bool isBulkReload)
         {
-            RunsOrdering orderBy = isFullImport ? RunsOrdering.DateSubmitted : RunsOrdering.DateSubmittedDescending;
+            RunsOrdering orderBy = isFullImport ? RunsOrdering.VerifyDate : RunsOrdering.VerifyDateDescending;
             var results = new List<SpeedRun>();
             var runs = new List<SpeedRun>();
             var prevTotal = 0;
@@ -95,11 +95,11 @@ namespace SpeedRunAppImport.Service
                     results.ClearMemory();
                 }
             }
-            while (runs.Count == MaxElementsPerPage && runs.Min(i => i.DateSubmitted ?? SqlMinDateTime) >= lastImportDateUtc);
+            while (runs.Count == MaxElementsPerPage && runs.Min(i => i.Status.VerifyDate ?? SqlMinDateTime) >= lastImportDateUtc);
 
             if (!isFullImport)
             {
-                results.RemoveAll(i => (i.DateSubmitted ?? SqlMinDateTime) < lastImportDateUtc);
+                results.RemoveAll(i => (i.Status.VerifyDate ?? SqlMinDateTime) < lastImportDateUtc);
             }
 
             if (results.Any())

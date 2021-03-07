@@ -131,7 +131,7 @@ namespace SpeedRunAppImport.Client
             if (!string.IsNullOrWhiteSpace(runDate))
             {
                 //run.Date = DateTime.Parse(runDate, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal);
-                run.Date = DateTime.Parse(runDate).ToUniversalTime();
+                run.Date = DateTime.Parse(runDate);
             }
 
             if (runElement.submitted != null)

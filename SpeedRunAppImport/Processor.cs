@@ -152,7 +152,7 @@ namespace SpeedRunAppImport
                 result = _speedRunRepo.UpdateSpeedRunRanks(lastImportDateUtc);
             }
 
-            if (result)
+            if (result && IsFullImport)
             {
                 _speedRunRepo.RebuildIndexes();
             }

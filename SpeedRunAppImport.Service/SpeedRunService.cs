@@ -77,7 +77,7 @@ namespace SpeedRunAppImport.Service
             var results = new List<SpeedRun>();
             var runs = new List<SpeedRun>();
             var prevTotal = 0;
-            var laggedLastImportDateUtc = lastImportDateUtc.AddMinutes(-10);
+            var laggedLastImportDateUtc = lastImportDateUtc.AddMinutes(BaseService.PullTimeBackMin);
             var updatedLastImportDateUtc = DateTime.UtcNow;
 
             do

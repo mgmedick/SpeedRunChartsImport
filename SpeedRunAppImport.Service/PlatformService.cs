@@ -57,15 +57,15 @@ namespace SpeedRunAppImport.Service
                 }
                 while (platforms.Count == MaxElementsPerPage);
 
+                if (isFullImport)
+                {
+                    updatedLastImportDateUtc = DateTime.UtcNow;
+                }
+
                 if (results.Any())
                 {
                     SavePlatforms(results, isFullImport, isBulkReload);
                     results.ClearMemory();
-                }
-
-                if (isFullImport)
-                {
-                    updatedLastImportDateUtc = DateTime.UtcNow;
                 }
 
                 _settingService.UpdateSetting("PlatformLastImportDate", updatedLastImportDateUtc);

@@ -69,16 +69,16 @@ namespace SpeedRunAppImport.Service
                 {
                     results.RemoveAll(i => (i.CreationDate ?? SqlMinDateTime) < lastImportDateUtc);
                 }
+                else
+                {
+                    updatedLastImportDateUtc = DateTime.UtcNow;
+                }
 
                 if (results.Any())
                 {
                     SaveGames(results, isBulkReload);
+                    _settingService.UpdateSetting("GameLastSaveDate", DateTime.UtcNow);
                     results.ClearMemory();
-                }
-
-                if (isFullImport)
-                {
-                    updatedLastImportDateUtc = DateTime.UtcNow;
                 }
 
                 _settingService.UpdateSetting("GameLastImportDate", updatedLastImportDateUtc);

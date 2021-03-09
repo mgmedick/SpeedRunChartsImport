@@ -63,16 +63,15 @@ namespace SpeedRunAppImport.Service
                 {
                     results.RemoveAll(i => (i.SignUpDate ?? SqlMinDateTime) < lastImportDateUtc);
                 }
+                else
+                {
+                    updatedLastImportDateUtc = DateTime.UtcNow;
+                }
 
                 if (results.Any())
                 {
                     SaveUsers(results, isBulkReload);
                     results.ClearMemory();
-                }
-
-                if (isFullImport)
-                {
-                    updatedLastImportDateUtc = DateTime.UtcNow;
                 }
 
                 _settingService.UpdateSetting("UserLastImportDate", updatedLastImportDateUtc);

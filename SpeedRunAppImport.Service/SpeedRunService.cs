@@ -42,9 +42,11 @@ namespace SpeedRunAppImport.Service
 
             try
             {
-                _logger.Information("Started ProcessSpeedRuns: {@LastImportDate}, {@LastImportDateUtc}, {@IsFullImport}", lastImportDateUtc.ToLocalTime(), lastImportDateUtc, isFullImport);
-
-                if (isProcessSpeedRunsByGame)
+                if (!isProcessSpeedRunsByGame)
+                {
+                    ProcessSpeedRunsDefault(lastImportDateUtc, isFullImport, isBulkReload);
+                }
+                else
                 {
                     if (isFullImport)
                     {
@@ -55,13 +57,6 @@ namespace SpeedRunAppImport.Service
                         ProcessSpeedRunsByScreenScrape();
                     }
                 }
-                else
-                {
-                    ProcessSpeedRunsDefault(lastImportDateUtc, isFullImport, isBulkReload);
-                }
-
-                _settingService.UpdateSetting("SpeedRunLastImportDate", DateTime.UtcNow);
-                _logger.Information("Completed ProcessSpeedRuns");
             }
             catch (Exception ex)
             {
@@ -74,10 +69,13 @@ namespace SpeedRunAppImport.Service
 
         public void ProcessSpeedRunsDefault(DateTime lastImportDateUtc, bool isFullImport, bool isBulkReload)
         {
+            _logger.Information("Started ProcessSpeedRuns: {@LastImportDateUtc}, {@IsFullImport}", lastImportDateUtc, isFullImport);
+
             RunsOrdering orderBy = isFullImport ? RunsOrdering.VerifyDate : RunsOrdering.VerifyDateDescending;
             var results = new List<SpeedRun>();
             var runs = new List<SpeedRun>();
             var prevTotal = 0;
+            var updatedLastImportDateUtc = DateTime.UtcNow;
 
             do
             {
@@ -107,11 +105,21 @@ namespace SpeedRunAppImport.Service
                 SaveSpeedRuns(results, isBulkReload);
                 results.ClearMemory();
             }
+
+            if (isFullImport)
+            {
+                updatedLastImportDateUtc = DateTime.UtcNow;
+            }
+
+            _settingService.UpdateSetting("SpeedRunLastImportDate", updatedLastImportDateUtc);
+            _logger.Information("Completed ProcessSpeedRuns");
         }
 
         #region ProcessSpeedRunsByGame
         public void ProcessSpeedRunsByGameFullImport(bool isBulkReload)
         {
+            _logger.Information("Started ProcessSpeedRunsByGameFullImport: {@IsBulkReload}", isBulkReload);
+
             RunsOrdering orderBy = RunsOrdering.DateSubmitted;
             var results = new List<SpeedRun>();
             var runs = new List<SpeedRun>();
@@ -146,10 +154,15 @@ namespace SpeedRunAppImport.Service
                 SaveSpeedRuns(results, isBulkReload);
                 results.ClearMemory();
             }
+
+            _settingService.UpdateSetting("SpeedRunLastImportDate", DateTime.UtcNow);
+            _logger.Information("Completed ProcessSpeedRunsByGameFullImport");
         }
 
         public void ProcessSpeedRunsByScreenScrape()
         {
+            _logger.Information("Started ProcessSpeedRunsByScreenScrape:");
+
             var results = new List<SpeedRun>();
             var latestRunIDs = _scrapeService.GetLatestSpeedRunIDs();
 
@@ -177,6 +190,9 @@ namespace SpeedRunAppImport.Service
                 SaveSpeedRuns(results, false);
                 results.ClearMemory();
             }
+
+            _settingService.UpdateSetting("SpeedRunLastImportDate", DateTime.UtcNow);
+            _logger.Information("Completed ProcessSpeedRunsByScreenScrape");
         }
         #endregion
 

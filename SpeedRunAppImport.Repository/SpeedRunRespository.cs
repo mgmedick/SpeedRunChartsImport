@@ -494,17 +494,17 @@ namespace SpeedRunAppImport.Repository
             return result;
         }
 
-        public bool UpdateSpeedRunRanks(DateTime lastImportDateUtc)
+        public bool UpdateSpeedRunRanks(DateTime lastSaveDateUtc)
         {
             bool result = true;
 
             try
             {
-                _logger.Information("Started UpdateSpeedRunRanks {@LastImportDate}, {@LastImportDateUtc}", lastImportDateUtc.ToLocalTime(), lastImportDateUtc);
+                _logger.Information("Started UpdateSpeedRunRanks {@LastSaveDate}, {@LastSaveDateUtc}", lastSaveDateUtc.ToLocalTime(), lastSaveDateUtc);
                 using (IDatabase db = DBFactory.GetDatabase())
                 {
                     db.OneTimeCommandTimeout = 32767;
-                    db.Execute("EXEC dbo.ImportUpdateSpeedRunRanks @0", lastImportDateUtc);
+                    db.Execute("EXEC dbo.ImportUpdateSpeedRunRanks @0", lastSaveDateUtc);
                 }
                 _logger.Information("Completed UpdateSpeedRunRanks");
             }

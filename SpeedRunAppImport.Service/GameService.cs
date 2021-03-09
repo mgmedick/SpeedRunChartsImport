@@ -39,13 +39,13 @@ namespace SpeedRunAppImport.Service
 
             try
             {
-                _logger.Information("Started ProcessGames: {@LastImportDate}, {@LastImportDateUtc}, {@IsFullImport}, {@IsBulkReload}", lastImportDateUtc.ToLocalTime(), lastImportDateUtc, isFullImport, isBulkReload);
+                _logger.Information("Started ProcessGames: {@LastImportDateUtc}, {@IsFullImport}, {@IsBulkReload}", lastImportDateUtc, isFullImport, isBulkReload);
                 GamesOrdering orderBy = isFullImport ? GamesOrdering.CreationDate : GamesOrdering.CreationDateDescending;
                 var gameEmbeds = new GameEmbeds { EmbedCategories = true, EmbedLevels = true, EmbedModerators = false, EmbedPlatforms = false, EmbedVariables = true };
                 var results = new List<Game>();
                 var games = new List<Game>();
                 var prevTotal = 0;
-                var updatedLastImportDateUtc = DateTime.UtcNow;
+                var speedRunComIDs = _gameRepo.GetGameSpeedRunComIDs().Select(i => i.SpeedRunComID).ToList();
 
                 do
                 {
@@ -63,25 +63,20 @@ namespace SpeedRunAppImport.Service
                         results.ClearMemory();
                     }
                 }
-                while (games.Count == MaxElementsPerPage && games.Min(i => i.CreationDate ?? SqlMinDateTime) >= lastImportDateUtc);
+                while (games.Count == MaxElementsPerPage && games.Any(i => !speedRunComIDs.Contains(i.ID)));
 
                 if (!isFullImport)
                 {
-                    results.RemoveAll(i => (i.CreationDate ?? SqlMinDateTime) < lastImportDateUtc);
-                }
-                else
-                {
-                    updatedLastImportDateUtc = DateTime.UtcNow;
+                    results.RemoveAll(i => speedRunComIDs.Contains(i.ID));
                 }
 
                 if (results.Any())
                 {
                     SaveGames(results, isBulkReload);
-                    _settingService.UpdateSetting("GameLastSaveDate", DateTime.UtcNow);
                     results.ClearMemory();
                 }
 
-                _settingService.UpdateSetting("GameLastImportDate", updatedLastImportDateUtc);
+                _settingService.UpdateSetting("GameLastImportDate", DateTime.UtcNow);
                 _logger.Information("Completed ProcessGames");
             }
             catch (Exception ex)

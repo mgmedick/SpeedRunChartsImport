@@ -84,20 +84,16 @@ namespace SpeedRunAppImport
                 if (IsFullImport)
                 {
                     GameLastImportDateUtc = sqlMinDateTime;
-                    GameLastSaveDateUtc = sqlMinDateTime;
                     UserLastImportDateUtc = sqlMinDateTime;
                     PlatformLastImportDateUtc = sqlMinDateTime;
                     SpeedRunLastImportDateUtc = sqlMinDateTime;
-                    SpeedRunLastSaveDateUtc = sqlMinDateTime;
                 }
                 else
                 {
                     PlatformLastImportDateUtc = _settingService.GetSetting("PlatformLastImportDate")?.Dte ?? DateTime.UtcNow;
                     GameLastImportDateUtc = _settingService.GetSetting("GameLastImportDate")?.Dte ?? DateTime.UtcNow;
-                    GameLastSaveDateUtc = _settingService.GetSetting("GameLastSaveDateUtc")?.Dte ?? DateTime.UtcNow;
                     UserLastImportDateUtc = _settingService.GetSetting("UserLastImportDate")?.Dte ?? DateTime.UtcNow;
                     SpeedRunLastImportDateUtc = _settingService.GetSetting("SpeedRunLastImportDate")?.Dte ?? DateTime.UtcNow;
-                    SpeedRunLastSaveDateUtc = _settingService.GetSetting("SpeedRunLastSaveDateUtc")?.Dte ?? DateTime.UtcNow;
                 }
 
                 BaseService.SqlMinDateTime = sqlMinDateTime;
@@ -152,11 +148,11 @@ namespace SpeedRunAppImport
 
             if (result && (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Game) || Processes.Contains(ImportProcess.SpeedRun)))
             {
-                var lastSaveDateUtc = GameLastSaveDateUtc < SpeedRunLastSaveDateUtc ? GameLastSaveDateUtc : SpeedRunLastSaveDateUtc;
-                result = _speedRunRepo.UpdateSpeedRunRanks(lastSaveDateUtc);
+                var lastImportDateUtc = GameLastImportDateUtc < SpeedRunLastImportDateUtc ? GameLastImportDateUtc : SpeedRunLastImportDateUtc;
+                result = _speedRunRepo.UpdateSpeedRunRanks(lastImportDateUtc);
             }
 
-            if (result && IsFullImport)
+            if (result)
             {
                 _speedRunRepo.RebuildIndexes();
             }
@@ -164,10 +160,8 @@ namespace SpeedRunAppImport
 
         public DateTime PlatformLastImportDateUtc { get; set; }
         public DateTime GameLastImportDateUtc { get; set; }
-        public DateTime GameLastSaveDateUtc { get; set; }
         public DateTime UserLastImportDateUtc { get; set; }
         public DateTime SpeedRunLastImportDateUtc { get; set; }
-        public DateTime SpeedRunLastSaveDateUtc { get; set; }
         public bool IsFullImport { get; set; }
         public bool IsBulkReload { get; set; }
         public bool IsProcessSpeedRunsByGame { get; set; }

@@ -24,7 +24,7 @@ namespace SpeedRunAppImport.Client
         public UsersClient Users { get; private set; }
         public VariablesClient Variables { get; private set; }
 
-        public ClientContainer(string userAgent = "speedruncomorg/1.0",
+        public ClientContainer(string userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36",
             string accessToken = null, int maxCacheElements = 0,
             TimeSpan? timeout = null)
         {

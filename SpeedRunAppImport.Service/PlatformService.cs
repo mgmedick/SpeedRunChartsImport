@@ -37,6 +37,7 @@ namespace SpeedRunAppImport.Service
                 var results = new List<Platform>();
                 var platforms = new List<Platform>();
                 var prevTotal = 0;
+                var updatedLastImportDateUtc = DateTime.UtcNow;
 
                 do
                 {
@@ -62,7 +63,12 @@ namespace SpeedRunAppImport.Service
                     results.ClearMemory();
                 }
 
-                _settingService.UpdateSetting("PlatformLastImportDate", DateTime.UtcNow);
+                if (isFullImport)
+                {
+                    updatedLastImportDateUtc = DateTime.UtcNow;
+                }
+
+                _settingService.UpdateSetting("PlatformLastImportDate", updatedLastImportDateUtc);
                 _logger.Information("Completed ProcessPlatforms");
             }
             catch (Exception ex)

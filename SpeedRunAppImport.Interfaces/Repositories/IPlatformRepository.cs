@@ -8,7 +8,7 @@ namespace SpeedRunAppImport.Interfaces.Repositories
 {
     public interface IPlatformRepository
     {
-        void InsertPlatforms(IEnumerable<PlatformEntity> users);
+        void InsertPlatforms(IEnumerable<PlatformEntity> platforms);
         void SavePlatforms(IEnumerable<PlatformEntity> platforms);
         //void CopyPlatformTables();
         //void RenameAndDropPlatformTables();

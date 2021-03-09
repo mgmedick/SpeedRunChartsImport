@@ -34,12 +34,12 @@ namespace SpeedRunAppImport.Service
 
             try
             {
-                _logger.Information("Started ProcessUsers: {@LastImportDate}, {@LastImportDateUtc}, {@IsFullImport}, {@IsBulkReload}", lastImportDateUtc.ToLocalTime(), lastImportDateUtc, isFullImport, isBulkReload);
+                _logger.Information("Started ProcessUsers: {@LastImportDateUtc}, {@IsFullImport}, {@IsBulkReload}", lastImportDateUtc, isFullImport, isBulkReload);
                 UsersOrdering orderBy = isFullImport ? UsersOrdering.SignUpDate : UsersOrdering.SignUpDateDescending;
                 var results = new List<User>();
                 var users = new List<User>();
                 var prevTotal = 0;
-                var updatedLastImportDateUtc = DateTime.UtcNow;
+                var speedRunComIDs = _userRepo.GetUserSpeedRunComIDs().Select(i => i.SpeedRunComID).ToList();
 
                 do
                 {
@@ -57,15 +57,11 @@ namespace SpeedRunAppImport.Service
                         results.ClearMemory();
                     }
                 }
-                while (users.Count == MaxElementsPerPage && users.Min(i => i.SignUpDate ?? SqlMinDateTime) >= lastImportDateUtc);
+                while (users.Count == MaxElementsPerPage && users.Any(i => !speedRunComIDs.Contains(i.ID)));
 
                 if (!isFullImport)
                 {
-                    results.RemoveAll(i => (i.SignUpDate ?? SqlMinDateTime) < lastImportDateUtc);
-                }
-                else
-                {
-                    updatedLastImportDateUtc = DateTime.UtcNow;
+                    results.RemoveAll(i => speedRunComIDs.Contains(i.ID));
                 }
 
                 if (results.Any())
@@ -74,7 +70,7 @@ namespace SpeedRunAppImport.Service
                     results.ClearMemory();
                 }
 
-                _settingService.UpdateSetting("UserLastImportDate", updatedLastImportDateUtc);
+                _settingService.UpdateSetting("UserLastImportDate", DateTime.UtcNow);
                 _logger.Information("Completed ProcessUsers");
             }
             catch (Exception ex)

@@ -77,7 +77,6 @@ namespace SpeedRunAppImport.Service
             var results = new List<SpeedRun>();
             var runs = new List<SpeedRun>();
             var prevTotal = 0;
-            var speedRunComIDs = _speedRunRepo.GetSpeedRunSpeedRunComIDs().Select(i => i.SpeedRunComID).ToList();
 
             do
             {
@@ -95,20 +94,19 @@ namespace SpeedRunAppImport.Service
                     results.ClearMemory();
                 }
             }
-            while (runs.Count == MaxElementsPerPage && runs.Any(i => !speedRunComIDs.Contains(i.ID)));
+            while (runs.Count == MaxElementsPerPage && runs.Min(i => i.Status.VerifyDate ?? SqlMinDateTime) > lastImportDateUtc);
 
             if (!isFullImport)
             {
-                results.RemoveAll(i => speedRunComIDs.Contains(i.ID));
+                results.RemoveAll(i => (i.Status.VerifyDate ?? SqlMinDateTime) <= lastImportDateUtc);
             }
 
             if (results.Any())
             {
                 SaveSpeedRuns(results, isBulkReload);
+                _settingService.UpdateSetting("SpeedRunLastImportDate", results.Max(i => i.Status.VerifyDate ?? SqlMinDateTime));
                 results.ClearMemory();
             }
-
-            _settingService.UpdateSetting("SpeedRunLastImportDate", DateTime.UtcNow);
         }
 
         #region ProcessSpeedRunsByGame
@@ -254,7 +252,7 @@ namespace SpeedRunAppImport.Service
         {
             _logger.Information("Started SaveSpeedRuns: {@Count}, {@IsBulkReload}", runs.Count(), isBulkReload);
 
-            runs = runs.GroupBy(i => i.ID).Select(i => i.FirstOrDefault()).ToList();
+            runs = runs.GroupBy(i => i.ID).Select(i => i.FirstOrDefault()).OrderBy(i => i.Status.VerifyDate).ToList();
             var runIDs = runs.Select(i => i.ID).ToList();
             var speedRunSpeedRunComIDs = _speedRunRepo.GetSpeedRunSpeedRunComIDs().Where(i => runIDs.Contains(i.SpeedRunComID)).ToList();
             var gameIDs = runs.Select(i => i.GameID).Distinct().ToList();

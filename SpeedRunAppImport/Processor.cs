@@ -87,6 +87,7 @@ namespace SpeedRunAppImport
                     UserLastImportDateUtc = sqlMinDateTime;
                     PlatformLastImportDateUtc = sqlMinDateTime;
                     SpeedRunLastImportDateUtc = sqlMinDateTime;
+                    ImportLastRunDateUtc = sqlMinDateTime;
                 }
                 else
                 {
@@ -94,6 +95,7 @@ namespace SpeedRunAppImport
                     GameLastImportDateUtc = _settingService.GetSetting("GameLastImportDate")?.Dte ?? DateTime.UtcNow;
                     UserLastImportDateUtc = _settingService.GetSetting("UserLastImportDate")?.Dte ?? DateTime.UtcNow;
                     SpeedRunLastImportDateUtc = _settingService.GetSetting("SpeedRunLastImportDate")?.Dte ?? DateTime.UtcNow;
+                    ImportLastRunDateUtc = _settingService.GetSetting("ImportLastRunDate")?.Dte ?? DateTime.UtcNow;
                 }
 
                 BaseService.SqlMinDateTime = sqlMinDateTime;
@@ -102,7 +104,6 @@ namespace SpeedRunAppImport
                 BaseService.MaxMemorySizeBytes = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxMemorySizeBytes").Value);
                 BaseService.PullDelayMS = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("PullDelayMS").Value);
                 BaseService.ErrorPullDelayMS = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("ErrorPullDelayMS").Value);
-                BaseService.PullTimeBackMin = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("PullTimeBackMin").Value);
                 BaseService.SpeedRunComLatestRunsUrl = _config.GetSection("ApiSettings").GetSection("SpeedRunComLatestRunsUrl").Value;
                 _logger.Information("Completed Init");
             }
@@ -148,20 +149,22 @@ namespace SpeedRunAppImport
 
             if (result && (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Game) || Processes.Contains(ImportProcess.SpeedRun)))
             {
-                var lastImportDateUtc = GameLastImportDateUtc < SpeedRunLastImportDateUtc ? GameLastImportDateUtc : SpeedRunLastImportDateUtc;
-                result = _speedRunRepo.UpdateSpeedRunRanks(lastImportDateUtc);
+                result = _speedRunRepo.UpdateSpeedRunRanks(ImportLastRunDateUtc);
             }
 
             if (result)
             {
                 _speedRunRepo.RebuildIndexes();
             }
+
+            _settingService.UpdateSetting("ImportLastRunDate", DateTime.UtcNow);
         }
 
         public DateTime PlatformLastImportDateUtc { get; set; }
         public DateTime GameLastImportDateUtc { get; set; }
         public DateTime UserLastImportDateUtc { get; set; }
         public DateTime SpeedRunLastImportDateUtc { get; set; }
+        public DateTime ImportLastRunDateUtc { get; set; }
         public bool IsFullImport { get; set; }
         public bool IsBulkReload { get; set; }
         public bool IsProcessSpeedRunsByGame { get; set; }

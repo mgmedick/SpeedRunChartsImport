@@ -55,7 +55,7 @@ namespace SpeedRunAppImport.Service
                         results.ClearMemory();
                     }
                 }
-                while (platforms.Count == MaxElementsPerPage && platforms.Any(i => !speedRunComIDs.Contains(i.ID)));
+                while (platforms.Count == MaxElementsPerPage);
 
                 if (!isFullImport)
                 {

@@ -45,7 +45,6 @@ namespace SpeedRunAppImport.Service
                 var results = new List<Game>();
                 var games = new List<Game>();
                 var prevTotal = 0;
-                var speedRunComIDs = _gameRepo.GetGameSpeedRunComIDs().Select(i => i.SpeedRunComID).ToList();
 
                 do
                 {
@@ -63,20 +62,20 @@ namespace SpeedRunAppImport.Service
                         results.ClearMemory();
                     }
                 }
-                while (games.Count == MaxElementsPerPage && games.Any(i => !speedRunComIDs.Contains(i.ID)));
+                while (games.Count == MaxElementsPerPage && games.Min(i => i.CreationDate ?? SqlMinDateTime) > lastImportDateUtc);
 
                 if (!isFullImport)
                 {
-                    results.RemoveAll(i => speedRunComIDs.Contains(i.ID));
+                    results.RemoveAll(i => (i.CreationDate ?? SqlMinDateTime) <= lastImportDateUtc);
                 }
 
                 if (results.Any())
                 {
                     SaveGames(results, isBulkReload);
+                    _settingService.UpdateSetting("GameLastImportDate", results.Max(i => i.CreationDate ?? SqlMinDateTime));
                     results.ClearMemory();
                 }
 
-                _settingService.UpdateSetting("GameLastImportDate", DateTime.UtcNow);
                 _logger.Information("Completed ProcessGames");
             }
             catch (Exception ex)
@@ -119,6 +118,7 @@ namespace SpeedRunAppImport.Service
         {
             _logger.Information("Started SaveGames: {@Count}, {@IsBulkReload}", games.Count(), isBulkReload);
 
+            games = games.OrderBy(i => i.CreationDate).ToList();
             var gameIDs = games.Select(i => i.ID).ToList();
             var gameSpeedRunComIDs = _gameRepo.GetGameSpeedRunComIDs().Where(i => gameIDs.Contains(i.SpeedRunComID)).ToList();
             var userIDs = games.SelectMany(i => i.Moderators.Select(i => i.UserID)).Distinct().ToList();

@@ -39,7 +39,6 @@ namespace SpeedRunAppImport.Service
                 var results = new List<User>();
                 var users = new List<User>();
                 var prevTotal = 0;
-                var speedRunComIDs = _userRepo.GetUserSpeedRunComIDs().Select(i => i.SpeedRunComID).ToList();
 
                 do
                 {
@@ -57,20 +56,20 @@ namespace SpeedRunAppImport.Service
                         results.ClearMemory();
                     }
                 }
-                while (users.Count == MaxElementsPerPage && users.Any(i => !speedRunComIDs.Contains(i.ID)));
+                while (users.Count == MaxElementsPerPage && users.Min(i => i.SignUpDate ?? SqlMinDateTime) > lastImportDateUtc);
 
                 if (!isFullImport)
                 {
-                    results.RemoveAll(i => speedRunComIDs.Contains(i.ID));
+                    results.RemoveAll(i => (i.SignUpDate ?? SqlMinDateTime) <= lastImportDateUtc);
                 }
 
                 if (results.Any())
                 {
                     SaveUsers(results, isBulkReload);
+                    _settingService.UpdateSetting("UserLastImportDate", results.Max(i => i.SignUpDate ?? SqlMinDateTime));
                     results.ClearMemory();
                 }
 
-                _settingService.UpdateSetting("UserLastImportDate", DateTime.UtcNow);
                 _logger.Information("Completed ProcessUsers");
             }
             catch (Exception ex)
@@ -112,6 +111,7 @@ namespace SpeedRunAppImport.Service
         {
             _logger.Information("Started SaveUsers: {@Count}, {@IsBulkReload}", users.Count(), isBulkReload);
 
+            users = users.OrderBy(i => i.SignUpDate).ToList();
             var userIDs = users.Select(i => i.ID).ToList();
             var userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs().Where(i => userIDs.Contains(i.SpeedRunComID)).ToList();
 

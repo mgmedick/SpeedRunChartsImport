@@ -6,13 +6,16 @@ namespace SpeedRunAppImport.Model.Entity
 {
     public class VariableEntity
     {
-        public int OrderValue { get; set; }
-        public string ID { get; set; }
+        public int ID { get; set; }
+        public string SpeedRunComID { get; set; }
         public string Name { get; set; }
-        public string GameID { get; set; }
+        public int GameID { get; set; }
+        public string GameSpeedRunComID { get; set; }
         public int VariableScopeTypeID { get; set; }
-        public string CategoryID { get; set; }
-        public string LevelID { get; set; }
+        public int? CategoryID { get; set; }
+        public string CategorySpeedRunComID { get; set; }
+        public int? LevelID { get; set; }
+        public string LevelSpeedRunComID { get; set; }
         public bool IsSubCategory { get; set; }
     }
 } 

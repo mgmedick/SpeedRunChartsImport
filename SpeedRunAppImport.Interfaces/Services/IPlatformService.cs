@@ -9,10 +9,9 @@ namespace SpeedRunAppImport.Interfaces.Services
 {
     public interface IPlatformService
     {
-        void ProcessPlatforms(bool isFullImport);
+        bool ProcessPlatforms(bool isFullImport, bool isBulkReload);
         List<Platform> GetPlatformsWithRetry(int elementsPerPage, int elementsOffset, PlatformsOrdering orderBy, int retryCount = 0);
-        void SavePlatforms(IEnumerable<Platform> platforms, bool isFullImport);
-        void SavePlatforms(IEnumerable<PlatformEntity> platformEntities, bool isFullImport);
+        void SavePlatforms(IEnumerable<Platform> platforms, bool isFullImport, bool isBulkReload);
     }
 } 
 

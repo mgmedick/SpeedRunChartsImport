@@ -143,16 +143,16 @@ namespace SpeedRunAppImport.Model.Data
             return Name;
         }
 
-        public CategoryEntity ConvertToEntity()
-        {
-            return new CategoryEntity
-            {
-                ID = this.ID,
-                Name = this.Name,
-                Rules = this.Rules,
-                GameID = this.GameID,
-                CategoryTypeID = (int)this.Type
-            };
-        }
+        //public CategoryEntity ConvertToEntity()
+        //{
+        //    return new CategoryEntity
+        //    {
+        //        ID = this.ID,
+        //        Name = this.Name,
+        //        Rules = this.Rules,
+        //        GameID = this.GameID,
+        //        CategoryTypeID = (int)this.Type
+        //    };
+        //}
     }
 }

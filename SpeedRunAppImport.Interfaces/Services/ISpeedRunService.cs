@@ -9,13 +9,12 @@ namespace SpeedRunAppImport.Interfaces.Services
 {
     public interface ISpeedRunService
     {
-        void ProcessSpeedRuns(DateTime lastImportDate, bool isFullImport);
-        void ProcessSpeedRunsFullImport();
-        void ProcessLatestSpeedRuns(DateTime lastImportDate);
-        //void ProcessSpeedRunUpdates(DateTime lastImportDate);
+        bool ProcessSpeedRuns(DateTime lastImportDate, bool isFullImport, bool isBulkReload, bool isProcessSpeedRunsByGame);
+        void ProcessSpeedRunsDefault(DateTime lastImportDateUtc, bool isFullImport, bool isBulkReload);
+        void ProcessSpeedRunsByGameFullImport(bool isBulkReload);
+        void ProcessSpeedRunsByScreenScrape();
         List<SpeedRun> GetSpeedRunsWithRetry(int elementsPerPage, int elementsOffset, string gameID, RunsOrdering orderBy, RunStatusType? statusType = null, int retryCount = 0);
         void SaveSpeedRuns(IEnumerable<SpeedRun> runs, bool isFullImport);
-        void SaveSpeedRuns(IEnumerable<SpeedRunEntity> runEntities, IEnumerable<SpeedRunVariableValueEntity> variableValueEntities, IEnumerable<SpeedRunPlayerEntity> playerEntities, IEnumerable<SpeedRunVideoEntity> videoEntities, bool isFullImport);
     }
 } 
 

@@ -4,11 +4,10 @@ using System.Linq;
 
 namespace SpeedRunAppImport.Model.Entity
 {
-    public class GameModeratorEntity
+    public class UserLocationEntity
     {
-        public int ID { get; set; }
-        public int GameID { get; set; }
-        public string GameSpeedRunComID { get; set; }
         public int UserID { get; set; }
+        public string UserSpeedRunComID { get; set; }
+        public string Location { get; set; }
     }
 } 

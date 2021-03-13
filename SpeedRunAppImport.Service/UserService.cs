@@ -28,22 +28,17 @@ namespace SpeedRunAppImport.Service
             _logger = logger;
         }
 
-        public void ProcessUsers(DateTime lastImportDate, bool isFullImport)
+        public bool ProcessUsers(DateTime lastImportDateUtc, bool isFullImport, bool isBulkReload)
         {
+            bool result = true;
+
             try
             {
-                var lastImportDateUtc = lastImportDate.ToUniversalTime();
-                _logger.Information("Started ProcessUsers: {@LastImportDate}, {@LastImportDateUtc}, {@IsFullImport}", lastImportDate, lastImportDateUtc, isFullImport);
-
+                _logger.Information("Started ProcessUsers: {@LastImportDateUtc}, {@IsFullImport}, {@IsBulkReload}", lastImportDateUtc, isFullImport, isBulkReload);
                 UsersOrdering orderBy = isFullImport ? UsersOrdering.SignUpDate : UsersOrdering.SignUpDateDescending;
                 var results = new List<User>();
                 var users = new List<User>();
                 var prevTotal = 0;
-
-                if (isFullImport)
-                {
-                    _userRepo.CopyUserTables();
-                }
 
                 do
                 {
@@ -57,35 +52,33 @@ namespace SpeedRunAppImport.Service
                     {
                         prevTotal += results.Count;
                         _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
-                        SaveUsers(results, isFullImport);
+                        SaveUsers(results, isBulkReload);
                         results.ClearMemory();
                     }
                 }
-                while (users.Count == MaxElementsPerPage && users.Min(i => i.SignUpDate ?? SqlMinDateTime) >= lastImportDateUtc);
+                while (users.Count == MaxElementsPerPage && users.Min(i => i.SignUpDate ?? SqlMinDateTime) > lastImportDateUtc);
+
+                if (!isFullImport)
+                {
+                    results.RemoveAll(i => (i.SignUpDate ?? SqlMinDateTime) <= lastImportDateUtc);
+                }
 
                 if (results.Any())
                 {
-                    if (!isFullImport)
-                    {
-                        results.RemoveAll(i => (i.SignUpDate ?? SqlMinDateTime) < lastImportDateUtc);
-                    }
-
-                    SaveUsers(results, isFullImport);
+                    SaveUsers(results, isBulkReload);
+                    _settingService.UpdateSetting("UserLastImportDate", results.Max(i => i.SignUpDate ?? SqlMinDateTime));
                     results.ClearMemory();
                 }
 
-                if (isFullImport)
-                {
-                    _userRepo.RenameAndDropUserTables();
-                }
-
-                _settingService.UpdateSetting("UserLastImportDate", DateTime.Now);
                 _logger.Information("Completed ProcessUsers");
             }
             catch (Exception ex)
             {
+                result = false;
                 _logger.Error(ex, "ProcessUsers");
             }
+
+            return result;
         }
 
         public List<User> GetUsersWithRetry(int elementsPerPage, int elementsOffset, UsersOrdering orderBy, int retryCount = 0)
@@ -114,23 +107,51 @@ namespace SpeedRunAppImport.Service
             return users;
         }
 
-        public void SaveUsers(IEnumerable<User> users, bool isFullImport)
+        public void SaveUsers(IEnumerable<User> users, bool isBulkReload)
         {
-            var existingPlayerIDs = _speedRunRepo.GetExistingSpeedRunPlayerIDs();
-            var userEntities = users.Where(i => existingPlayerIDs.Contains(i.ID)).Select(i => i.ConvertToEntity()).OrderBy(i => i.SignUpDate).ToList();
-            SaveUsers(userEntities, isFullImport);
-        }
+            _logger.Information("Started SaveUsers: {@Count}, {@IsBulkReload}", users.Count(), isBulkReload);
 
-        public void SaveUsers(IEnumerable<UserEntity> userEntities, bool isFullImport)
-        {
-            if (isFullImport)
+            users = users.OrderBy(i => i.SignUpDate).ToList();
+            var userIDs = users.Select(i => i.ID).ToList();
+            var userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs().Where(i => userIDs.Contains(i.SpeedRunComID)).ToList();
+
+            var userEntities = users.Select(i => new UserEntity {
+                ID = userSpeedRunComIDs.Where(g => g.SpeedRunComID == i.ID).Select(g => g.UserID).FirstOrDefault(),
+                SpeedRunComID = i.ID,
+                Name = i.Name,
+                UserRoleID = (int)i.Role,
+                SignUpDate = i.SignUpDate 
+            })
+            .ToList();
+            var userLocationEntities = users.Where(i => !string.IsNullOrWhiteSpace(i.Location?.ToString()))
+                                            .Select(i => new UserLocationEntity
+                                            {
+                                                UserSpeedRunComID = i.ID,
+                                                Location = i.Location?.ToString()
+                                            })
+                                            .ToList();
+            var userLinkEntities = users.Select(i => new UserLinkEntity
             {
-                _userRepo.InsertUsers(userEntities);
+                UserSpeedRunComID = i.ID,
+                SpeedRunComUrl = i.WebLink.ToString(),
+                ProfileImageUrl = i.ProfileImage?.ToString(),
+                TwitchProfileUrl = i.TwitchProfile?.ToString(),
+                HitboxProfileUrl = i.HitboxProfile?.ToString(),
+                YoutubeProfileUrl = i.YoutubeProfile?.ToString(),
+                TwitterProfileUrl = i.TwitterProfile?.ToString()
+            })
+            .ToList();
+
+            if (isBulkReload)
+            {
+                _userRepo.InsertUsers(userEntities, userLocationEntities, userLinkEntities);
             }
             else
             {
-                _userRepo.SaveUsers(userEntities);
+                _userRepo.SaveUsers(userEntities, userLocationEntities, userLinkEntities);
             }
+
+            _logger.Information("Completed SaveUsers");
         }
     }
 }

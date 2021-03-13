@@ -6,10 +6,10 @@ namespace SpeedRunAppImport.Model.Entity
 {
     public class LevelEntity
     {
-        public int OrderValue { get; set; }
-        public string ID { get; set; }
+        public int ID { get; set; }
+        public string SpeedRunComID { get; set; }
         public string Name { get; set; }
-        public string Rules { get; set; }
-        public string GameID { get; set; }
+        public int GameID { get; set; }
+        public string GameSpeedRunComID { get; set; }
     }
 }  

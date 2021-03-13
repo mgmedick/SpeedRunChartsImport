@@ -17,28 +17,16 @@ namespace SpeedRunAppImport.Service
             _gameRepo = gameRepo;
         }
 
-        public IEnumerable<VariableEntity> GetVariables()
-        {
-            IEnumerable<VariableEntity> variables = null;
-            if (!_cache.TryGetValue<IEnumerable<VariableEntity>>("variables", out variables))
-            {
-                variables = _gameRepo.GetVariables();
-                _cache.Set("variables", variables);
-            }
+        //public IEnumerable<VariableEntity> GetVariables()
+        //{
+        //    IEnumerable<VariableEntity> variables = null;
+        //    if (!_cache.TryGetValue<IEnumerable<VariableEntity>>("variables", out variables))
+        //    {
+        //        variables = _gameRepo.GetVariables();
+        //        _cache.Set("variables", variables);
+        //    }
 
-            return variables;
-        }
-
-        public IEnumerable<GameEntity> GetGames()
-        {
-            IEnumerable<GameEntity> games = null;
-            if (!_cache.TryGetValue<IEnumerable<GameEntity>>("games", out games))
-            {
-                games = _gameRepo.GetGames();
-                _cache.Set("games", games);
-            }
-
-            return games;
-        }
+        //    return variables;
+        //}
     }
 }

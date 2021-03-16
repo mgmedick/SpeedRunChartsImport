@@ -10,5 +10,6 @@ namespace SpeedRunAppImport.Model.Entity
         public int SpeedRunID { get; set; }
         public string SpeedRunSpeedRunComID { get; set; }
         public string VideoLinkUrl { get; set; }
+        public string EmbeddedVideoLinkUrl { get; set; }
     }
 } 

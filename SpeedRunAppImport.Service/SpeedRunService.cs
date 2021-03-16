@@ -337,6 +337,7 @@ namespace SpeedRunAppImport.Service
             {
                 SpeedRunSpeedRunComID = i.ID,
                 VideoLinkUrl = g?.ToString(),
+                EmbeddedVideoLinkUrl = g?.ToEmbeddedURIString()
             })).Where(i => !string.IsNullOrWhiteSpace(i.VideoLinkUrl))
             .ToList();
 

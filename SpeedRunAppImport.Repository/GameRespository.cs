@@ -533,31 +533,32 @@ namespace SpeedRunAppImport.Repository
             int batchCount = 0;
             var gamesList = games.ToList();
 
-            while (batchCount < gamesList.Count)
+            using (IDatabase db = DBFactory.GetDatabase())
             {
-                var gamesBatch = gamesList.Skip(batchCount).Take(MaxBulkRows).ToList();
-                var gameSpeedRunComIDs = gamesBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
-                var gameLinksBatch = gameLinks.Where(i => gameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
-                var levelsBatch = levels.Where(i => gameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
-                var levelSpeedRunComIDs = levelsBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
-                var levelRulesBatch = levelRules.Where(i => levelSpeedRunComIDs.Contains(i.LevelSpeedRunComID)).ToList();
-                var categoriesBatch = categories.Where(i => gameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
-                var categorySpeedRunComIDs = categoriesBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
-                var categoryRulesBatch = categoryRules.Where(i => categorySpeedRunComIDs.Contains(i.CategorySpeedRunComID)).ToList();
-                var variablesBatch = variables.Where(i => gameSpeedRunComIDs.Contains(i.GameSpeedRunComID)
-                                                        && (string.IsNullOrWhiteSpace(i.CategorySpeedRunComID) || categorySpeedRunComIDs.Contains(i.CategorySpeedRunComID))
-                                                        && (string.IsNullOrWhiteSpace(i.LevelSpeedRunComID) || levelSpeedRunComIDs.Contains(i.LevelSpeedRunComID)))
-                                              .ToList();
-                var variableSpeedRunComIDs = variablesBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
-                var variablesValuesBatch = variableValues.Where(i => variableSpeedRunComIDs.Contains(i.VariableSpeedRunComID)).ToList();
-                var gamePlatformsBatch = gamePlatforms.Where(i => gameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
-                var gameRegionsBatch = gameRegions.Where(i => gameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
-                var gameModeratorsBatch = gameModerators.Where(i => gameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
-                var gameRulesetsBatch = gameRulesets.Where(i => gameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
-                var gameTimingMethodsBatch = gameTimingMethods.Where(i => gameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
-
-                using (IDatabase db = DBFactory.GetDatabase())
+                while (batchCount < gamesList.Count)
                 {
+                    var gamesBatch = gamesList.Skip(batchCount).Take(MaxBulkRows).ToList();
+                    var gameSpeedRunComIDs = gamesBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
+                    var gameLinksBatch = gameLinks.Where(i => gameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
+                    var levelsBatch = levels.Where(i => gameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
+                    var levelSpeedRunComIDs = levelsBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
+                    var levelRulesBatch = levelRules.Where(i => levelSpeedRunComIDs.Contains(i.LevelSpeedRunComID)).ToList();
+                    var categoriesBatch = categories.Where(i => gameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
+                    var categorySpeedRunComIDs = categoriesBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
+                    var categoryRulesBatch = categoryRules.Where(i => categorySpeedRunComIDs.Contains(i.CategorySpeedRunComID)).ToList();
+                    var variablesBatch = variables.Where(i => gameSpeedRunComIDs.Contains(i.GameSpeedRunComID)
+                                                            && (string.IsNullOrWhiteSpace(i.CategorySpeedRunComID) || categorySpeedRunComIDs.Contains(i.CategorySpeedRunComID))
+                                                            && (string.IsNullOrWhiteSpace(i.LevelSpeedRunComID) || levelSpeedRunComIDs.Contains(i.LevelSpeedRunComID)))
+                                                  .ToList();
+                    var variableSpeedRunComIDs = variablesBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
+                    var variablesValuesBatch = variableValues.Where(i => variableSpeedRunComIDs.Contains(i.VariableSpeedRunComID)).ToList();
+                    var gamePlatformsBatch = gamePlatforms.Where(i => gameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
+                    var gameRegionsBatch = gameRegions.Where(i => gameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
+                    var gameModeratorsBatch = gameModerators.Where(i => gameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
+                    var gameRulesetsBatch = gameRulesets.Where(i => gameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
+                    var gameTimingMethodsBatch = gameTimingMethods.Where(i => gameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
+
+
                     using (var tran = db.GetTransaction())
                     {
                         //foreach (var game in gamesBatch)
@@ -676,10 +677,10 @@ namespace SpeedRunAppImport.Repository
 
                         tran.Complete();
                     }
-                }
 
-                _logger.Information("Saved games {@Count} / {@Total}", gamesBatch.Count, gamesList.Count);
-                batchCount += MaxBulkRows;
+                    _logger.Information("Saved games {@Count} / {@Total}", gamesBatch.Count, gamesList.Count);
+                    batchCount += MaxBulkRows;
+                }
             }
             _logger.Information("Completed InsertGames");
         }
@@ -692,29 +693,29 @@ namespace SpeedRunAppImport.Repository
             var maxBatchCount = 2000;
             var batchCount = 0;
 
-            foreach (var game in gamesList)
+            using (IDatabase db = DBFactory.GetDatabase())
             {
-                var gameLink = gameLinks.FirstOrDefault(i => i.GameSpeedRunComID == game.SpeedRunComID);
-                var levelsBatch = levels.Where(i => i.GameSpeedRunComID == game.SpeedRunComID).ToList();
-                var levelSpeedRunComIDsBatch = levelsBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
-                var levelRulesBatch = levelRules.Where(i => levelSpeedRunComIDsBatch.Contains(i.LevelSpeedRunComID)).ToList();
-                var categoriesBatch = categories.Where(i => i.GameSpeedRunComID == game.SpeedRunComID).ToList();
-                var categorySpeedRunComIDsBatch = categoriesBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
-                var categoryRulesBatch = categoryRules.Where(i => categorySpeedRunComIDsBatch.Contains(i.CategorySpeedRunComID)).ToList();
-                var variablesBatch = variables.Where(i => i.GameSpeedRunComID == game.SpeedRunComID
-                                                        && (string.IsNullOrWhiteSpace(i.CategorySpeedRunComID) || categorySpeedRunComIDsBatch.Contains(i.CategorySpeedRunComID))
-                                                        && (string.IsNullOrWhiteSpace(i.LevelSpeedRunComID) || levelSpeedRunComIDsBatch.Contains(i.LevelSpeedRunComID)))
-                                              .ToList();
-                var variableSpeedRunComIDsBatch = variablesBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
-                var variablesValuesBatch = variableValues.Where(i => variableSpeedRunComIDsBatch.Contains(i.VariableSpeedRunComID)).ToList();
-                var gamePlatformsBatch = gamePlatforms.Where(i => i.GameSpeedRunComID == game.SpeedRunComID).ToList();
-                var gameRegionsBatch = gameRegions.Where(i => i.GameSpeedRunComID == game.SpeedRunComID).ToList();
-                var gameModeratorsBatch = gameModerators.Where(i => i.GameSpeedRunComID == game.SpeedRunComID).ToList();
-                var gameRuleset = gameRulesets.FirstOrDefault(i => i.GameSpeedRunComID == game.SpeedRunComID);
-                var gameTimingMethodsBatch = gameTimingMethods.Where(i => i.GameSpeedRunComID == game.SpeedRunComID).ToList();
-
-                using (IDatabase db = DBFactory.GetDatabase())
+                foreach (var game in gamesList)
                 {
+                    var gameLink = gameLinks.FirstOrDefault(i => i.GameSpeedRunComID == game.SpeedRunComID);
+                    var levelsBatch = levels.Where(i => i.GameSpeedRunComID == game.SpeedRunComID).ToList();
+                    var levelSpeedRunComIDsBatch = levelsBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
+                    var levelRulesBatch = levelRules.Where(i => levelSpeedRunComIDsBatch.Contains(i.LevelSpeedRunComID)).ToList();
+                    var categoriesBatch = categories.Where(i => i.GameSpeedRunComID == game.SpeedRunComID).ToList();
+                    var categorySpeedRunComIDsBatch = categoriesBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
+                    var categoryRulesBatch = categoryRules.Where(i => categorySpeedRunComIDsBatch.Contains(i.CategorySpeedRunComID)).ToList();
+                    var variablesBatch = variables.Where(i => i.GameSpeedRunComID == game.SpeedRunComID
+                                                            && (string.IsNullOrWhiteSpace(i.CategorySpeedRunComID) || categorySpeedRunComIDsBatch.Contains(i.CategorySpeedRunComID))
+                                                            && (string.IsNullOrWhiteSpace(i.LevelSpeedRunComID) || levelSpeedRunComIDsBatch.Contains(i.LevelSpeedRunComID)))
+                                                  .ToList();
+                    var variableSpeedRunComIDsBatch = variablesBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
+                    var variablesValuesBatch = variableValues.Where(i => variableSpeedRunComIDsBatch.Contains(i.VariableSpeedRunComID)).ToList();
+                    var gamePlatformsBatch = gamePlatforms.Where(i => i.GameSpeedRunComID == game.SpeedRunComID).ToList();
+                    var gameRegionsBatch = gameRegions.Where(i => i.GameSpeedRunComID == game.SpeedRunComID).ToList();
+                    var gameModeratorsBatch = gameModerators.Where(i => i.GameSpeedRunComID == game.SpeedRunComID).ToList();
+                    var gameRuleset = gameRulesets.FirstOrDefault(i => i.GameSpeedRunComID == game.SpeedRunComID);
+                    var gameTimingMethodsBatch = gameTimingMethods.Where(i => i.GameSpeedRunComID == game.SpeedRunComID).ToList();
+
                     using (var tran = db.GetTransaction())
                     {
                         if (game.ID != 0)
@@ -851,10 +852,10 @@ namespace SpeedRunAppImport.Repository
 
                         tran.Complete();
                     }
-                }
 
-                _logger.Information("Saved games {@Count} / {@Total}", count, gamesList.Count);
-                count++;
+                    _logger.Information("Saved games {@Count} / {@Total}", count, gamesList.Count);
+                    count++;
+                }
             }
         }
 

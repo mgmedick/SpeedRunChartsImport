@@ -100,12 +100,12 @@ namespace SpeedRunAppImport.Repository
             int batchCount = 0;
             var platformsList = platforms.ToList();
 
-            while (batchCount < platformsList.Count)
+            using (IDatabase db = DBFactory.GetDatabase())
             {
-                var platformsBatch = platformsList.Skip(batchCount).Take(MaxBulkRows).ToList();
-
-                using (IDatabase db = DBFactory.GetDatabase())
+                while (batchCount < platformsList.Count)
                 {
+                    var platformsBatch = platformsList.Skip(batchCount).Take(MaxBulkRows).ToList();
+
                     using (var tran = db.GetTransaction())
                     {
                         db.InsertBulk<PlatformEntity>(platformsBatch);
@@ -120,10 +120,10 @@ namespace SpeedRunAppImport.Repository
 
                         tran.Complete();
                     }
-                }
 
-                _logger.Information("Saved platforms {@Count} / {@Total}", platformsBatch.Count, platformsList.Count);
-                batchCount += MaxBulkRows;
+                    _logger.Information("Saved platforms {@Count} / {@Total}", platformsBatch.Count, platformsList.Count);
+                    batchCount += MaxBulkRows;
+                }
             }
             _logger.Information("Completed InsertPlatforms");
         }
@@ -133,9 +133,9 @@ namespace SpeedRunAppImport.Repository
             int count = 1;
             var platformsList = platforms.ToList();
 
-            foreach (var platform in platformsList)
+            using (IDatabase db = DBFactory.GetDatabase())
             {
-                using (IDatabase db = DBFactory.GetDatabase())
+                foreach (var platform in platformsList)
                 {
                     using (var tran = db.GetTransaction())
                     {
@@ -151,10 +151,10 @@ namespace SpeedRunAppImport.Repository
 
                         tran.Complete();
                     }
-                }
 
-                _logger.Information("Saved Platforms {@Count} / {@Total}", count, platformsList.Count);
-                count++;
+                    _logger.Information("Saved Platforms {@Count} / {@Total}", count, platformsList.Count);
+                    count++;
+                }
             }
         }
 

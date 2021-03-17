@@ -248,6 +248,17 @@ namespace SpeedRunAppImport.Service
             return run;
         }
 
+        public void UpdateSpeedRunVideos()
+        {
+            var speedRunVideos = _speedRunRepo.GetSpeedRunVideos();
+            foreach (var speedRunVideo in speedRunVideos)
+            {
+                speedRunVideo.EmbeddedVideoLinkUrl = new Uri(speedRunVideo.VideoLinkUrl).ToEmbeddedURIString();
+            }
+
+            _speedRunRepo.UpdateSpeedRunVideos(speedRunVideos);
+        }
+
         public void SaveSpeedRuns(IEnumerable<SpeedRun> runs, bool isBulkReload)
         {
             _logger.Information("Started SaveSpeedRuns: {@Count}, {@IsBulkReload}", runs.Count(), isBulkReload);
@@ -339,6 +350,8 @@ namespace SpeedRunAppImport.Service
                 VideoLinkUrl = g?.ToString(),
                 EmbeddedVideoLinkUrl = g?.ToEmbeddedURIString()
             })).Where(i => !string.IsNullOrWhiteSpace(i.VideoLinkUrl))
+            .GroupBy(h => new { h.SpeedRunSpeedRunComID, h.VideoLinkUrl })
+            .Select(n => n.First())
             .ToList();
 
             if (isBulkReload)

@@ -152,15 +152,15 @@ namespace SpeedRunAppImport.Repository
             int batchCount = 0;
             var usersList = users.ToList();
 
-            while (batchCount < usersList.Count)
+            using (IDatabase db = DBFactory.GetDatabase())
             {
-                var usersBatch = usersList.Skip(batchCount).Take(MaxBulkRows).ToList();
-                var userSpeedRunComIDs = usersBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
-                var userLocationsBatch = userLocations.Where(i => userSpeedRunComIDs.Contains(i.UserSpeedRunComID)).ToList();
-                var userLinksBatch = userLinks.Where(i => userSpeedRunComIDs.Contains(i.UserSpeedRunComID)).ToList();
-
-                using (IDatabase db = DBFactory.GetDatabase())
+                while (batchCount < usersList.Count)
                 {
+                    var usersBatch = usersList.Skip(batchCount).Take(MaxBulkRows).ToList();
+                    var userSpeedRunComIDs = usersBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
+                    var userLocationsBatch = userLocations.Where(i => userSpeedRunComIDs.Contains(i.UserSpeedRunComID)).ToList();
+                    var userLinksBatch = userLinks.Where(i => userSpeedRunComIDs.Contains(i.UserSpeedRunComID)).ToList();
+
                     using (var tran = db.GetTransaction())
                     {
                         //foreach (var user in usersBatch)
@@ -185,10 +185,10 @@ namespace SpeedRunAppImport.Repository
 
                         tran.Complete();
                     }
-                }
 
-                _logger.Information("Saved users {@Count} / {@Total}", usersBatch.Count, usersList.Count);
-                batchCount += MaxBulkRows;
+                    _logger.Information("Saved users {@Count} / {@Total}", usersBatch.Count, usersList.Count);
+                    batchCount += MaxBulkRows;
+                }
             }
             _logger.Information("Completed InsertUsers");
         }
@@ -198,13 +198,13 @@ namespace SpeedRunAppImport.Repository
             int count = 1;
             var usersList = users.ToList();
 
-            foreach (var user in usersList)
+            using (IDatabase db = DBFactory.GetDatabase())
             {
-                var userLocation = userLocations.FirstOrDefault(i => i.UserSpeedRunComID == user.SpeedRunComID);
-                var userLink = userLinks.FirstOrDefault(i => i.UserSpeedRunComID == user.SpeedRunComID);
-
-                using (IDatabase db = DBFactory.GetDatabase())
+                foreach (var user in usersList)
                 {
+                    var userLocation = userLocations.FirstOrDefault(i => i.UserSpeedRunComID == user.SpeedRunComID);
+                    var userLink = userLinks.FirstOrDefault(i => i.UserSpeedRunComID == user.SpeedRunComID);
+
                     using (var tran = db.GetTransaction())
                     {
                         if (user.ID != 0)
@@ -234,10 +234,10 @@ namespace SpeedRunAppImport.Repository
 
                         tran.Complete();
                     }
-                }
 
-                _logger.Information("Saved users {@Count} / {@Total}", count, usersList.Count);
-                count++;
+                    _logger.Information("Saved users {@Count} / {@Total}", count, usersList.Count);
+                    count++;
+                }
             }
         }
 

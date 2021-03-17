@@ -353,6 +353,24 @@ namespace SpeedRunAppImport.Repository
             _logger.Information("Completed InsertSpeedRuns");
         }
 
+        public void UpdateSpeedRunVideos(IEnumerable<SpeedRunVideoEntity> speedRunVideos)
+        {
+            _logger.Information("Started UpdateSpeedRunVideos");
+            var speedRunVideosList = speedRunVideos.ToList();
+
+            int count = 1;
+            foreach (var speedRunVideo in speedRunVideosList)
+            {
+                using (IDatabase db = DBFactory.GetDatabase())
+                {
+                    db.Save<SpeedRunVideoEntity>(speedRunVideo);
+                }
+
+                _logger.Information("Saved speedRunVideo {@Count} / {@Total}", count, speedRunVideosList.Count);
+                count++;
+            }
+        }
+
         public void SaveSpeedRuns(IEnumerable<SpeedRunEntity> speedRuns, IEnumerable<SpeedRunLinkEntity> speedRunLinks, IEnumerable<SpeedRunSystemEntity> speedRunSystems, IEnumerable<SpeedRunTimeEntity> speedRunTimes, IEnumerable<SpeedRunCommentEntity> speedRunComments, IEnumerable<SpeedRunVariableValueEntity> variableValues, IEnumerable<SpeedRunPlayerEntity> players, IEnumerable<SpeedRunVideoEntity> videos)
         {
             int count = 1;
@@ -438,6 +456,15 @@ namespace SpeedRunAppImport.Repository
             {
                 db.OneTimeCommandTimeout = 32767;
                 return db.Query<SpeedRunSpeedRunComIDEntity>().Where(predicate ?? (x => true)).ToList();
+            }
+        }
+
+        public IEnumerable<SpeedRunVideoEntity> GetSpeedRunVideos(Expression<Func<SpeedRunVideoEntity, bool>> predicate = null)
+        {
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                db.OneTimeCommandTimeout = 32767;
+                return db.Query<SpeedRunVideoEntity>().Where(predicate ?? (x => true)).ToList();
             }
         }
 

@@ -350,6 +350,8 @@ namespace SpeedRunAppImport.Service
                 VideoLinkUrl = g?.ToString(),
                 EmbeddedVideoLinkUrl = g?.ToEmbeddedURIString()
             })).Where(i => !string.IsNullOrWhiteSpace(i.VideoLinkUrl))
+            .GroupBy(h => new { h.SpeedRunSpeedRunComID, h.VideoLinkUrl })
+            .Select(n => n.First())
             .ToList();
 
             if (isBulkReload)

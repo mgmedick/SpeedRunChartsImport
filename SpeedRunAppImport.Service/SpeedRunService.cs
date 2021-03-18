@@ -250,7 +250,7 @@ namespace SpeedRunAppImport.Service
 
         public void UpdateSpeedRunVideos()
         {
-            var speedRunVideos = _speedRunRepo.GetSpeedRunVideos();
+            var speedRunVideos = _speedRunRepo.GetSpeedRunVideos(i => i.EmbeddedVideoLinkUrl == null);
             foreach (var speedRunVideo in speedRunVideos)
             {
                 speedRunVideo.EmbeddedVideoLinkUrl = new Uri(speedRunVideo.VideoLinkUrl).ToEmbeddedURIString();

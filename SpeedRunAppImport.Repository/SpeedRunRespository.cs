@@ -356,19 +356,27 @@ namespace SpeedRunAppImport.Repository
         public void UpdateSpeedRunVideos(IEnumerable<SpeedRunVideoEntity> speedRunVideos)
         {
             _logger.Information("Started UpdateSpeedRunVideos");
+            int batchCount = 0;
             var speedRunVideosList = speedRunVideos.ToList();
 
             using (IDatabase db = DBFactory.GetDatabase())
             {
-                int count = 1;
-                foreach (var speedRunVideo in speedRunVideosList)
+                while (batchCount < speedRunVideosList.Count)
                 {
-                    db.Save<SpeedRunVideoEntity>(speedRunVideo);
+                    var speedRunVideosBatch = speedRunVideosList.Skip(batchCount).Take(MaxBulkRows).Select(x => UpdateBatch.For(x)).ToList();
 
-                    _logger.Information("Saved speedRunVideo {@Count} / {@Total}", count, speedRunVideosList.Count);
-                    count++;
+                    using (var tran = db.GetTransaction())
+                    {
+                        db.UpdateBatch<SpeedRunVideoEntity>(speedRunVideosBatch);
+                        tran.Complete();
+                    }
+
+                    _logger.Information("Saved speedRunVideos {@Count} / {@Total}", speedRunVideosBatch.Count, speedRunVideosList.Count);
+                    batchCount += MaxBulkRows;
                 }
-            }     
+            }
+
+            _logger.Information("Completed UpdateSpeedRunVideos");
         }
 
         public void SaveSpeedRuns(IEnumerable<SpeedRunEntity> speedRuns, IEnumerable<SpeedRunLinkEntity> speedRunLinks, IEnumerable<SpeedRunSystemEntity> speedRunSystems, IEnumerable<SpeedRunTimeEntity> speedRunTimes, IEnumerable<SpeedRunCommentEntity> speedRunComments, IEnumerable<SpeedRunVariableValueEntity> variableValues, IEnumerable<SpeedRunPlayerEntity> players, IEnumerable<SpeedRunVideoEntity> videos)

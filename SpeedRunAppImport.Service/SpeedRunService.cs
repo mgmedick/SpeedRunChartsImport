@@ -285,6 +285,7 @@ namespace SpeedRunAppImport.Service
             var regionSpeedRunComIDs = _gameRepo.GetRegionSpeedRunComIDs(i => regionIDs.Contains(i.SpeedRunComID)).ToList();
             var platformIDs = runs.Where(i => !string.IsNullOrWhiteSpace(i.System.PlatformID)).Select(i => i.System.PlatformID).Distinct().ToList();
             var platformSpeedRunComIDs = _platformRepo.GetPlatformSpeedRunComIDs(i => platformIDs.Contains(i.SpeedRunComID)).ToList();
+            var guests = _userRepo.GetGuests().ToList();
 
             var runEntities = runs.Select(i => new SpeedRunEntity()
             {
@@ -335,12 +336,10 @@ namespace SpeedRunAppImport.Service
                 VariableValueID = variableValueSpeedRunComIDs.Where(h => h.SpeedRunComID == g.VariableValueID).Select(g => g.VariableValueID).FirstOrDefault(),
             })).Where(i => i.VariableID != 0 && i.VariableValueID != 0)
             .ToList();
-            var playerEntities = runs.SelectMany(i => i.Players.Select(g => new SpeedRunPlayerEntity()
+            var playerEntities = runs.SelectMany(i => i.Players.Where(g => g.IsUser && !string.IsNullOrWhiteSpace(g.UserID)).Select(g => new SpeedRunPlayerEntity()
             {
                 SpeedRunSpeedRunComID = i.ID,
-                IsUser = g.IsUser,
-                UserID = !string.IsNullOrWhiteSpace(g.UserID) ? playerUserSpeedRunComIDs.Where(h => h.SpeedRunComID == g.UserID).Select(h => h.UserID).FirstOrDefault() : (int?)null,
-                GuestName = g.GuestName
+                UserID = playerUserSpeedRunComIDs.Where(h => h.SpeedRunComID == g.UserID).Select(h => h.UserID).FirstOrDefault()
             })).Where(i => i.UserID != 0)
             .ToList();
             var videoEntities = runs.Where(i => i.Videos?.Links != null && i.Videos.Links.Any(g => g != null))
@@ -353,14 +352,29 @@ namespace SpeedRunAppImport.Service
             .GroupBy(h => new { h.SpeedRunSpeedRunComID, h.VideoLinkUrl })
             .Select(n => n.First())
             .ToList();
+            var guestEntities = runs.SelectMany(i => i.Players.Where(i => !i.IsUser && !string.IsNullOrWhiteSpace(i.GuestName) && !guests.Any(g => g.Name == i.GuestName)).Select(i => i.GuestName))
+                                    .Distinct()
+                                    .Select(i => new GuestEntity() { Name = i })
+                                    .ToList();
+            if (guestEntities.Any())
+            {
+                _userRepo.InsertGuests(guestEntities);
+                guests = _userRepo.GetGuests().ToList();
+            }
+            var guestPlayerEntities = runs.SelectMany(i => i.Players.Where(g => !g.IsUser && !string.IsNullOrWhiteSpace(g.GuestName)).Select(g => new SpeedRunGuestEntity()
+            {
+                SpeedRunSpeedRunComID = i.ID,
+                GuestID = guests.Where(h => h.Name == g.GuestName).Select(h => h.ID).FirstOrDefault()
+            })).Where(i => i.GuestID != 0)
+            .ToList();
 
             if (isBulkReload)
             {
-                _speedRunRepo.InsertSpeedRuns(runEntities, runLinkEntities, runSystemEntities, runTimeEntities, runCommentEntities, variableValueEntities, playerEntities, videoEntities);
+                _speedRunRepo.InsertSpeedRuns(runEntities, runLinkEntities, runSystemEntities, runTimeEntities, runCommentEntities, variableValueEntities, playerEntities, guestPlayerEntities, videoEntities);
             }
             else
             {
-                _speedRunRepo.SaveSpeedRuns(runEntities, runLinkEntities, runSystemEntities, runTimeEntities, runCommentEntities, variableValueEntities, playerEntities, videoEntities);
+                _speedRunRepo.SaveSpeedRuns(runEntities, runLinkEntities, runSystemEntities, runTimeEntities, runCommentEntities, variableValueEntities, playerEntities, guestPlayerEntities, videoEntities);
             }
 
             _logger.Information("Completed SaveSpeedRuns");

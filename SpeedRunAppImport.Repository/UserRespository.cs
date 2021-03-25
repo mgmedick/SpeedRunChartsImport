@@ -193,6 +193,32 @@ namespace SpeedRunAppImport.Repository
             _logger.Information("Completed InsertUsers");
         }
 
+        public void InsertGuests(IEnumerable<GuestEntity> guests)
+        {
+            _logger.Information("Started InsertGuests");
+            int batchCount = 0;
+            var guestList = guests.ToList();
+
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                while (batchCount < guestList.Count)
+                {
+                    var guestsBatch = guestList.Skip(batchCount).Take(MaxBulkRows).ToList();
+
+                    using (var tran = db.GetTransaction())
+                    {
+                        db.InsertBulk<GuestEntity>(guestsBatch);
+
+                        tran.Complete();
+                    }
+
+                    _logger.Information("Saved guests {@Count} / {@Total}", guestsBatch.Count, guestList.Count);
+                    batchCount += MaxBulkRows;
+                }
+            }
+            _logger.Information("Completed InsertGuests");
+        }
+
         public void SaveUsers(IEnumerable<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, IEnumerable<UserLinkEntity> userLinks)
         {
             int count = 1;
@@ -247,6 +273,15 @@ namespace SpeedRunAppImport.Repository
             {
                 db.OneTimeCommandTimeout = 32767;
                 return db.Query<UserSpeedRunComIDEntity>().Where(predicate ?? (x => true)).ToList();
+            }
+        }
+
+        public IEnumerable<GuestEntity> GetGuests(Expression<Func<GuestEntity, bool>> predicate = null)
+        {
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                db.OneTimeCommandTimeout = 32767;
+                return db.Query<GuestEntity>().Where(predicate ?? (x => true)).ToList();
             }
         }
 

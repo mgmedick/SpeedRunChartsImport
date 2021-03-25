@@ -35,6 +35,12 @@ namespace SpeedRunAppImport.Repository
                 i.Column(g => g.UserSpeedRunComID).Ignore();
             });
 
+            //guest
+            For<GuestEntity>().PrimaryKey("ID").TableName("dbo.tbl_Guest" + tblEnd).Columns(i =>
+            {
+                i.Column(g => g.ImportedDate).Ignore();
+            });
+
             //platform
             For<PlatformEntity>().PrimaryKey("ID").TableName("dbo.tbl_Platform" + tblEnd).Columns(i =>
             {
@@ -138,6 +144,10 @@ namespace SpeedRunAppImport.Repository
                 i.Column(g => g.SpeedRunSpeedRunComID).Ignore();
             });
             For<SpeedRunPlayerEntity>().PrimaryKey("ID").TableName("dbo.tbl_SpeedRun_Player" + tblEnd).Columns(i =>
+            {
+                i.Column(g => g.SpeedRunSpeedRunComID).Ignore();
+            });
+            For<SpeedRunGuestEntity>().PrimaryKey("ID").TableName("dbo.tbl_SpeedRun_Guest" + tblEnd).Columns(i =>
             {
                 i.Column(g => g.SpeedRunSpeedRunComID).Ignore();
             });

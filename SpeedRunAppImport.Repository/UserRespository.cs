@@ -249,5 +249,33 @@ namespace SpeedRunAppImport.Repository
                 return db.Query<UserSpeedRunComIDEntity>().Where(predicate ?? (x => true)).ToList();
             }
         }
+
+        public bool UpdateUserIsPlayer()
+        {
+            bool result = true;
+
+            try
+            {
+                _logger.Information("Started UpdateUserIsPlayer");
+                using (IDatabase db = DBFactory.GetDatabase())
+                {
+                    db.OneTimeCommandTimeout = 32767;
+
+                    db.Execute("UPDATE u SET " +
+                               "[IsPlayer] = 1, " +
+                               "[ModifiedDate] = @0 " +
+                               "FROM dbo.tbl_User u WITH (NOLOCK) " +
+                               "WHERE u.IsPlayer = 0 " +
+                               "AND EXISTS (SELECT 1 FROM dbo.tbl_SpeedRun_Player rp WITH (NOLOCK) WHERE rp.UserID = u.ID)", DateTime.UtcNow);
+                }
+            }
+            catch (Exception ex)
+            {
+                result = false;
+                _logger.Error(ex, "UpdateUserIsPlayer");
+            }
+
+            return result;
+        }
     }
 }

@@ -26,19 +26,22 @@ namespace SpeedRunAppImport
         private readonly IUserService _userService;
         private readonly ISpeedRunService _speedRunService;
         private readonly IPlatformService _platformService;
-        private readonly ISpeedRunRepository _speedRunRepo;
         private readonly ISettingService _settingService;
+        private readonly ISpeedRunRepository _speedRunRepo;
+        private readonly IUserRepository _userRepo;
         private readonly IConfiguration _config;
         private readonly ILogger _logger;
 
-        public Processor(IGameService gameService, IUserService userService, ISpeedRunService speedRunService, IPlatformService platformService, ISpeedRunRepository speedRunRepo, ISettingService settingService, IConfiguration config, ILogger logger)
+        public Processor(IGameService gameService, IUserService userService, ISpeedRunService speedRunService, IPlatformService platformService, ISettingService settingService, ISpeedRunRepository speedRunRepo, IUserRepository userRepo, IConfiguration config, ILogger logger)
         {
             _gameService = gameService;
             _userService = userService;
             _speedRunService = speedRunService;
             _platformService = platformService;
-            _speedRunRepo = speedRunRepo;
             _settingService = settingService;
+            _userRepo = userRepo;
+            _speedRunRepo = speedRunRepo;
+
             _config = config;
             _logger = logger;
         }
@@ -150,6 +153,11 @@ namespace SpeedRunAppImport
             if (result && (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Game) || Processes.Contains(ImportProcess.SpeedRun)))
             {
                 result = _speedRunRepo.UpdateSpeedRunRanks(ImportLastRunDateUtc);
+            }
+
+            if (result && (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.SpeedRun)))
+            {
+                result = _userRepo.UpdateUserIsPlayer();
             }
 
             if (result)

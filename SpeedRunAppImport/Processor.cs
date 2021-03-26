@@ -157,7 +157,7 @@ namespace SpeedRunAppImport
 
             if (result && (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.SpeedRun)))
             {
-                result = _userRepo.UpdateUserIsPlayer();
+                result = _userRepo.InsertPlayers();
             }
 
             if (result)

@@ -285,29 +285,28 @@ namespace SpeedRunAppImport.Repository
             }
         }
 
-        public bool UpdateUserIsPlayer()
+        public bool InsertPlayers()
         {
             bool result = true;
 
             try
             {
-                _logger.Information("Started UpdateUserIsPlayer");
+                _logger.Information("Started InsertPlayers");
                 using (IDatabase db = DBFactory.GetDatabase())
                 {
                     db.OneTimeCommandTimeout = 32767;
-
-                    db.Execute("UPDATE u SET " +
-                               "[IsPlayer] = 1, " +
-                               "[ModifiedDate] = @0 " +
-                               "FROM dbo.tbl_User u WITH (NOLOCK) " +
-                               "WHERE u.IsPlayer = 0 " +
-                               "AND EXISTS (SELECT 1 FROM dbo.tbl_SpeedRun_Player rp WITH (NOLOCK) WHERE rp.UserID = u.ID)", DateTime.UtcNow);
+                    db.Execute("INSERT INTO dbo.tbl_Player (UserID, [Name]) " +
+                                "SELECT u.ID, u.[Name] " +
+                                "FROM dbo.tbl_User u WITH (NOLOCK) " +
+                                "WHERE EXISTS (SELECT 1 FROM dbo.tbl_SpeedRun_Player rp WITH (NOLOCK) WHERE rp.UserID = u.ID) " +
+                                "AND NOT EXISTS (SELECT 1 FROM dbo.tbl_Player dn WITH (NOLOCK) WHERE dn.UserID = u.ID) " +
+                                "ORDER BY u.ID");
                 }
             }
             catch (Exception ex)
             {
                 result = false;
-                _logger.Error(ex, "UpdateUserIsPlayer");
+                _logger.Error(ex, "InsertPlayers");
             }
 
             return result;

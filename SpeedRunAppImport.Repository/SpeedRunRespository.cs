@@ -561,7 +561,7 @@ namespace SpeedRunAppImport.Repository
             return result;
         }
 
-        public bool RebuildIndexes()
+        public bool RebuildIndexes(bool isFullImport)
         {
             bool result = true;
 
@@ -571,7 +571,7 @@ namespace SpeedRunAppImport.Repository
                 using (IDatabase db = DBFactory.GetDatabase())
                 {
                     db.OneTimeCommandTimeout = 32767;
-                    db.Execute("EXEC ImportRebuildIndexes");
+                    db.Execute("EXEC ImportRebuildIndexes @0", isFullImport);
                 }
                 _logger.Information("Completed RebuildIndexes");
             }

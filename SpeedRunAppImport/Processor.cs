@@ -157,7 +157,7 @@ namespace SpeedRunAppImport
 
             if (result)
             {
-                _speedRunRepo.RebuildIndexes();
+                _speedRunRepo.RebuildIndexes(IsFullImport);
             }
 
             _settingService.UpdateSetting("ImportLastRunDate", DateTime.UtcNow);

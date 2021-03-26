@@ -123,7 +123,7 @@ namespace SpeedRunAppImport.Service
             games = games.OrderBy(i => i.CreationDate).ToList();
             var gameIDs = games.Select(i => i.ID).ToList();
             var gameSpeedRunComIDs = _gameRepo.GetGameSpeedRunComIDs().Where(i => gameIDs.Contains(i.SpeedRunComID)).ToList();
-            var userIDs = games.SelectMany(i => i.Moderators.Select(i => i.UserID)).Distinct().ToList();
+            var userIDs = games.SelectMany(i => i.ModeratorUsers.Select(i => i.ID)).Distinct().ToList();
             var userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs().Where(i => userIDs.Contains(i.SpeedRunComID)).ToList();
             var levelIDs = games.SelectMany(i => i.Levels.Select(i => i.ID)).Distinct().ToList();
             var levelSpeedRunComIDs = _gameRepo.GetLevelSpeedRunComIDs().Where(i => levelIDs.Contains(i.SpeedRunComID)).ToList();

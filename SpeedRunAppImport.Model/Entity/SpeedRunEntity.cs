@@ -20,7 +20,7 @@ namespace SpeedRunAppImport.Model.Entity
         //public bool IsEmulated { get; set; }
         public int? Rank { get; set; }
         public long? PrimaryTime { get; set; }
-        public int? ExaminerUserID { get; set; }
+        //public int? ExaminerUserID { get; set; }
         //public long? RealTime { get; set; }
         //public long? RealTimeWithoutLoads { get; set; }
         //public long? GameTime { get; set; }

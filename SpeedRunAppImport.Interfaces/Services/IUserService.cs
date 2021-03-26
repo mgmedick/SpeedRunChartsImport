@@ -11,7 +11,8 @@ namespace SpeedRunAppImport.Interfaces.Services
     {
         bool ProcessUsers(DateTime lastImportDate, bool isFullImport, bool IsBulkReload);
         List<User> GetUsersWithRetry(int elementsPerPage, int elementsOffset, UsersOrdering orderBy, int retryCount = 0);
-        void SaveUsers(IEnumerable<User> users, bool IsBulkReload);
+        void SaveGuests(IEnumerable<Guest> guests, bool isBulkReload, IEnumerable<GuestEntity> guestSpeedRunComIDs = null);
+        void SaveUsers(IEnumerable<User> users, bool IsBulkReload, IEnumerable<UserSpeedRunComIDEntity> userSpeedRunComIDs = null);
     }
 } 
 

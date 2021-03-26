@@ -16,6 +16,7 @@ namespace SpeedRunAppImport.Interfaces.Repositories
         IEnumerable<GuestEntity> GetGuests(Expression<Func<GuestEntity, bool>> predicate = null);
         bool InsertPlayers();
         void InsertGuests(IEnumerable<GuestEntity> guests);
+        void SaveGuests(IEnumerable<GuestEntity> guests);
     }
 }
 

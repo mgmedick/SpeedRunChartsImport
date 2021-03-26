@@ -308,32 +308,5 @@ namespace SpeedRunAppImport.Repository
                 return db.Query<GuestEntity>().Where(predicate ?? (x => true)).ToList();
             }
         }
-
-        public bool InsertPlayers()
-        {
-            bool result = true;
-
-            try
-            {
-                _logger.Information("Started InsertPlayers");
-                using (IDatabase db = DBFactory.GetDatabase())
-                {
-                    db.OneTimeCommandTimeout = 32767;
-                    db.Execute("INSERT INTO dbo.tbl_Player (UserID, [Name]) " +
-                                "SELECT u.ID, u.[Name] " +
-                                "FROM dbo.tbl_User u WITH (NOLOCK) " +
-                                "WHERE EXISTS (SELECT 1 FROM dbo.tbl_SpeedRun_Player rp WITH (NOLOCK) WHERE rp.UserID = u.ID) " +
-                                "AND NOT EXISTS (SELECT 1 FROM dbo.tbl_Player dn WITH (NOLOCK) WHERE dn.UserID = u.ID) " +
-                                "ORDER BY u.ID");
-                }
-            }
-            catch (Exception ex)
-            {
-                result = false;
-                _logger.Error(ex, "InsertPlayers");
-            }
-
-            return result;
-        }
     }
 }

@@ -107,13 +107,41 @@ namespace SpeedRunAppImport.Service
             return users;
         }
 
-        public void SaveUsers(IEnumerable<User> users, bool isBulkReload)
+        public void SaveGuests(IEnumerable<Guest> guests, bool isBulkReload, IEnumerable<GuestEntity> guestSpeedRunComIDs = null)
+        {
+            var guestIDs = guests.Select(i => i.Name).ToList();
+            if (guestSpeedRunComIDs == null)
+            {
+                guestSpeedRunComIDs = _userRepo.GetGuests().Where(i => guestIDs.Contains(i.Name)).ToList();
+            }
+
+            var guestEntities = guests.Select(i => new GuestEntity
+            {
+                ID = guestSpeedRunComIDs.Where(g => g.Name == i.Name).Select(g => g.ID).FirstOrDefault(),
+                Name = i.Name
+            })
+            .ToList();
+
+            if (isBulkReload)
+            {
+                _userRepo.InsertGuests(guestEntities);
+            }
+            else
+            {
+                _userRepo.SaveGuests(guestEntities);
+            }
+        }
+
+        public void SaveUsers(IEnumerable<User> users, bool isBulkReload, IEnumerable<UserSpeedRunComIDEntity> userSpeedRunComIDs = null)
         {
             _logger.Information("Started SaveUsers: {@Count}, {@IsBulkReload}", users.Count(), isBulkReload);
 
             users = users.OrderBy(i => i.SignUpDate).ToList();
             var userIDs = users.Select(i => i.ID).ToList();
-            var userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs().Where(i => userIDs.Contains(i.SpeedRunComID)).ToList();
+            if (userSpeedRunComIDs == null)
+            {
+                userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs().Where(i => userIDs.Contains(i.SpeedRunComID)).ToList();
+            }
 
             var userEntities = users.Select(i => new UserEntity {
                 ID = userSpeedRunComIDs.Where(g => g.SpeedRunComID == i.ID).Select(g => g.UserID).FirstOrDefault(),

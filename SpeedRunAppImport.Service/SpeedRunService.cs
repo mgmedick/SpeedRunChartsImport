@@ -18,17 +18,19 @@ namespace SpeedRunAppImport.Service
         private readonly ISettingService _settingService = null;
         private readonly ICacheService _cacheService = null;
         private readonly IScrapeService _scrapeService = null;
+        private readonly IUserService _userService = null;
         private readonly IGameRepository _gameRepo = null;
         private readonly IUserRepository _userRepo = null;
         private readonly IPlatformRepository _platformRepo = null;
         private readonly ISpeedRunRepository _speedRunRepo = null;
         private readonly ILogger _logger;
 
-        public SpeedRunService(ISettingService settingService, ICacheService cacheService, IScrapeService scrapeService, IGameRepository gameRepo, IUserRepository userRepo, IPlatformRepository platformRepo, ISpeedRunRepository speedRunRepo, ILogger logger)
+        public SpeedRunService(ISettingService settingService, ICacheService cacheService, IScrapeService scrapeService, IUserService userService, IGameRepository gameRepo, IUserRepository userRepo, IPlatformRepository platformRepo, ISpeedRunRepository speedRunRepo, ILogger logger)
         {
             _settingService = settingService;
             _cacheService = cacheService;
             _scrapeService = scrapeService;
+            _userService = userService;
             _gameRepo = gameRepo;
             _userRepo = userRepo;
             _platformRepo = platformRepo;
@@ -74,13 +76,14 @@ namespace SpeedRunAppImport.Service
         public void ProcessSpeedRunsDefault(DateTime lastImportDateUtc, bool isFullImport, bool isBulkReload)
         {
             RunsOrdering orderBy = isFullImport ? RunsOrdering.VerifyDate : RunsOrdering.VerifyDateDescending;
+            var runEmbeds = new SpeedRunEmbeds { EmbedCategory = false, EmbedGame = false, EmbedLevel = false, EmbedPlayers = true, EmbedPlatform = false, EmbedRegion = false };
             var results = new List<SpeedRun>();
             var runs = new List<SpeedRun>();
             var prevTotal = 0;
 
             do
             {
-                runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count() + prevTotal, null, orderBy, RunStatusType.Verified);
+                runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count() + prevTotal, null, runEmbeds, orderBy, RunStatusType.Verified);
                 results.AddRange(runs);
                 _logger.Information("Pulled runs: {@New}, total runs: {@Total}", runs.Count, results.Count() + prevTotal);
                 Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
@@ -113,6 +116,7 @@ namespace SpeedRunAppImport.Service
         public void ProcessSpeedRunsByGameFullImport(bool isBulkReload)
         {
             RunsOrdering orderBy = RunsOrdering.DateSubmitted;
+            var runEmbeds = new SpeedRunEmbeds { EmbedCategory = false, EmbedGame = false, EmbedLevel = false, EmbedPlayers = true, EmbedPlatform = false, EmbedRegion = false };
             var results = new List<SpeedRun>();
             var runs = new List<SpeedRun>();
             var gameSpeedRunComIDs = _gameRepo.GetGameSpeedRunComIDs();
@@ -123,7 +127,7 @@ namespace SpeedRunAppImport.Service
                 var prevGameTotal = 0;
                 do
                 {
-                    runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count(i => i.GameID == gameSpeedRunComID.SpeedRunComID) + prevGameTotal, gameSpeedRunComID.SpeedRunComID, orderBy, RunStatusType.Verified);
+                    runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count(i => i.GameID == gameSpeedRunComID.SpeedRunComID) + prevGameTotal, gameSpeedRunComID.SpeedRunComID, runEmbeds, orderBy, RunStatusType.Verified);
                     results.AddRange(runs);
                     _logger.Information("GameID: {@GameID}, pulled runs: {@New}, game total: {@GameTotal}, total runs: {@Total}", gameSpeedRunComID.SpeedRunComID, runs.Count, results.Count(i => i.GameID == gameSpeedRunComID.SpeedRunComID) + prevGameTotal, results.Count + prevTotal);
                     Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
@@ -184,14 +188,14 @@ namespace SpeedRunAppImport.Service
         }
         #endregion
 
-        public List<SpeedRun> GetSpeedRunsWithRetry(int elementsPerPage, int elementsOffset, string gameID, RunsOrdering orderBy, RunStatusType? statusType = null, int retryCount = 0)
+        public List<SpeedRun> GetSpeedRunsWithRetry(int elementsPerPage, int elementsOffset, string gameID, SpeedRunEmbeds embeds, RunsOrdering orderBy, RunStatusType? statusType = null, int retryCount = 0)
         {
             ClientContainer clientContainer = new ClientContainer();
             List<SpeedRun> runs = null;
 
             try
             {
-                runs = clientContainer.Runs.GetRuns(status: statusType, elementsPerPage: elementsPerPage, elementsOffset: elementsOffset, gameId: gameID, orderBy: orderBy).ToList();
+                runs = clientContainer.Runs.GetRuns(status: statusType, elementsPerPage: elementsPerPage, elementsOffset: elementsOffset, gameId: gameID, embeds: embeds, orderBy: orderBy).ToList();
             }
             catch (Exception ex)
             {
@@ -205,7 +209,7 @@ namespace SpeedRunAppImport.Service
                     Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.ErrorPullDelayMS));
                     retryCount++;
                     _logger.Information("Retrying pull speedRuns: {@New}, total speedRuns: {@Total}, retry: {@RetryCount}", elementsPerPage, elementsOffset, retryCount);
-                    runs = GetSpeedRunsWithRetry(elementsPerPage, elementsOffset, gameID, orderBy, statusType, retryCount);
+                    runs = GetSpeedRunsWithRetry(elementsPerPage, elementsOffset, gameID, embeds, orderBy, statusType, retryCount);
                 }
                 else
                 {
@@ -276,16 +280,32 @@ namespace SpeedRunAppImport.Service
             var variableSpeedRunComIDs = _gameRepo.GetVaraibleSpeedRunComIDs().Where(i => variableIDs.Contains(i.SpeedRunComID)).ToList();
             var variableValueIDs = runs.SelectMany(i => i.VariableValueMappings.Select(g => g.VariableValueID)).Distinct().ToList();
             var variableValueSpeedRunComIDs = _gameRepo.GetVariableValueSpeedRunComIDs().Where(i => variableValueIDs.Contains(i.SpeedRunComID)).ToList();
-            var playerUserIDs = runs.SelectMany(i => i.Players.Where(i => !string.IsNullOrWhiteSpace(i.UserID)).Select(i => i.UserID)).Distinct().ToList();
-            var examinerUserIDs = runs.Where(i => !string.IsNullOrWhiteSpace(i.Status.ExaminerUserID)).Select(i => i.Status.ExaminerUserID).Distinct().ToList();
-            var userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs();
-            var playerUserSpeedRunComIDs = userSpeedRunComIDs.Where(i => playerUserIDs.Contains(i.SpeedRunComID)).ToList();
-            var examinerUserSpeedRunComIDs = userSpeedRunComIDs.Where(i => examinerUserIDs.Contains(i.SpeedRunComID)).ToList();
+            //var playerUserIDs = runs.SelectMany(i => i.Players.Where(i => !string.IsNullOrWhiteSpace(i.UserID)).Select(i => i.UserID)).Distinct().ToList();
+            //var examinerUserIDs = runs.Where(i => !string.IsNullOrWhiteSpace(i.Status.ExaminerUserID)).Select(i => i.Status.ExaminerUserID).Distinct().ToList();
+            //var playerUserSpeedRunComIDs = userSpeedRunComIDs.Where(i => playerUserIDs.Contains(i.SpeedRunComID)).ToList();
+            //var examinerUserSpeedRunComIDs = userSpeedRunComIDs.Where(i => examinerUserIDs.Contains(i.SpeedRunComID)).ToList();
             var regionIDs = runs.Where(i => !string.IsNullOrWhiteSpace(i.System.RegionID)).Select(i => i.System.RegionID).Distinct().ToList();
             var regionSpeedRunComIDs = _gameRepo.GetRegionSpeedRunComIDs(i => regionIDs.Contains(i.SpeedRunComID)).ToList();
             var platformIDs = runs.Where(i => !string.IsNullOrWhiteSpace(i.System.PlatformID)).Select(i => i.System.PlatformID).Distinct().ToList();
             var platformSpeedRunComIDs = _platformRepo.GetPlatformSpeedRunComIDs(i => platformIDs.Contains(i.SpeedRunComID)).ToList();
-            var guests = _userRepo.GetGuests().ToList();
+            var userIDs = runs.SelectMany(i => i.PlayerUsers.Select(i => i.ID)).Distinct().ToList();
+            var userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs().Where(i => userIDs.Contains(i.SpeedRunComID)).ToList();
+            var guestIDs = runs.SelectMany(i => i.PlayerGuests.Select(i => i.Name)).Distinct().ToList();
+            var guestSpeedRunComIDs = _userRepo.GetGuests().Where(i => guestIDs.Contains(i.Name)).ToList();
+
+            var users = runs.SelectMany(i => i.PlayerUsers.Where(i => !userSpeedRunComIDs.Any(g => g.SpeedRunComID == i.ID))).GroupBy(g => new { g.ID }).Select(i => i.First()).ToList();
+            if (users.Any())
+            {
+                _userService.SaveUsers(users, isBulkReload, userSpeedRunComIDs);
+                userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs().Where(i => userIDs.Contains(i.SpeedRunComID)).ToList();
+            }
+
+            var guests = runs.SelectMany(i => i.PlayerGuests.Where(i => !guestSpeedRunComIDs.Any(g => g.Name == i.Name))).GroupBy(g => new { g.Name }).Select(i => i.First()).ToList();
+            if (guests.Any())
+            {
+                _userService.SaveGuests(guests, isBulkReload, guestSpeedRunComIDs);
+                guestSpeedRunComIDs = _userRepo.GetGuests().Where(i => guestIDs.Contains(i.Name)).ToList();
+            }
 
             var runEntities = runs.Select(i => new SpeedRunEntity()
             {
@@ -296,7 +316,7 @@ namespace SpeedRunAppImport.Service
                 CategoryID = categorySpeedRunComIDs.Where(g => g.SpeedRunComID == i.CategoryID).Select(g => g.CategoryID).FirstOrDefault(),
                 LevelID = !string.IsNullOrWhiteSpace(i.LevelID) ? levelSpeedRunComIDs.Where(g => g.SpeedRunComID == i.LevelID).Select(g => g.LevelID).FirstOrDefault() : (int?)null,
                 PrimaryTime = i.Times.Primary?.Ticks,
-                ExaminerUserID = examinerUserSpeedRunComIDs.Where(g => g.SpeedRunComID == i.Status.ExaminerUserID).Select(g => (int?)g.UserID).FirstOrDefault(),
+                //ExaminerUserID = userSpeedRunComIDs.Where(g => g.SpeedRunComID == i.Status.ExaminerUserID).Select(g => (int?)g.UserID).FirstOrDefault(),
                 RunDate = i.Date,
                 DateSubmitted = i.DateSubmitted,
                 VerifyDate = i.Status.VerifyDate
@@ -336,10 +356,10 @@ namespace SpeedRunAppImport.Service
                 VariableValueID = variableValueSpeedRunComIDs.Where(h => h.SpeedRunComID == g.VariableValueID).Select(g => g.VariableValueID).FirstOrDefault(),
             })).Where(i => i.VariableID != 0 && i.VariableValueID != 0)
             .ToList();
-            var playerEntities = runs.SelectMany(i => i.Players.Where(g => g.IsUser && !string.IsNullOrWhiteSpace(g.UserID)).Select(g => new SpeedRunPlayerEntity()
+            var playerEntities = runs.SelectMany(i => i.PlayerUsers.Select(g => new SpeedRunPlayerEntity()
             {
                 SpeedRunSpeedRunComID = i.ID,
-                UserID = playerUserSpeedRunComIDs.Where(h => h.SpeedRunComID == g.UserID).Select(h => h.UserID).FirstOrDefault()
+                UserID = userSpeedRunComIDs.Where(h => h.SpeedRunComID == g.ID).Select(h => h.UserID).FirstOrDefault()
             })).Where(i => i.UserID != 0)
             .ToList();
             var videoEntities = runs.Where(i => i.Videos?.Links != null && i.Videos.Links.Any(g => g != null))
@@ -352,19 +372,10 @@ namespace SpeedRunAppImport.Service
             .GroupBy(h => new { h.SpeedRunSpeedRunComID, h.VideoLinkUrl })
             .Select(n => n.First())
             .ToList();
-            var guestEntities = runs.SelectMany(i => i.Players.Where(i => !i.IsUser && !string.IsNullOrWhiteSpace(i.GuestName) && !guests.Any(g => g.Name == i.GuestName)).Select(i => i.GuestName))
-                                    .Distinct()
-                                    .Select(i => new GuestEntity() { Name = i })
-                                    .ToList();
-            if (guestEntities.Any())
-            {
-                _userRepo.InsertGuests(guestEntities);
-                guests = _userRepo.GetGuests().ToList();
-            }
-            var guestPlayerEntities = runs.SelectMany(i => i.Players.Where(g => !g.IsUser && !string.IsNullOrWhiteSpace(g.GuestName)).Select(g => new SpeedRunGuestEntity()
+            var guestPlayerEntities = runs.SelectMany(i => i.PlayerGuests.Select(g => new SpeedRunGuestEntity()
             {
                 SpeedRunSpeedRunComID = i.ID,
-                GuestID = guests.Where(h => h.Name == g.GuestName).Select(h => h.ID).FirstOrDefault()
+                GuestID = guestSpeedRunComIDs.Where(h => h.Name == g.Name).Select(h => h.ID).FirstOrDefault()
             })).Where(i => i.GuestID != 0)
             .ToList();
 

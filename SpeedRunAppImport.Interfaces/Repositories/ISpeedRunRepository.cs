@@ -17,7 +17,7 @@ namespace SpeedRunAppImport.Interfaces.Repositories
         bool CreateFullTables();
         bool RenameFullTables();
         bool UpdateSpeedRunRanks(DateTime lastImportDateUtc);
-        bool RebuildIndexes();
+        bool RebuildIndexes(bool isFullImport);
         IEnumerable<SpeedRunVideoEntity> GetSpeedRunVideos(Expression<Func<SpeedRunVideoEntity, bool>> predicate = null);
         void UpdateSpeedRunVideos(IEnumerable<SpeedRunVideoEntity> speedRunVideos);
     }

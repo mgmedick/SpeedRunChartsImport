@@ -130,10 +130,10 @@ namespace SpeedRunAppImport
                 result = _platformService.ProcessPlatforms(IsFullImport, IsBulkReload);
             }
 
-            if (result && (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.User)))
-            {
-                result = _userService.ProcessUsers(UserLastImportDateUtc, IsFullImport, IsBulkReload);
-            }
+            //if (result && (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.User)))
+            //{
+            //    result = _userService.ProcessUsers(UserLastImportDateUtc, IsFullImport, IsBulkReload);
+            //}
 
             if (result && (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Game)))
             {

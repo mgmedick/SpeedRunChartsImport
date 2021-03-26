@@ -219,6 +219,30 @@ namespace SpeedRunAppImport.Repository
             _logger.Information("Completed InsertGuests");
         }
 
+        public void SaveGuests(IEnumerable<GuestEntity> guests)
+        {
+            _logger.Information("Started SaveGuests");
+            int count = 1;
+            var guestList = guests.ToList();
+
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                foreach (var guest in guestList)
+                {
+                    using (var tran = db.GetTransaction())
+                    {
+                        db.Save<GuestEntity>(guest);
+
+                        tran.Complete();
+                    }
+
+                    _logger.Information("Saved users {@Count} / {@Total}", count, guestList.Count);
+                    count++;
+                }
+            }
+            _logger.Information("Completed SaveGuests");
+        }
+
         public void SaveUsers(IEnumerable<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, IEnumerable<UserLinkEntity> userLinks)
         {
             int count = 1;

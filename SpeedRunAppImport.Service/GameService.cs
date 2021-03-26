@@ -17,15 +17,17 @@ namespace SpeedRunAppImport.Service
     public class GameService : BaseService, IGameService
     {
         private readonly ISettingService _settingService = null;
+        private readonly IUserService _userService = null;
         private readonly IGameRepository _gameRepo = null;
         private readonly IPlatformRepository _platformRepo = null;
         private readonly IUserRepository _userRepo = null;
         private readonly ISpeedRunRepository _speedRunRepo = null;
         private readonly ILogger _logger;
 
-        public GameService(ISettingService settingService, IGameRepository gameRepo, IPlatformRepository platformRepo, IUserRepository userRepo, ISpeedRunRepository speedRunRepo, ILogger logger)
+        public GameService(ISettingService settingService, IUserService userService, IGameRepository gameRepo, IPlatformRepository platformRepo, IUserRepository userRepo, ISpeedRunRepository speedRunRepo, ILogger logger)
         {
             _settingService = settingService;
+            _userService = userService;
             _gameRepo = gameRepo;
             _platformRepo = platformRepo;
             _userRepo = userRepo;
@@ -41,7 +43,7 @@ namespace SpeedRunAppImport.Service
             {
                 _logger.Information("Started ProcessGames: {@LastImportDateUtc}, {@IsFullImport}, {@IsBulkReload}", lastImportDateUtc, isFullImport, isBulkReload);
                 GamesOrdering orderBy = isFullImport ? GamesOrdering.CreationDate : GamesOrdering.CreationDateDescending;
-                var gameEmbeds = new GameEmbeds { EmbedCategories = true, EmbedLevels = true, EmbedModerators = false, EmbedPlatforms = false, EmbedVariables = true };
+                var gameEmbeds = new GameEmbeds { EmbedCategories = true, EmbedLevels = true, EmbedModerators = true, EmbedPlatforms = false, EmbedVariables = true };
                 var results = new List<Game>();
                 var games = new List<Game>();
                 var prevTotal = 0;
@@ -136,6 +138,13 @@ namespace SpeedRunAppImport.Service
             var regionIDs = games.SelectMany(i => i.RegionIDs).Distinct().ToList();
             var regionSpeedRunComIDs = _gameRepo.GetRegionSpeedRunComIDs(i => regionIDs.Contains(i.SpeedRunComID)).ToList();
 
+            var moderators = games.SelectMany(i => i.ModeratorUsers.Where(i => !userSpeedRunComIDs.Any(g => g.SpeedRunComID == i.ID))).GroupBy(g => new { g.ID }).Select(i => i.First()).ToList();
+            if (moderators.Any())
+            {
+                _userService.SaveUsers(moderators, isBulkReload, userSpeedRunComIDs);
+                userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs().Where(i => userIDs.Contains(i.SpeedRunComID)).ToList();
+            }
+
             var gameEntities = games.Select(i => new GameEntity()
             {
                 ID = gameSpeedRunComIDs.Where(g => g.SpeedRunComID == i.ID).Select(g => g.GameID).FirstOrDefault(),
@@ -209,10 +218,10 @@ namespace SpeedRunAppImport.Service
             }))
             .Where(i => i.RegionID != 0)
             .ToList();
-            var gameModeratorEntities = games.SelectMany(i => i.Moderators.Select(g => new GameModeratorEntity
+            var gameModeratorEntities = games.SelectMany(i => i.ModeratorUsers.Select(g => new GameModeratorEntity
             {
                 GameSpeedRunComID = i.ID,
-                UserID = userSpeedRunComIDs.Where(h => h.SpeedRunComID == g.UserID).Select(h => h.UserID).FirstOrDefault()
+                UserID = userSpeedRunComIDs.Where(h => h.SpeedRunComID == g.ID).Select(h => h.UserID).FirstOrDefault()
             }))
             .Where(i => i.UserID != 0)
             .ToList();

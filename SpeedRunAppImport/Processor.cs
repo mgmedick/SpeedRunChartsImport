@@ -51,7 +51,14 @@ namespace SpeedRunAppImport
             try
             {
                 Init();
-                RunProcesses();
+                if (IsMaintenance)
+                {
+                    RunMaintenance();
+                }
+                else
+                {
+                    RunProcesses();
+                }
             }
             catch (Exception ex)
             {
@@ -68,6 +75,7 @@ namespace SpeedRunAppImport
                 var maxBulkRows = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxBulkRows").Value);
                 IsBulkReload = _config.GetValue<bool>("IsBulkReload");
                 IsFullImport = _config.GetValue<bool>("IsFullImport");
+                IsMaintenance = _config.GetValue<bool>("IsMaintenance");
                 IsProcessSpeedRunsByGame = Convert.ToBoolean(_config.GetSection("ApiSettings").GetSection("IsProcessSpeedRunsByGame").Value);
                 NPocoBootstrapper.Configure(connString, maxBulkRows, IsBulkReload);
 
@@ -116,6 +124,12 @@ namespace SpeedRunAppImport
             }
         }
 
+        public void RunMaintenance()
+        {
+            bool result = true;
+            result = _speedRunRepo.RebuildIndexes(true);
+        }
+
         public void RunProcesses()
         {
             bool result = true;
@@ -155,9 +169,9 @@ namespace SpeedRunAppImport
                 result = _speedRunRepo.UpdateSpeedRunRanks(ImportLastRunDateUtc);
             }
 
-            if (result)
+            if (result && IsFullImport)
             {
-                _speedRunRepo.RebuildIndexes(IsFullImport);
+                RunMaintenance();
             }
 
             _settingService.UpdateSetting("ImportLastRunDate", DateTime.UtcNow);
@@ -172,6 +186,7 @@ namespace SpeedRunAppImport
         public bool IsBulkReload { get; set; }
         public bool IsProcessSpeedRunsByGame { get; set; }
         public bool IsImportRunning { get; set; }
+        public bool IsMaintenance { get; set; }
         public List<ImportProcess> Processes { get; set; }
     }
 }

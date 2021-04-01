@@ -80,7 +80,7 @@ namespace SpeedRunAppImport
                 NPocoBootstrapper.Configure(connString, maxBulkRows, IsBulkReload);
 
                 Processes = _config.GetValue<string>("ProcessIDs").Split(",").Select(i => (ImportProcess)Convert.ToInt32(i)).ToList();
-                if (IsBulkReload)
+                if (IsBulkReload || IsMaintenance)
                 {
                     //Processes.Add(ImportProcess.All);
                     IsFullImport = true;
@@ -124,12 +124,6 @@ namespace SpeedRunAppImport
             }
         }
 
-        public void RunMaintenance()
-        {
-            bool result = true;
-            result = _speedRunRepo.RebuildIndexes(true);
-        }
-
         public void RunProcesses()
         {
             bool result = true;
@@ -169,12 +163,18 @@ namespace SpeedRunAppImport
                 result = _speedRunRepo.UpdateSpeedRunRanks(ImportLastRunDateUtc);
             }
 
-            if (result && IsFullImport)
+            if (result)
             {
                 RunMaintenance();
             }
 
             _settingService.UpdateSetting("ImportLastRunDate", DateTime.UtcNow);
+        }
+
+        public void RunMaintenance()
+        {
+            bool result = true;
+            result = _speedRunRepo.RebuildIndexes(IsFullImport);
         }
 
         public DateTime PlatformLastImportDateUtc { get; set; }

@@ -97,7 +97,7 @@ namespace SpeedRunAppImport.Service
                     results.ClearMemory();
                 }
             }
-            while (runs.Count == MaxElementsPerPage && runs.Min(i => i.Status.VerifyDate ?? SqlMinDateTime) > lastImportDateUtc);
+            while (runs.Count == MaxElementsPerPage && (isFullImport || runs.Min(i => i.Status.VerifyDate ?? SqlMinDateTime) >= lastImportDateUtc));
 
             if (!isFullImport)
             {

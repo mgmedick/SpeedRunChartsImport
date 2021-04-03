@@ -288,19 +288,19 @@ namespace SpeedRunAppImport.Service
             var regionSpeedRunComIDs = _gameRepo.GetRegionSpeedRunComIDs(i => regionIDs.Contains(i.SpeedRunComID)).ToList();
             var platformIDs = runs.Where(i => !string.IsNullOrWhiteSpace(i.System.PlatformID)).Select(i => i.System.PlatformID).Distinct().ToList();
             var platformSpeedRunComIDs = _platformRepo.GetPlatformSpeedRunComIDs(i => platformIDs.Contains(i.SpeedRunComID)).ToList();
-            var userIDs = runs.SelectMany(i => i.PlayerUsers.Select(i => i.ID)).Distinct().ToList();
+            var userIDs = runs.Where(i=>i.PlayerUsers != null).SelectMany(i => i.PlayerUsers.Select(i => i.ID)).Distinct().ToList();
             var userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs().Where(i => userIDs.Contains(i.SpeedRunComID)).ToList();
-            var guestIDs = runs.SelectMany(i => i.PlayerGuests.Select(i => i.Name)).Distinct().ToList();
+            var guestIDs = runs.Where(i => i.PlayerGuests != null).SelectMany(i => i.PlayerGuests.Select(i => i.Name)).Distinct().ToList();
             var guestSpeedRunComIDs = _userRepo.GetGuests().Where(i => guestIDs.Contains(i.Name)).ToList();
 
-            var users = runs.SelectMany(i => i.PlayerUsers.Where(i => !userSpeedRunComIDs.Any(g => g.SpeedRunComID == i.ID))).GroupBy(g => new { g.ID }).Select(i => i.First()).ToList();
+            var users = runs.Where(i => i.PlayerUsers != null).SelectMany(i => i.PlayerUsers.Where(i => !userSpeedRunComIDs.Any(g => g.SpeedRunComID == i.ID))).GroupBy(g => new { g.ID }).Select(i => i.First()).ToList();
             if (users.Any())
             {
                 _userService.SaveUsers(users, isBulkReload, userSpeedRunComIDs);
                 userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs().Where(i => userIDs.Contains(i.SpeedRunComID)).ToList();
             }
 
-            var guests = runs.SelectMany(i => i.PlayerGuests.Where(i => !guestSpeedRunComIDs.Any(g => g.Name == i.Name))).GroupBy(g => new { g.Name }).Select(i => i.First()).ToList();
+            var guests = runs.Where(i => i.PlayerGuests != null).SelectMany(i => i.PlayerGuests.Where(i => !guestSpeedRunComIDs.Any(g => g.Name == i.Name))).GroupBy(g => new { g.Name }).Select(i => i.First()).ToList();
             if (guests.Any())
             {
                 _userService.SaveGuests(guests, isBulkReload, guestSpeedRunComIDs);
@@ -356,7 +356,7 @@ namespace SpeedRunAppImport.Service
                 VariableValueID = variableValueSpeedRunComIDs.Where(h => h.SpeedRunComID == g.VariableValueID).Select(g => g.VariableValueID).FirstOrDefault(),
             })).Where(i => i.VariableID != 0 && i.VariableValueID != 0)
             .ToList();
-            var playerEntities = runs.SelectMany(i => i.PlayerUsers.Select(g => new SpeedRunPlayerEntity()
+            var playerEntities = runs.Where(i => i.PlayerUsers != null).SelectMany(i => i.PlayerUsers.Select(g => new SpeedRunPlayerEntity()
             {
                 SpeedRunSpeedRunComID = i.ID,
                 UserID = userSpeedRunComIDs.Where(h => h.SpeedRunComID == g.ID).Select(h => h.UserID).FirstOrDefault()
@@ -372,7 +372,7 @@ namespace SpeedRunAppImport.Service
             .GroupBy(h => new { h.SpeedRunSpeedRunComID, h.VideoLinkUrl })
             .Select(n => n.First())
             .ToList();
-            var guestPlayerEntities = runs.SelectMany(i => i.PlayerGuests.Select(g => new SpeedRunGuestEntity()
+            var guestPlayerEntities = runs.Where(i => i.PlayerGuests != null).SelectMany(i => i.PlayerGuests.Select(g => new SpeedRunGuestEntity()
             {
                 SpeedRunSpeedRunComID = i.ID,
                 GuestID = guestSpeedRunComIDs.Where(h => h.Name == g.Name).Select(h => h.ID).FirstOrDefault()

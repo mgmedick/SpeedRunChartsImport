@@ -140,7 +140,8 @@ namespace SpeedRunAppImport.Service
             var userIDs = users.Select(i => i.ID).ToList();
             if (userSpeedRunComIDs == null)
             {
-                userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs().Where(i => userIDs.Contains(i.SpeedRunComID)).ToList();
+                userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs();
+                userSpeedRunComIDs = userSpeedRunComIDs.Join(userIDs, o => o.SpeedRunComID, id => id, (o, id) => o).ToList();
             }
 
             var userEntities = users.Select(i => new UserEntity {

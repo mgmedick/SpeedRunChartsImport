@@ -122,23 +122,40 @@ namespace SpeedRunAppImport.Service
 
             games = games.OrderBy(i => i.CreationDate).ToList();
             var gameIDs = games.Select(i => i.ID).ToList();
-            var gameSpeedRunComIDs = _gameRepo.GetGameSpeedRunComIDs().Where(i => gameIDs.Contains(i.SpeedRunComID)).ToList();
+            var gameSpeedRunComIDs = _gameRepo.GetGameSpeedRunComIDs();
+            gameSpeedRunComIDs = gameSpeedRunComIDs.Join(gameIDs, o => o.SpeedRunComID, id => id, (o, id) => o).ToList();
+
             var userIDs = games.SelectMany(i => i.ModeratorUsers.Select(i => i.ID)).Distinct().ToList();
-            var userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs().Where(i => userIDs.Contains(i.SpeedRunComID)).ToList();
+            var userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs();
+            userSpeedRunComIDs = userSpeedRunComIDs.Join(userIDs, o => o.SpeedRunComID, id => id, (o, id) => o).ToList();
+
             var levelIDs = games.SelectMany(i => i.Levels.Select(i => i.ID)).Distinct().ToList();
-            var levelSpeedRunComIDs = _gameRepo.GetLevelSpeedRunComIDs().Where(i => levelIDs.Contains(i.SpeedRunComID)).ToList();
+            var levelSpeedRunComIDs = _gameRepo.GetLevelSpeedRunComIDs();
+            levelSpeedRunComIDs = levelSpeedRunComIDs.Join(levelIDs, o => o.SpeedRunComID, id => id, (o, id) => o).ToList();
+
             var categoryIDs = games.SelectMany(i => i.Categories.Select(i => i.ID)).Distinct().ToList();
-            var categorySpeedRunComIDs = _gameRepo.GetCategorySpeedRunComIDs().Where(i => categoryIDs.Contains(i.SpeedRunComID)).ToList();
+            var categorySpeedRunComIDs = _gameRepo.GetCategorySpeedRunComIDs();
+            categorySpeedRunComIDs = categorySpeedRunComIDs.Join(categoryIDs, o => o.SpeedRunComID, id => id, (o, id) => o).ToList();
+
             var variableIDs = games.SelectMany(i => i.Variables.Select(i => i.ID)).Distinct().ToList();
-            var variableSpeedRunComIDs = _gameRepo.GetVaraibleSpeedRunComIDs().Where(i => variableIDs.Contains(i.SpeedRunComID)).ToList();
+            var variableSpeedRunComIDs = _gameRepo.GetVaraibleSpeedRunComIDs();
+            variableSpeedRunComIDs = variableSpeedRunComIDs.Join(variableIDs, o => o.SpeedRunComID, id => id, (o, id) => o).ToList();
+
             var variableValueIDs = games.SelectMany(i => i.Variables.SelectMany(g => g.Values.Select(h => h.ID))).Distinct().ToList();
-            var variableValueSpeedRunComIDs = _gameRepo.GetVariableValueSpeedRunComIDs().Where(i => variableValueIDs.Contains(i.SpeedRunComID)).ToList();
+            var variableValueSpeedRunComIDs = _gameRepo.GetVariableValueSpeedRunComIDs();
+            variableValueSpeedRunComIDs = variableValueSpeedRunComIDs.Join(variableValueIDs, o => o.SpeedRunComID, id => id, (o, id) => o).ToList();
+
             var platformIDs = games.SelectMany(i => i.PlatformIDs).Distinct().ToList();
             var platformSpeedRunComIDs = _platformRepo.GetPlatformSpeedRunComIDs(i => platformIDs.Contains(i.SpeedRunComID)).ToList();
+
             var regionIDs = games.SelectMany(i => i.RegionIDs).Distinct().ToList();
             var regionSpeedRunComIDs = _gameRepo.GetRegionSpeedRunComIDs(i => regionIDs.Contains(i.SpeedRunComID)).ToList();
 
-            var moderators = games.SelectMany(i => i.ModeratorUsers.Where(i => !userSpeedRunComIDs.Any(g => g.SpeedRunComID == i.ID))).GroupBy(g => new { g.ID }).Select(i => i.First()).ToList();
+            var moderators = games.Where(i => i.ModeratorUsers != null)
+                                  .SelectMany(i => i.ModeratorUsers.Where(i => !userSpeedRunComIDs.Any(g => g.SpeedRunComID == i.ID)))
+                                  .GroupBy(g => new { g.ID })
+                                  .Select(i => i.First())
+                                  .ToList();
             if (moderators.Any())
             {
                 _userService.SaveUsers(moderators, isBulkReload, userSpeedRunComIDs);

@@ -74,7 +74,8 @@ namespace SpeedRunAppImport.Service
                 if (results.Any())
                 {
                     SaveGames(results, isBulkReload);
-                    _settingService.UpdateSetting("GameLastImportDate", results.Max(i => i.CreationDate ?? SqlMinDateTime));
+                    var lastUpdateDate = results.Max(i => i.CreationDate) ?? DateTime.UtcNow;
+                    _settingService.UpdateSetting("GameLastImportDate", lastUpdateDate);
                     results.ClearMemory();
                 }
 

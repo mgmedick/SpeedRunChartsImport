@@ -107,7 +107,8 @@ namespace SpeedRunAppImport.Service
             if (results.Any())
             {
                 SaveSpeedRuns(results, isBulkReload);
-                _settingService.UpdateSetting("SpeedRunLastImportDate", results.Max(i => i.Status.VerifyDate ?? SqlMinDateTime));
+                var lastUpdateDate = results.Max(i => i.Status.VerifyDate) ?? DateTime.UtcNow;
+                _settingService.UpdateSetting("SpeedRunLastImportDate", lastUpdateDate);
                 results.ClearMemory();
             }
         }

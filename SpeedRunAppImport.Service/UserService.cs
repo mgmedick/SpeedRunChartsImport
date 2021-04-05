@@ -66,7 +66,8 @@ namespace SpeedRunAppImport.Service
                 if (results.Any())
                 {
                     SaveUsers(results, isBulkReload);
-                    _settingService.UpdateSetting("UserLastImportDate", results.Max(i => i.SignUpDate ?? SqlMinDateTime));
+                    var lastUpdateDate = results.Max(i => i.SignUpDate) ?? DateTime.UtcNow;
+                    _settingService.UpdateSetting("UserLastImportDate", lastUpdateDate);
                     results.ClearMemory();
                 }
 

@@ -35,14 +35,14 @@ namespace SpeedRunAppImport.Service
             _logger = logger;
         }
 
-        public bool ProcessGames(DateTime lastImportDateUtc, bool isFullImport, bool isBulkReload)
+        public bool ProcessGames(DateTime lastImportDateUtc, bool isFullPull, bool isBulkReload)
         {
             bool result = true;
 
             try
             {
-                _logger.Information("Started ProcessGames: {@LastImportDateUtc}, {@IsFullImport}, {@IsBulkReload}", lastImportDateUtc, isFullImport, isBulkReload);
-                GamesOrdering orderBy = isFullImport ? GamesOrdering.CreationDate : GamesOrdering.CreationDateDescending;
+                _logger.Information("Started ProcessGames: {@LastImportDateUtc}, {@IsFullPull}, {@IsBulkReload}", lastImportDateUtc, isFullPull, isBulkReload);
+                GamesOrdering orderBy = isFullPull ? GamesOrdering.CreationDate : GamesOrdering.CreationDateDescending;
                 var gameEmbeds = new GameEmbeds { EmbedCategories = true, EmbedLevels = true, EmbedModerators = true, EmbedPlatforms = false, EmbedVariables = true };
                 var results = new List<Game>();
                 var games = new List<Game>();
@@ -64,9 +64,9 @@ namespace SpeedRunAppImport.Service
                         results.ClearMemory();
                     }
                 }
-                while (games.Count == MaxElementsPerPage && (isFullImport || games.Min(i => i.CreationDate ?? SqlMinDateTime) > lastImportDateUtc));
+                while (games.Count == MaxElementsPerPage && (isFullPull || games.Min(i => i.CreationDate ?? SqlMinDateTime) > lastImportDateUtc));
 
-                if (!isFullImport)
+                if (!isFullPull)
                 {
                     results.RemoveAll(i => (i.CreationDate ?? SqlMinDateTime) <= lastImportDateUtc);
                 }
@@ -125,6 +125,13 @@ namespace SpeedRunAppImport.Service
             var gameIDs = games.Select(i => i.ID).ToList();
             var gameSpeedRunComIDs = _gameRepo.GetGameSpeedRunComIDs();
             gameSpeedRunComIDs = gameSpeedRunComIDs.Join(gameIDs, o => o.SpeedRunComID, id => id, (o, id) => o).ToList();
+
+            if (!isBulkReload)
+            {
+                var insertGames = games.Where(i => !gameSpeedRunComIDs.Any(g => g.SpeedRunComID == i.ID)).ToList();
+                var updateGames = GetUpdatedGames(games);
+                games = insertGames.Concat(updateGames);
+            }
 
             var userIDs = games.SelectMany(i => i.ModeratorUsers.Select(i => i.ID)).Distinct().ToList();
             var userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs();
@@ -269,6 +276,34 @@ namespace SpeedRunAppImport.Service
             }
 
             _logger.Information("Completed SaveGames");
+        }
+
+        public IEnumerable<Game> GetUpdatedGames(IEnumerable<Game> games)
+        {
+            var gameIDs = games.Select(i => i.ID).ToList();
+            var gameSpeedRunComViews = _gameRepo.GetGameSpeedRunComViews();
+
+            var changedGames = games.Join(gameSpeedRunComViews, o => o.ID, i => i.SpeedRunComID, (game, gameSpeedRunComView) => new { game, gameSpeedRunComView })
+                         .Where(g => g.game.Name != g.gameSpeedRunComView.Name
+                                     || g.game.IsRomHack != g.gameSpeedRunComView.IsRomHack
+                                     || g.game.YearOfRelease != g.gameSpeedRunComView.YearOfRelease
+                                     || g.game.Categories.Select(h => h.ID).Except(g.gameSpeedRunComView.CategorySpeedRunComIDs.Split(",")).Any()
+                                     || g.gameSpeedRunComView.CategorySpeedRunComIDs.Split(",").Except(g.game.Categories.Select(h => h.ID)).Any()
+                                     || g.game.Levels.Select(h => h.ID).Except(g.gameSpeedRunComView.LevelSpeedRunComIDs.Split(",")).Any()
+                                     || g.gameSpeedRunComView.LevelSpeedRunComIDs.Split(",").Except(g.game.Levels.Select(h => h.ID)).Any()
+                                     || g.game.Variables.Select(h => h.ID).Except(g.gameSpeedRunComView.VariableSpeedRunComIDs.Split(",")).Any()
+                                     || g.gameSpeedRunComView.VariableSpeedRunComIDs.Split(",").Except(g.game.Variables.Select(h => h.ID)).Any()
+                                     || g.game.Variables.SelectMany(h => h.Values.Select(n => n.ID)).Except(g.gameSpeedRunComView.VariableSpeedRunComIDs.Split(",")).Any()
+                                     || g.gameSpeedRunComView.VariableValueSpeedRunComIDs.Split(",").Except(g.game.Variables.SelectMany(h => h.Values.Select(n => n.ID))).Any()
+                                     || g.game.Platforms.Select(h => h.ID).Except(g.gameSpeedRunComView.PlatformSpeedRunComIDs.Split(",")).Any()
+                                     || g.gameSpeedRunComView.PlatformSpeedRunComIDs.Split(",").Except(g.game.Platforms.Select(h => h.ID)).Any()
+                                     || g.game.ModeratorUsers.Select(h => h.ID).Except(g.gameSpeedRunComView.ModeratorSpeedRunComIDs.Split(",")).Any()
+                                     || g.gameSpeedRunComView.ModeratorSpeedRunComIDs.Split(",").Except(g.game.ModeratorUsers.Select(h => h.ID)).Any()
+                                     )
+                         .Select(g => g.game)
+                         .ToList();
+
+            return changedGames;
         }
     }
 }

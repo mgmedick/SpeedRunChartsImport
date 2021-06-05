@@ -229,4 +229,11 @@ namespace SpeedRunAppImport.Model
         User = 3,
         SpeedRun = 4
     }
+
+    public enum SpeedRunProcessType
+    {
+        Default = 0,
+        Game = 1,
+        ScreenScrape = 2
+    }
 }

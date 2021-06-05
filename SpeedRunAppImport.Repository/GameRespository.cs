@@ -859,6 +859,24 @@ namespace SpeedRunAppImport.Repository
             }
         }
 
+        public IEnumerable<GameEntity> GetGames(Expression<Func<GameEntity, bool>> predicate = null)
+        {
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                db.OneTimeCommandTimeout = 32767;
+                return db.Query<GameEntity>().Where(predicate ?? (x => true)).ToList();
+            }
+        }
+
+        public IEnumerable<GameSpeedRunComView> GetGameSpeedRunComViews(Expression<Func<GameSpeedRunComView, bool>> predicate = null)
+        {
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                db.OneTimeCommandTimeout = 32767;
+                return db.Query<GameSpeedRunComView>().Where(predicate ?? (x => true)).ToList();
+            }
+        }
+
         public IEnumerable<GameSpeedRunComIDEntity> GetGameSpeedRunComIDs(Expression<Func<GameSpeedRunComIDEntity, bool>> predicate = null)
         {
             using (IDatabase db = DBFactory.GetDatabase())

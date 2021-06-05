@@ -26,13 +26,13 @@ namespace SpeedRunAppImport.Service
             _logger = logger;
         }
 
-        public bool ProcessPlatforms(bool isFullImport, bool isBulkReload)
+        public bool ProcessPlatforms(bool isFullPull, bool isBulkReload)
         {
             bool result = true;
 
             try
             {
-                _logger.Information("Started ProcessPlatforms: {@IsBulkReload}", isBulkReload);
+                _logger.Information("Started ProcessPlatforms: {@IsFullPull}, {@IsBulkReload}", isFullPull, isBulkReload);
                 var orderBy = PlatformsOrdering.YearOfRelease;
                 var results = new List<Platform>();
                 var platforms = new List<Platform>();
@@ -51,20 +51,20 @@ namespace SpeedRunAppImport.Service
                     {
                         prevTotal += results.Count;
                         _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
-                        SavePlatforms(results, isFullImport, isBulkReload);
+                        SavePlatforms(results, isBulkReload);
                         results.ClearMemory();
                     }
                 }
                 while (platforms.Count == MaxElementsPerPage);
 
-                if (!isFullImport)
+                if (!isFullPull)
                 {
                     results.RemoveAll(i => speedRunComIDs.Contains(i.ID));
                 }
 
                 if (results.Any())
                 {
-                    SavePlatforms(results, isFullImport, isBulkReload);
+                    SavePlatforms(results, isBulkReload);
                     results.ClearMemory();
                 }
 
@@ -106,12 +106,14 @@ namespace SpeedRunAppImport.Service
             return platforms;
         }
 
-        public void SavePlatforms(IEnumerable<Platform> platforms, bool isFullImport, bool isBulkReload)
+        public void SavePlatforms(IEnumerable<Platform> platforms, bool isBulkReload)
         {
             _logger.Information("Started SavePlatforms: {@Count}, {@IsBulkReload}", platforms.Count(), isBulkReload);
             
             var platformIDs = platforms.Select(i => i.ID).ToList();
             var platformSpeedRunComIDs = _platformRepo.GetPlatformSpeedRunComIDs().Where(i => platformIDs.Contains(i.SpeedRunComID)).ToList();
+
+            //TODO: if !isBulkReload narrow to only platforms that changed.
 
             var platformEntities = platforms.Select(i => new PlatformEntity {
                 ID = platformSpeedRunComIDs.Where(g => g.SpeedRunComID == i.ID).Select(g => g.PlatformID).FirstOrDefault(),

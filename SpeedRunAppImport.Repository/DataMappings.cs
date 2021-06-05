@@ -12,9 +12,7 @@ namespace SpeedRunAppImport.Repository
         {
             List<IMap> blahs = new List<IMap>();
             For<SettingEntity>().PrimaryKey("ID").TableName("dbo.tbl_Setting");
-            For<SettingEntity>().PrimaryKey("ID").TableName("dbo.tbl_Setting");
-            For<GameView>().PrimaryKey("ID").TableName("dbo.vw_Game");
-            
+
             //region
             For<RegionSpeedRunComIDEntity>().PrimaryKey("RegionID", false).TableName("dbo.tbl_Region_SpeedRunComID");
 
@@ -115,6 +113,7 @@ namespace SpeedRunAppImport.Repository
             {
                 i.Column(g => g.GameSpeedRunComID).Ignore();
             });
+            For<GameSpeedRunComView>().PrimaryKey("ID").TableName("dbo.vw_GameSpeedRunCom");
 
             //speedrun
             For<SpeedRunEntity>().PrimaryKey("ID").TableName("dbo.tbl_SpeedRun" + tblEnd).Columns(i =>

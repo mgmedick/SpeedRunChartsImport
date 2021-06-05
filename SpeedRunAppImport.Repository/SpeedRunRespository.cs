@@ -561,7 +561,7 @@ namespace SpeedRunAppImport.Repository
             return result;
         }
 
-        public bool RebuildIndexes(bool isFullImport)
+        public bool RebuildIndexes()
         {
             bool result = true;
 
@@ -571,7 +571,7 @@ namespace SpeedRunAppImport.Repository
                 using (IDatabase db = DBFactory.GetDatabase())
                 {
                     db.OneTimeCommandTimeout = 32767;
-                    db.Execute("EXEC ImportRebuildIndexes @0", isFullImport);
+                    db.Execute("EXEC ImportRebuildIndexes");
                 }
                 _logger.Information("Completed RebuildIndexes");
             }
@@ -579,6 +579,29 @@ namespace SpeedRunAppImport.Repository
             {
                 result = false;
                 _logger.Error(ex, "RebuildIndexes");
+            }
+
+            return result;
+        }
+
+        public bool UpdateStats()
+        {
+            bool result = true;
+
+            try
+            {
+                _logger.Information("Started UpdateStats");
+                using (IDatabase db = DBFactory.GetDatabase())
+                {
+                    db.OneTimeCommandTimeout = 32767;
+                    db.Execute("EXEC sp_updatestats");
+                }
+                _logger.Information("Completed UpdateStats");
+            }
+            catch (Exception ex)
+            {
+                result = false;
+                _logger.Error(ex, "UpdateStats");
             }
 
             return result;

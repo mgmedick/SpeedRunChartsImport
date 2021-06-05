@@ -74,16 +74,19 @@ namespace SpeedRunAppImport
                 var connString = _config.GetSection("ConnectionStrings").GetSection("DBConnectionString").Value;
                 var maxBulkRows = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxBulkRows").Value);
                 IsBulkReload = _config.GetValue<bool>("IsBulkReload");
-                IsFullImport = _config.GetValue<bool>("IsFullImport");
+                IsPlatformFullPull = _config.GetValue<bool>("IsPlatformFullPull");
+                IsGameFullPull = _config.GetValue<bool>("IsGameFullPull");
+                IsSpeedRunFullPull = _config.GetValue<bool>("IsSpeedRunFullPull");
                 IsMaintenance = _config.GetValue<bool>("IsMaintenance");
-                IsProcessSpeedRunsByGame = Convert.ToBoolean(_config.GetSection("ApiSettings").GetSection("IsProcessSpeedRunsByGame").Value);
+                ProcessType = (SpeedRunProcessType)_config.GetValue<int>("SpeedRunProcessTypeID");
                 NPocoBootstrapper.Configure(connString, maxBulkRows, IsBulkReload);
 
                 Processes = _config.GetValue<string>("ProcessIDs").Split(",").Select(i => (ImportProcess)Convert.ToInt32(i)).ToList();
-                if (IsBulkReload || IsMaintenance)
+                if (IsBulkReload)
                 {
-                    //Processes.Add(ImportProcess.All);
-                    IsFullImport = true;
+                    IsPlatformFullPull = true;
+                    IsGameFullPull = true;
+                    IsSpeedRunFullPull = true;
                 }
 
                 if (Processes.Contains(ImportProcess.All))
@@ -92,22 +95,10 @@ namespace SpeedRunAppImport
                 }
 
                 var sqlMinDateTime = (DateTime)SqlDateTime.MinValue;
-                if (IsFullImport)
-                {
-                    GameLastImportDateUtc = sqlMinDateTime;
-                    UserLastImportDateUtc = sqlMinDateTime;
-                    PlatformLastImportDateUtc = sqlMinDateTime;
-                    SpeedRunLastImportDateUtc = sqlMinDateTime;
-                    ImportLastRunDateUtc = sqlMinDateTime;
-                }
-                else
-                {
-                    PlatformLastImportDateUtc = _settingService.GetSetting("PlatformLastImportDate")?.Dte ?? DateTime.UtcNow;
-                    GameLastImportDateUtc = _settingService.GetSetting("GameLastImportDate")?.Dte ?? DateTime.UtcNow;
-                    UserLastImportDateUtc = _settingService.GetSetting("UserLastImportDate")?.Dte ?? DateTime.UtcNow;
-                    SpeedRunLastImportDateUtc = _settingService.GetSetting("SpeedRunLastImportDate")?.Dte ?? DateTime.UtcNow;
-                    ImportLastRunDateUtc = _settingService.GetSetting("ImportLastRunDate")?.Dte ?? DateTime.UtcNow;
-                }
+                PlatformLastImportDateUtc = IsPlatformFullPull ? sqlMinDateTime : (_settingService.GetSetting("PlatformLastImportDate")?.Dte ?? DateTime.UtcNow);
+                GameLastImportDateUtc = IsGameFullPull ? sqlMinDateTime : (_settingService.GetSetting("GameLastImportDate")?.Dte ?? DateTime.UtcNow);
+                SpeedRunLastImportDateUtc = IsSpeedRunFullPull ? sqlMinDateTime : (_settingService.GetSetting("SpeedRunLastImportDate")?.Dte ?? DateTime.UtcNow);
+                ImportLastRunDateUtc = IsBulkReload ? sqlMinDateTime : (_settingService.GetSetting("ImportLastRunDate")?.Dte ?? DateTime.UtcNow);
 
                 BaseService.SqlMinDateTime = sqlMinDateTime;
                 BaseService.MaxElementsPerPage = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxElementsPerPage").Value);
@@ -135,22 +126,17 @@ namespace SpeedRunAppImport
 
             if (result && (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Platform)))
             {
-                result = _platformService.ProcessPlatforms(IsFullImport, IsBulkReload);
+                result = _platformService.ProcessPlatforms(IsPlatformFullPull, IsBulkReload);
             }
-
-            //if (result && (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.User)))
-            //{
-            //    result = _userService.ProcessUsers(UserLastImportDateUtc, IsFullImport, IsBulkReload);
-            //}
 
             if (result && (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Game)))
             {
-                result = _gameService.ProcessGames(GameLastImportDateUtc, IsFullImport, IsBulkReload);
+                result = _gameService.ProcessGames(GameLastImportDateUtc, IsGameFullPull, IsBulkReload);
             }
 
             if (result && (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.SpeedRun)))
             {
-                result = _speedRunService.ProcessSpeedRuns(SpeedRunLastImportDateUtc, IsFullImport, IsBulkReload, IsProcessSpeedRunsByGame);
+                result = _speedRunService.ProcessSpeedRuns(SpeedRunLastImportDateUtc, ImportLastRunDateUtc, IsSpeedRunFullPull, IsBulkReload, ProcessType);
             }
 
             if (result && IsBulkReload)
@@ -163,7 +149,7 @@ namespace SpeedRunAppImport
                 result = _speedRunRepo.UpdateSpeedRunRanks(ImportLastRunDateUtc);
             }
 
-            if (result && IsFullImport)
+            if (result && IsBulkReload)
             {
                 RunMaintenance();
             }
@@ -174,7 +160,12 @@ namespace SpeedRunAppImport
         public void RunMaintenance()
         {
             bool result = true;
-            result = _speedRunRepo.RebuildIndexes(IsFullImport);
+            result = _speedRunRepo.RebuildIndexes();
+
+            if (result)
+            {
+                _speedRunRepo.UpdateStats();
+            }
         }
 
         public DateTime PlatformLastImportDateUtc { get; set; }
@@ -182,11 +173,12 @@ namespace SpeedRunAppImport
         public DateTime UserLastImportDateUtc { get; set; }
         public DateTime SpeedRunLastImportDateUtc { get; set; }
         public DateTime ImportLastRunDateUtc { get; set; }
-        public bool IsFullImport { get; set; }
+        public bool IsPlatformFullPull { get; set; }
+        public bool IsGameFullPull { get; set; }
+        public bool IsSpeedRunFullPull { get; set; }
         public bool IsBulkReload { get; set; }
-        public bool IsProcessSpeedRunsByGame { get; set; }
-        public bool IsImportRunning { get; set; }
         public bool IsMaintenance { get; set; }
         public List<ImportProcess> Processes { get; set; }
+        public SpeedRunProcessType ProcessType { get; set; }
     }
 }

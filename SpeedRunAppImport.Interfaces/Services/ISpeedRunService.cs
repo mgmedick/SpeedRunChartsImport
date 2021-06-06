@@ -9,9 +9,9 @@ namespace SpeedRunAppImport.Interfaces.Services
 {
     public interface ISpeedRunService
     {
-        bool ProcessSpeedRuns(DateTime lastImportDateUtc, DateTime importLastRunDateUtc, bool isFullPull, bool isBulkReload, SpeedRunProcessType processType);
+        bool ProcessSpeedRuns(DateTime lastImportDateUtc, DateTime importLastRunDateUtc, bool isFullPull, bool isBulkReload, bool isUpdateSpeedRuns);
         void ProcessSpeedRunsDefault(DateTime lastImportDateUtc, bool isFullImport, bool isBulkReload);
-        void ProcessSpeedRunsByGame(DateTime importLastRunDateUtc, bool isFullImport, bool isBulkReload);
+        void UpdateSpeedRunsByGame(DateTime importLastRunDateUtc);
         void ProcessSpeedRunsByScreenScrape();
         List<SpeedRun> GetSpeedRunsWithRetry(int elementsPerPage, int elementsOffset, string gameID, SpeedRunEmbeds embeds, RunsOrdering orderBy, RunStatusType? statusType = null, int retryCount = 0);
         void SaveSpeedRuns(IEnumerable<SpeedRun> runs, bool isFullImport);

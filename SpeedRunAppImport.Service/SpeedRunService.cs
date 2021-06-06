@@ -38,25 +38,21 @@ namespace SpeedRunAppImport.Service
             _logger = logger;
         }
 
-        public bool ProcessSpeedRuns(DateTime lastImportDateUtc, DateTime importLastRunDateUtc, bool isFullPull, bool isBulkReload, SpeedRunProcessType processType)
+        public bool ProcessSpeedRuns(DateTime lastImportDateUtc, DateTime importLastRunDateUtc, bool isFullPull, bool isBulkReload, bool isUpdateSpeedRuns)
         {
             bool result = true;
 
             try
             {
-                _logger.Information("Started ProcessSpeedRuns: {@LastImportDateUtc}, {@IsFullPull}", lastImportDateUtc, isFullPull);
+                _logger.Information("Started ProcessSpeedRuns: {@LastImportDateUtc}, {@ImportLastRunDateUtc}, {@IsFullPull}, {@IsBulkReload}, {@IsUpdateSpeedRuns}", lastImportDateUtc, importLastRunDateUtc, isFullPull, isBulkReload, isUpdateSpeedRuns);
 
-                switch (processType)
+                if (isUpdateSpeedRuns)
                 {
-                    case SpeedRunProcessType.Default:
-                        ProcessSpeedRunsDefault(lastImportDateUtc, isFullPull, isBulkReload);
-                        break;
-                    case SpeedRunProcessType.Game:
-                        ProcessSpeedRunsByGame(importLastRunDateUtc, isFullPull, isBulkReload);
-                        break;
-                    case SpeedRunProcessType.ScreenScrape:
-                        ProcessSpeedRunsByScreenScrape();
-                        break;
+                    UpdateSpeedRunsByGame(importLastRunDateUtc);
+                }
+                else
+                {
+                    ProcessSpeedRunsDefault(lastImportDateUtc, isFullPull, isBulkReload);
                 }
 
                 _logger.Information("Completed ProcessSpeedRuns");
@@ -111,19 +107,16 @@ namespace SpeedRunAppImport.Service
         }
 
         #region ProcessSpeedRunsByGame
-        public void ProcessSpeedRunsByGame(DateTime importLastRunDateUtc, bool isFullPull, bool isBulkReload)
+        public void UpdateSpeedRunsByGame(DateTime importLastRunDateUtc)
         {
             RunsOrdering orderBy = RunsOrdering.DateSubmitted;
             var runEmbeds = new SpeedRunEmbeds { EmbedCategory = false, EmbedGame = false, EmbedLevel = false, EmbedPlayers = true, EmbedPlatform = false, EmbedRegion = false };
             var results = new List<SpeedRun>();
             var runs = new List<SpeedRun>();
             var gameSpeedRunComIDs = _gameRepo.GetGameSpeedRunComIDs();
-
-            if (!isFullPull)
-            {
-                var gameIDs = _gameRepo.GetGames(i => (i.ModifiedDate ?? i.CreatedDate) >= importLastRunDateUtc).Select(i => i.ID).ToList();
-                gameSpeedRunComIDs = gameSpeedRunComIDs.Join(gameIDs, o => o.GameID, id => id, (o, id) => o).ToList();
-            }
+            var gameIDs = _gameRepo.GetGames(i => (i.ModifiedDate ?? i.CreatedDate) >= importLastRunDateUtc).Select(i => i.ID).ToList();
+            gameSpeedRunComIDs = gameSpeedRunComIDs.Join(gameIDs, o => o.GameID, id => id, (o, id) => o).ToList();
+            _logger.Information("Found NewOrChangedGames: {@Count}, ImportLastRunDate: {ImportLastRunDateUtc}", gameSpeedRunComIDs.Count(), importLastRunDateUtc);
 
             var prevTotal = 0;
 
@@ -143,7 +136,7 @@ namespace SpeedRunAppImport.Service
                         prevTotal += results.Count;
                         prevGameTotal += results.Count(i => i.GameID == gameSpeedRunComID.SpeedRunComID);
                         _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
-                        SaveSpeedRuns(results, isBulkReload);
+                        SaveSpeedRuns(results, false);
                         results.ClearMemory();
                     }
                 }
@@ -152,13 +145,7 @@ namespace SpeedRunAppImport.Service
 
             if (results.Any())
             {
-                SaveSpeedRuns(results, isBulkReload);
-                if (isFullPull)
-                {
-                    var lastUpdateDate = results.Max(i => i.Status.VerifyDate) ?? DateTime.UtcNow;
-                    _settingService.UpdateSetting("SpeedRunLastImportDate", lastUpdateDate);
-                }
-
+                SaveSpeedRuns(results, false);
                 results.ClearMemory();
             }
         }

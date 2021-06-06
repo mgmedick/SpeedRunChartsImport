@@ -128,9 +128,10 @@ namespace SpeedRunAppImport.Service
 
             if (!isBulkReload)
             {
-                var insertGames = games.Where(i => !gameSpeedRunComIDs.Any(g => g.SpeedRunComID == i.ID)).ToList();
-                var updateGames = GetUpdatedGames(games);
-                games = insertGames.Concat(updateGames);
+                var newGames = games.Where(i => !gameSpeedRunComIDs.Any(g => g.SpeedRunComID == i.ID)).ToList();
+                var changedGames = GetChangedGames(games);
+                games = newGames.Concat(changedGames);
+                _logger.Information("Found NewGames: {@New}, ChangedGames: {@Changed}, TotalGames: {@Total}", newGames.Count(), changedGames.Count(), games.Count());
             }
 
             var userIDs = games.SelectMany(i => i.ModeratorUsers.Select(i => i.ID)).Distinct().ToList();
@@ -278,30 +279,67 @@ namespace SpeedRunAppImport.Service
             _logger.Information("Completed SaveGames");
         }
 
-        public IEnumerable<Game> GetUpdatedGames(IEnumerable<Game> games)
+        public IEnumerable<Game> GetChangedGames(IEnumerable<Game> games)
         {
+            var changedGames = new List<Game>();
             var gameIDs = games.Select(i => i.ID).ToList();
             var gameSpeedRunComViews = _gameRepo.GetGameSpeedRunComViews();
+            bool isChanged;
 
-            var changedGames = games.Join(gameSpeedRunComViews, o => o.ID, i => i.SpeedRunComID, (game, gameSpeedRunComView) => new { game, gameSpeedRunComView })
-                         .Where(g => g.game.Name != g.gameSpeedRunComView.Name
-                                     || g.game.IsRomHack != g.gameSpeedRunComView.IsRomHack
-                                     || g.game.YearOfRelease != g.gameSpeedRunComView.YearOfRelease
-                                     || g.game.Categories.Select(h => h.ID).Except(g.gameSpeedRunComView.CategorySpeedRunComIDs.Split(",")).Any()
-                                     || g.gameSpeedRunComView.CategorySpeedRunComIDs.Split(",").Except(g.game.Categories.Select(h => h.ID)).Any()
-                                     || g.game.Levels.Select(h => h.ID).Except(g.gameSpeedRunComView.LevelSpeedRunComIDs.Split(",")).Any()
-                                     || g.gameSpeedRunComView.LevelSpeedRunComIDs.Split(",").Except(g.game.Levels.Select(h => h.ID)).Any()
-                                     || g.game.Variables.Select(h => h.ID).Except(g.gameSpeedRunComView.VariableSpeedRunComIDs.Split(",")).Any()
-                                     || g.gameSpeedRunComView.VariableSpeedRunComIDs.Split(",").Except(g.game.Variables.Select(h => h.ID)).Any()
-                                     || g.game.Variables.SelectMany(h => h.Values.Select(n => n.ID)).Except(g.gameSpeedRunComView.VariableSpeedRunComIDs.Split(",")).Any()
-                                     || g.gameSpeedRunComView.VariableValueSpeedRunComIDs.Split(",").Except(g.game.Variables.SelectMany(h => h.Values.Select(n => n.ID))).Any()
-                                     || g.game.Platforms.Select(h => h.ID).Except(g.gameSpeedRunComView.PlatformSpeedRunComIDs.Split(",")).Any()
-                                     || g.gameSpeedRunComView.PlatformSpeedRunComIDs.Split(",").Except(g.game.Platforms.Select(h => h.ID)).Any()
-                                     || g.game.ModeratorUsers.Select(h => h.ID).Except(g.gameSpeedRunComView.ModeratorSpeedRunComIDs.Split(",")).Any()
-                                     || g.gameSpeedRunComView.ModeratorSpeedRunComIDs.Split(",").Except(g.game.ModeratorUsers.Select(h => h.ID)).Any()
-                                     )
-                         .Select(g => g.game)
-                         .ToList();
+            foreach (var game in games)
+            {
+                isChanged = false;
+                var gameSpeedRunComView = gameSpeedRunComViews.FirstOrDefault(i => i.SpeedRunComID == game.ID);
+
+                if (gameSpeedRunComView != null)
+                {
+                    isChanged = (game.Name != gameSpeedRunComView.Name
+                                 || game.IsRomHack != gameSpeedRunComView.IsRomHack
+                                 || game.YearOfRelease != gameSpeedRunComView.YearOfRelease
+                                 || game.Assets?.CoverLarge?.Uri.ToString() != gameSpeedRunComView.CoverImageUrl);
+
+                    if (!isChanged)
+                    {
+                        isChanged = (game.Categories.Select(h => h.ID).Except(gameSpeedRunComView.CategorySpeedRunComIDArray).Any()
+                                     || gameSpeedRunComView.CategorySpeedRunComIDArray.Except(game.Categories.Select(h => h.ID)).Any());
+                    }
+
+                    if (!isChanged)
+                    {
+                        isChanged = (game.Levels.Select(h => h.ID).Except(gameSpeedRunComView.LevelSpeedRunComIDArray).Any()
+                                     || gameSpeedRunComView.LevelSpeedRunComIDArray.Except(game.Levels.Select(h => h.ID)).Any());
+                    }
+
+                    if (!isChanged)
+                    {
+                        isChanged = (game.Variables.Select(h => h.ID).Except(gameSpeedRunComView.VariableSpeedRunComIDArray).Any()
+                                     || gameSpeedRunComView.VariableSpeedRunComIDArray.Except(game.Variables.Select(h => h.ID)).Any());
+                    }
+
+                    if (!isChanged)
+                    {
+                        isChanged = (game.Variables.SelectMany(h => h.Values.Select(n => n.ID)).Except(gameSpeedRunComView.VariableValueSpeedRunComIDArray).Any()
+                                     || gameSpeedRunComView.VariableValueSpeedRunComIDArray.Except(game.Variables.SelectMany(h => h.Values.Select(n => n.ID))).Any());
+                    }
+
+                    if (!isChanged)
+                    {
+                        isChanged = (game.PlatformIDs.Except(gameSpeedRunComView.PlatformSpeedRunComIDArray).Any()
+                                     || gameSpeedRunComView.PlatformSpeedRunComIDArray.Except(game.PlatformIDs.Select(h => h)).Any());
+                    }
+
+                    if (!isChanged)
+                    {
+                        isChanged = (game.ModeratorUsers.Select(h => h.ID).Except(gameSpeedRunComView.ModeratorSpeedRunComIDArray).Any()
+                                     || gameSpeedRunComView.ModeratorSpeedRunComIDArray.Except(game.ModeratorUsers.Select(h => h.ID)).Any());
+                    }
+
+                    if (isChanged)
+                    {
+                        changedGames.Add(game);
+                    }
+                }
+            }
 
             return changedGames;
         }

@@ -406,7 +406,6 @@ namespace SpeedRunAppImport.Repository
                         if (speedRun.ID != 0)
                         {
                             speedRun.ModifiedDate = DateTime.UtcNow;
-                            db.DeleteWhere<SpeedRunSpeedRunComIDEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
                             db.DeleteWhere<SpeedRunLinkEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
                             db.DeleteWhere<SpeedRunSystemEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
                             db.DeleteWhere<SpeedRunTimeEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
@@ -418,9 +417,7 @@ namespace SpeedRunAppImport.Repository
                         }
 
                         db.Save<SpeedRunEntity>(speedRun);
-
-                        var speedRunSpeedRunComID = new SpeedRunSpeedRunComIDEntity { SpeedRunID = speedRun.ID, SpeedRunComID = speedRun.SpeedRunComID };
-                        db.Insert<SpeedRunSpeedRunComIDEntity>(speedRunSpeedRunComID);
+                        db.Save<SpeedRunSpeedRunComIDEntity>(new SpeedRunSpeedRunComIDEntity { SpeedRunID = speedRun.ID, SpeedRunComID = speedRun.SpeedRunComID });
 
                         if (speedRunLink != null)
                         {

@@ -78,10 +78,10 @@ namespace SpeedRunAppImport
                 IsGameFullPull = _config.GetValue<bool>("IsGameFullPull");
                 IsSpeedRunFullPull = _config.GetValue<bool>("IsSpeedRunFullPull");
                 IsMaintenance = _config.GetValue<bool>("IsMaintenance");
-                ProcessType = (SpeedRunProcessType)_config.GetValue<int>("SpeedRunProcessTypeID");
+                IsUpdateSpeedRuns = _config.GetValue<bool>("IsUpdateSpeedRuns");
+                Processes = _config.GetValue<string>("ProcessIDs").Split(",").Select(i => (ImportProcess)Convert.ToInt32(i)).ToList();
                 NPocoBootstrapper.Configure(connString, maxBulkRows, IsBulkReload);
 
-                Processes = _config.GetValue<string>("ProcessIDs").Split(",").Select(i => (ImportProcess)Convert.ToInt32(i)).ToList();
                 if (IsBulkReload)
                 {
                     IsPlatformFullPull = true;
@@ -95,10 +95,24 @@ namespace SpeedRunAppImport
                 }
 
                 var sqlMinDateTime = (DateTime)SqlDateTime.MinValue;
-                PlatformLastImportDateUtc = IsPlatformFullPull ? sqlMinDateTime : (_settingService.GetSetting("PlatformLastImportDate")?.Dte ?? DateTime.UtcNow);
-                GameLastImportDateUtc = IsGameFullPull ? sqlMinDateTime : (_settingService.GetSetting("GameLastImportDate")?.Dte ?? DateTime.UtcNow);
-                SpeedRunLastImportDateUtc = IsSpeedRunFullPull ? sqlMinDateTime : (_settingService.GetSetting("SpeedRunLastImportDate")?.Dte ?? DateTime.UtcNow);
-                ImportLastRunDateUtc = IsBulkReload ? sqlMinDateTime : (_settingService.GetSetting("ImportLastRunDate")?.Dte ?? DateTime.UtcNow);
+                var currDateUtc = DateTime.UtcNow;
+
+                PlatformLastImportDateUtc = IsPlatformFullPull ? sqlMinDateTime : (_settingService.GetSetting("PlatformLastImportDate")?.Dte ?? currDateUtc);
+                GameLastImportDateUtc = IsGameFullPull ? sqlMinDateTime : (_settingService.GetSetting("GameLastImportDate")?.Dte ?? currDateUtc);
+                SpeedRunLastImportDateUtc = IsSpeedRunFullPull ? sqlMinDateTime : (_settingService.GetSetting("SpeedRunLastImportDate")?.Dte ?? currDateUtc);
+                ImportLastRunDateUtc = IsBulkReload ? sqlMinDateTime : (_settingService.GetSetting("ImportLastRunDate")?.Dte ?? currDateUtc);
+
+                var currDateLocal = currDateUtc.ToLocalTime();
+                var updateSpeedRunsTimeString = _settingService.GetSetting("UpdateSpeedRunsTime")?.Str ?? "00:00";
+                var updateSpeedRunsTime = TimeSpan.Parse(updateSpeedRunsTimeString);
+                var startDateLocal = currDateLocal.Date.Add(updateSpeedRunsTime);
+                var ImportLastRunDateLocal = ImportLastRunDateUtc.ToLocalTime();
+
+                if (IsUpdateSpeedRuns || (startDateLocal <= currDateLocal && startDateLocal > ImportLastRunDateLocal))
+                {
+                    IsGameFullPull = true;
+                    IsUpdateSpeedRuns = true;
+                }
 
                 BaseService.SqlMinDateTime = sqlMinDateTime;
                 BaseService.MaxElementsPerPage = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxElementsPerPage").Value);
@@ -107,6 +121,7 @@ namespace SpeedRunAppImport
                 BaseService.PullDelayMS = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("PullDelayMS").Value);
                 BaseService.ErrorPullDelayMS = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("ErrorPullDelayMS").Value);
                 BaseService.SpeedRunComLatestRunsUrl = _config.GetSection("ApiSettings").GetSection("SpeedRunComLatestRunsUrl").Value;
+
                 _logger.Information("Completed Init");
             }
             catch (Exception ex)
@@ -136,7 +151,7 @@ namespace SpeedRunAppImport
 
             if (result && (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.SpeedRun)))
             {
-                result = _speedRunService.ProcessSpeedRuns(SpeedRunLastImportDateUtc, ImportLastRunDateUtc, IsSpeedRunFullPull, IsBulkReload, ProcessType);
+                result = _speedRunService.ProcessSpeedRuns(SpeedRunLastImportDateUtc, ImportLastRunDateUtc, IsSpeedRunFullPull, IsBulkReload, IsUpdateSpeedRuns);
             }
 
             if (result && IsBulkReload)
@@ -178,7 +193,7 @@ namespace SpeedRunAppImport
         public bool IsSpeedRunFullPull { get; set; }
         public bool IsBulkReload { get; set; }
         public bool IsMaintenance { get; set; }
+        public bool IsUpdateSpeedRuns { get; set; }
         public List<ImportProcess> Processes { get; set; }
-        public SpeedRunProcessType ProcessType { get; set; }
     }
 }

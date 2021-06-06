@@ -721,13 +721,6 @@ namespace SpeedRunAppImport.Repository
                         if (game.ID != 0)
                         {
                             game.ModifiedDate = DateTime.UtcNow;
-                            db.DeleteWhere<GameSpeedRunComIDEntity>("GameID = @gameID", new { gameID = game.ID });
-                            db.DeleteWhere<VariableValueSpeedRunComIDEntity>("VariableValueID IN (SELECT ID FROM dbo.tbl_VariableValue WITH (NOLOCK) WHERE GameID = @gameID)", new { gameID = game.ID });
-                            db.DeleteWhere<VariableSpeedRunComIDEntity>("VariableID IN (SELECT ID FROM dbo.tbl_Variable WITH (NOLOCK) WHERE GameID = @gameID)", new { gameID = game.ID });
-                            db.DeleteWhere<LevelSpeedRunComIDEntity>("LevelID IN (SELECT ID FROM dbo.tbl_Level WITH (NOLOCK) WHERE GameID = @gameID)", new { gameID = game.ID });
-                            db.DeleteWhere<LevelRuleEntity>("LevelID IN (SELECT ID FROM dbo.tbl_Level WITH (NOLOCK) WHERE GameID = @gameID)", new { gameID = game.ID });
-                            db.DeleteWhere<CategorySpeedRunComIDEntity>("CategoryID IN (SELECT ID FROM dbo.tbl_Category WITH (NOLOCK) WHERE GameID = @gameID)", new { gameID = game.ID });
-                            db.DeleteWhere<CategoryRuleEntity>("CategoryID IN (SELECT ID FROM dbo.tbl_Category WITH (NOLOCK) WHERE GameID = @gameID)", new { gameID = game.ID });
                             db.DeleteWhere<GameLinkEntity>("GameID = @gameID", new { gameID = game.ID });
                             db.DeleteWhere<GameRulesetEntity>("GameID = @gameID", new { gameID = game.ID });
                             db.DeleteWhere<GamePlatformEntity>("GameID = @gameID", new { gameID = game.ID });
@@ -737,94 +730,175 @@ namespace SpeedRunAppImport.Repository
                         }
 
                         db.Save<GameEntity>(game);
+                        db.Save<GameSpeedRunComIDEntity>(new GameSpeedRunComIDEntity { GameID = game.ID, SpeedRunComID = game.SpeedRunComID });
 
-                        var gameSpeedRunComID = new GameSpeedRunComIDEntity { GameID = game.ID, SpeedRunComID = game.SpeedRunComID };
-                        db.Insert<GameSpeedRunComIDEntity>(gameSpeedRunComID);
-
+                        //levels
                         foreach (var level in levelsBatch)
                         {
                             level.GameID = game.ID;
                             db.Save<LevelEntity>(level);
+                            db.Save<LevelSpeedRunComIDEntity>(new LevelSpeedRunComIDEntity { LevelID = level.ID, SpeedRunComID = level.SpeedRunComID });
+
+                            var levelRule = levelRulesBatch.Find(i => i.LevelSpeedRunComID == level.SpeedRunComID);
+                            levelRule.LevelID = level.ID;
+                            db.Save<LevelRuleEntity>(levelRule);
                         }
+
                         var levelIDs = levelsBatch.Select(i => i.ID).ToList();
-                        var levelRunIDsToDelete = db.Query<SpeedRunEntity>().Where(i => i.GameID == game.ID && i.LevelID.HasValue && !levelIDs.Contains(i.LevelID.Value)).ToList().Select(i => i.ID);
-                        var levelVariableIDsToDelete = db.Query<VariableEntity>().Where(i => i.GameID == game.ID && i.LevelID.HasValue && !levelIDs.Contains(i.LevelID.Value)).ToList().Select(i => i.ID);
+                        var levelIDsToDelete = db.Query<LevelEntity>().Where(i => i.GameID == game.ID && !levelIDs.Contains(i.ID)).ToList().Select(i => i.ID);
+                        var levelRunIDsToDelete = db.Query<SpeedRunEntity>().Where(i => i.GameID == game.ID && levelIDsToDelete.Contains(i.LevelID.Value)).ToList().Select(i => i.ID);
+                        var levelVariableIDsToDelete = db.Query<VariableEntity>().Where(i => i.GameID == game.ID && levelIDsToDelete.Contains(i.LevelID.Value)).ToList().Select(i => i.ID);
+                        var levelVariableValueIDsToDelete = db.Query<VariableValueEntity>().Where(i => levelVariableIDsToDelete.Contains(i.VariableID)).ToList().Select(i => i.ID);
+
                         batchCount = 0;
                         while (batchCount < levelRunIDsToDelete.Count())
                         {
                             var levelRunIDsToDeleteBatch = levelRunIDsToDelete.Skip(batchCount).Take(maxBatchCount).ToList();
                             db.DeleteMany<SpeedRunVariableValueEntity>().Where(i => levelRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
                             db.DeleteMany<SpeedRunPlayerEntity>().Where(i => levelRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
+                            db.DeleteMany<SpeedRunGuestEntity>().Where(i => levelRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
                             db.DeleteMany<SpeedRunVideoEntity>().Where(i => levelRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
+                            db.DeleteMany<SpeedRunSpeedRunComIDEntity>().Where(i => levelRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
                             db.DeleteMany<SpeedRunEntity>().Where(i => levelRunIDsToDeleteBatch.Contains(i.ID)).Execute();
                             batchCount += maxBatchCount;
                         }
-                        db.DeleteMany<VariableValueEntity>().Where(i => levelVariableIDsToDelete.Contains(i.VariableID)).Execute();
+
+                        batchCount = 0;
+                        while (batchCount < levelVariableValueIDsToDelete.Count())
+                        {
+                            var levelVariableValueIDsToDeleteBatch = levelVariableValueIDsToDelete.Skip(batchCount).Take(maxBatchCount).ToList();
+                            db.DeleteMany<VariableValueSpeedRunComIDEntity>().Where(i => levelVariableValueIDsToDeleteBatch.Contains(i.VariableValueID)).Execute();
+                            db.DeleteMany<VariableValueEntity>().Where(i => levelVariableValueIDsToDeleteBatch.Contains(i.ID)).Execute();
+                            batchCount += maxBatchCount;
+                        }
+
+                        db.DeleteMany<VariableSpeedRunComIDEntity>().Where(i => levelVariableIDsToDelete.Contains(i.VariableID)).Execute();
                         db.DeleteMany<VariableEntity>().Where(i => levelVariableIDsToDelete.Contains(i.ID)).Execute();
-                        db.DeleteMany<LevelEntity>().Where(i => i.GameID == game.ID && !levelIDs.Contains(i.ID)).Execute();
+                        db.DeleteMany<LevelRuleEntity>().Where(i => levelIDsToDelete.Contains(i.LevelID)).Execute();
+                        db.DeleteMany<LevelSpeedRunComIDEntity>().Where(i => levelIDsToDelete.Contains(i.LevelID)).Execute();
+                        db.DeleteMany<LevelEntity>().Where(i => levelIDsToDelete.Contains(i.ID)).Execute();
 
-                        var levelSpeedRunComIDs = levelsBatch.Select(i => new LevelSpeedRunComIDEntity { LevelID = i.ID, SpeedRunComID = i.SpeedRunComID }).ToList();
-                        db.InsertBatch<LevelSpeedRunComIDEntity>(levelSpeedRunComIDs);
-
-                        levelRulesBatch.ForEach(i => i.LevelID = levelsBatch.Find(g => g.SpeedRunComID == i.LevelSpeedRunComID).ID);
-                        db.InsertBatch<LevelRuleEntity>(levelRulesBatch);
-
+                        //categories
                         foreach (var category in categoriesBatch)
                         {
                             category.GameID = game.ID;
-                            db.Save(category);
+                            db.Save<CategoryEntity>(category);
+                            db.Save<CategorySpeedRunComIDEntity>(new CategorySpeedRunComIDEntity { CategoryID = category.ID, SpeedRunComID = category.SpeedRunComID });
+
+                            var categoryRule = categoryRulesBatch.Find(i => i.CategorySpeedRunComID == category.SpeedRunComID);
+                            categoryRule.CategoryID = category.ID;
+                            db.Save<CategoryRuleEntity>(categoryRule);
                         }
+
                         var categoryIDs = categoriesBatch.Select(i => i.ID).ToList();
-                        var categoryRunIDsToDelete = db.Query<SpeedRunEntity>().Where(i => i.GameID == game.ID && !categoryIDs.Contains(i.CategoryID)).ToList().Select(i => i.ID);
-                        var categoryVariableIDsToDelete = db.Query<VariableEntity>().Where(i => i.GameID == game.ID && i.CategoryID.HasValue && !categoryIDs.Contains(i.CategoryID.Value)).ToList().Select(i => i.ID);
+                        var categoryIDsToDelete = db.Query<CategoryEntity>().Where(i => i.GameID == game.ID && !categoryIDs.Contains(i.ID)).ToList().Select(i => i.ID);
+                        var categoryRunIDsToDelete = db.Query<SpeedRunEntity>().Where(i => i.GameID == game.ID && categoryIDsToDelete.Contains(i.CategoryID)).ToList().Select(i => i.ID);
+                        var categoryVariableIDsToDelete = db.Query<VariableEntity>().Where(i => i.GameID == game.ID && categoryIDsToDelete.Contains(i.CategoryID.Value)).ToList().Select(i => i.ID);
+                        var categoryVariableValueIDsToDelete = db.Query<VariableValueEntity>().Where(i => categoryVariableIDsToDelete.Contains(i.VariableID)).ToList().Select(i => i.ID);
+
                         batchCount = 0;
                         while (batchCount < categoryRunIDsToDelete.Count())
                         {
                             var categoryRunIDsToDeleteBatch = categoryRunIDsToDelete.Skip(batchCount).Take(maxBatchCount).ToList();
                             db.DeleteMany<SpeedRunVariableValueEntity>().Where(i => categoryRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
                             db.DeleteMany<SpeedRunPlayerEntity>().Where(i => categoryRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
+                            db.DeleteMany<SpeedRunGuestEntity>().Where(i => categoryRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
                             db.DeleteMany<SpeedRunVideoEntity>().Where(i => categoryRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
+                            db.DeleteMany<SpeedRunSpeedRunComIDEntity>().Where(i => categoryRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
                             db.DeleteMany<SpeedRunEntity>().Where(i => categoryRunIDsToDeleteBatch.Contains(i.ID)).Execute();
                             batchCount += maxBatchCount;
                         }
-                        db.DeleteMany<VariableValueEntity>().Where(i => categoryVariableIDsToDelete.Contains(i.VariableID)).Execute();
+
+                        batchCount = 0;
+                        while (batchCount < categoryVariableValueIDsToDelete.Count())
+                        {
+                            var categoryVariableValueIDsToDeleteBatch = categoryVariableValueIDsToDelete.Skip(batchCount).Take(maxBatchCount).ToList();
+                            db.DeleteMany<VariableValueSpeedRunComIDEntity>().Where(i => categoryVariableValueIDsToDeleteBatch.Contains(i.VariableValueID)).Execute();
+                            db.DeleteMany<VariableValueEntity>().Where(i => categoryVariableValueIDsToDeleteBatch.Contains(i.ID)).Execute();
+                            batchCount += maxBatchCount;
+                        }
+
+                        db.DeleteMany<VariableSpeedRunComIDEntity>().Where(i => categoryVariableIDsToDelete.Contains(i.VariableID)).Execute();
                         db.DeleteMany<VariableEntity>().Where(i => categoryVariableIDsToDelete.Contains(i.ID)).Execute();
-                        db.DeleteMany<CategoryEntity>().Where(i => i.GameID == game.ID && !categoryIDs.Contains(i.ID)).Execute();
+                        db.DeleteMany<CategoryRuleEntity>().Where(i => categoryIDsToDelete.Contains(i.CategoryID)).Execute();
+                        db.DeleteMany<CategorySpeedRunComIDEntity>().Where(i => categoryIDsToDelete.Contains(i.CategoryID)).Execute();
+                        db.DeleteMany<CategoryEntity>().Where(i => categoryIDsToDelete.Contains(i.ID)).Execute();
 
-                        var categorySpeedRunComIDs = categoriesBatch.Select(i => new CategorySpeedRunComIDEntity { CategoryID = i.ID, SpeedRunComID = i.SpeedRunComID }).ToList();
-                        db.InsertBatch<CategorySpeedRunComIDEntity>(categorySpeedRunComIDs);
-
-                        categoryRulesBatch.ForEach(i => i.CategoryID = categoriesBatch.Find(g => g.SpeedRunComID == i.CategorySpeedRunComID).ID);
-                        db.InsertBatch<CategoryRuleEntity>(categoryRulesBatch);
-
+                        //variables
                         foreach (var variable in variablesBatch)
                         {
                             variable.GameID = game.ID;
                             variable.CategoryID = !string.IsNullOrWhiteSpace(variable.CategorySpeedRunComID) ? categoriesBatch.Find(g => g.SpeedRunComID == variable.CategorySpeedRunComID).ID : (int?)null;
                             variable.LevelID = !string.IsNullOrWhiteSpace(variable.LevelSpeedRunComID) ? levelsBatch.Find(g => g.SpeedRunComID == variable.LevelSpeedRunComID).ID : (int?)null;
-                            db.Save(variable);
+                            db.Save<VariableEntity>(variable);
+                            db.Save<VariableSpeedRunComIDEntity>(new VariableSpeedRunComIDEntity { VariableID = variable.ID, SpeedRunComID = variable.SpeedRunComID });
                         }
+
                         var variableIDs = variablesBatch.Select(i => i.ID).ToList();
                         var variableIDsToDelete = db.Query<VariableEntity>().Where(i => i.GameID == game.ID && !variableIDs.Contains(i.ID)).ToList().Select(i => i.ID);
-                        db.DeleteMany<SpeedRunVariableValueEntity>().Where(i => variableIDsToDelete.Contains(i.VariableID)).Execute();
+                        var variableRunIDsToDelete = db.Query<SpeedRunVariableValueEntity>().Where(i => variableIDsToDelete.Contains(i.VariableID)).ToList().Select(i => i.SpeedRunID).Distinct();
+                        var variableVariableValueIDsToDelete = db.Query<VariableValueEntity>().Where(i => variableIDsToDelete.Contains(i.VariableID)).ToList().Select(i => i.ID);
+
+                        batchCount = 0;
+                        while (batchCount < variableRunIDsToDelete.Count())
+                        {
+                            var variableRunIDsToDeleteBatch = variableRunIDsToDelete.Skip(batchCount).Take(maxBatchCount).ToList();
+                            db.DeleteMany<SpeedRunVariableValueEntity>().Where(i => variableRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
+                            db.DeleteMany<SpeedRunPlayerEntity>().Where(i => variableRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
+                            db.DeleteMany<SpeedRunGuestEntity>().Where(i => variableRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
+                            db.DeleteMany<SpeedRunVideoEntity>().Where(i => variableRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
+                            db.DeleteMany<SpeedRunSpeedRunComIDEntity>().Where(i => variableRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
+                            db.DeleteMany<SpeedRunEntity>().Where(i => variableRunIDsToDeleteBatch.Contains(i.ID)).Execute();
+                            batchCount += maxBatchCount;
+                        }
+
+                        batchCount = 0;
+                        while (batchCount < variableVariableValueIDsToDelete.Count())
+                        {
+                            var variableVariableValueIDsToDeleteBatch = variableVariableValueIDsToDelete.Skip(batchCount).Take(maxBatchCount).ToList();
+                            db.DeleteMany<VariableValueSpeedRunComIDEntity>().Where(i => variableVariableValueIDsToDeleteBatch.Contains(i.VariableValueID)).Execute();
+                            db.DeleteMany<VariableValueEntity>().Where(i => variableVariableValueIDsToDeleteBatch.Contains(i.ID)).Execute();
+                            batchCount += maxBatchCount;
+                        }
+
+                        db.DeleteMany<VariableSpeedRunComIDEntity>().Where(i => variableIDsToDelete.Contains(i.VariableID)).Execute();
                         db.DeleteMany<VariableEntity>().Where(i => variableIDsToDelete.Contains(i.ID));
 
-                        var variableSpeedRunComIDs = variablesBatch.Select(i => new VariableSpeedRunComIDEntity { VariableID = i.ID, SpeedRunComID = i.SpeedRunComID }).ToList();
-                        db.InsertBatch<VariableSpeedRunComIDEntity>(variableSpeedRunComIDs);
-
+                        //variableValues
                         foreach (var variableValue in variablesValuesBatch)
                         {
                             variableValue.GameID = game.ID;
                             variableValue.VariableID = variablesBatch.Find(g => g.SpeedRunComID == variableValue.VariableSpeedRunComID).ID;
-                            db.Save(variableValue);
+                            db.Save<VariableValueEntity>(variableValue);
+                            db.Save<VariableValueSpeedRunComIDEntity>(new VariableValueSpeedRunComIDEntity { VariableValueID = variableValue.ID, SpeedRunComID = variableValue.SpeedRunComID });
                         }
-                        var variableValueIDs = variablesValuesBatch.Select(i => i.ID).ToList();
-                        var variableValueIDsToDelete = db.Query<VariableValueEntity>().Where(i => i.GameID == game.ID && !variableValueIDs.Contains(i.ID)).ToList().Select(i => i.ID);
-                        db.DeleteMany<SpeedRunVariableValueEntity>().Where(i => variableValueIDsToDelete.Contains(i.VariableValueID)).Execute();
-                        db.DeleteMany<VariableValueEntity>().Where(i => variableValueIDsToDelete.Contains(i.ID));
 
-                        var variableValueSpeedRunComIDsBatch = variablesValuesBatch.Select(i => new VariableValueSpeedRunComIDEntity { VariableValueID = i.ID, SpeedRunComID = i.SpeedRunComID }).ToList();
-                        db.InsertBatch<VariableValueSpeedRunComIDEntity>(variableValueSpeedRunComIDsBatch);
+                        var variableValueIDs = variablesValuesBatch.Select(i => i.ID).ToList();
+                        var variableValuesForGame = db.Query<VariableValueEntity>().Where(i => i.GameID == game.ID).ToList();
+                        var variableValueIDsToDelete = variableValuesForGame.Where(i => !variableValueIDs.Contains(i.ID)).Select(i => i.ID).ToList();
+                        var variableValueRunIDsToDelete = db.Query<SpeedRunVariableValueEntity>().Where(i => variableValueIDsToDelete.Contains(i.VariableValueID)).ToList().Select(i => i.SpeedRunID).Distinct();
+
+                        batchCount = 0;
+                        while (batchCount < variableValueRunIDsToDelete.Count())
+                        {
+                            var variableValueRunIDsToDeleteBatch = variableValueRunIDsToDelete.Skip(batchCount).Take(maxBatchCount).ToList();
+                            db.DeleteMany<SpeedRunVariableValueEntity>().Where(i => variableValueRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
+                            db.DeleteMany<SpeedRunPlayerEntity>().Where(i => variableValueRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
+                            db.DeleteMany<SpeedRunGuestEntity>().Where(i => variableValueRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
+                            db.DeleteMany<SpeedRunVideoEntity>().Where(i => variableValueRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
+                            db.DeleteMany<SpeedRunSpeedRunComIDEntity>().Where(i => variableValueRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
+                            db.DeleteMany<SpeedRunEntity>().Where(i => variableValueRunIDsToDeleteBatch.Contains(i.ID)).Execute();
+                            batchCount += maxBatchCount;
+                        }
+
+                        batchCount = 0;
+                        while (batchCount < variableValueIDsToDelete.Count())
+                        {
+                            var variableValueIDsToDeleteBatch = variableValueIDsToDelete.Skip(batchCount).Take(maxBatchCount).ToList();
+                            db.DeleteMany<VariableValueSpeedRunComIDEntity>().Where(i => variableValueIDsToDeleteBatch.Contains(i.VariableValueID)).Execute();
+                            db.DeleteMany<VariableValueEntity>().Where(i => variableValueIDsToDeleteBatch.Contains(i.ID)).Execute();
+                            batchCount += maxBatchCount;
+                        }
 
                         if (gameLink != null)
                         {

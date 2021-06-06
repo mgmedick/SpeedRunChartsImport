@@ -113,7 +113,15 @@ namespace SpeedRunAppImport.Repository
             {
                 i.Column(g => g.GameSpeedRunComID).Ignore();
             });
-            For<GameSpeedRunComView>().PrimaryKey("ID").TableName("dbo.vw_GameSpeedRunCom");
+            For<GameSpeedRunComView>().PrimaryKey("ID").TableName("dbo.vw_GameSpeedRunCom").Columns(i =>
+            {
+                i.Column(g => g.CategorySpeedRunComIDArray).Ignore();
+                i.Column(g => g.LevelSpeedRunComIDArray).Ignore();
+                i.Column(g => g.VariableSpeedRunComIDArray).Ignore();
+                i.Column(g => g.VariableValueSpeedRunComIDArray).Ignore();
+                i.Column(g => g.PlatformSpeedRunComIDArray).Ignore();
+                i.Column(g => g.ModeratorSpeedRunComIDArray).Ignore();
+            });
 
             //speedrun
             For<SpeedRunEntity>().PrimaryKey("ID").TableName("dbo.tbl_SpeedRun" + tblEnd).Columns(i =>

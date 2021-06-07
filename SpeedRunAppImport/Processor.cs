@@ -164,7 +164,7 @@ namespace SpeedRunAppImport
                 result = _speedRunRepo.UpdateSpeedRunRanks(ImportLastRunDateUtc);
             }
 
-            if (result && IsBulkReload)
+            if (result && (IsBulkReload || IsUpdateSpeedRuns))
             {
                 RunMaintenance();
             }

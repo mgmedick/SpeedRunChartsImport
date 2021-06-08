@@ -108,10 +108,9 @@ namespace SpeedRunAppImport
                 var startDateLocal = currDateLocal.Date.Add(updateSpeedRunsTime);
                 var ImportLastRunDateLocal = ImportLastRunDateUtc.ToLocalTime();
 
-                if (IsUpdateSpeedRuns || (startDateLocal <= currDateLocal && startDateLocal > ImportLastRunDateLocal))
+                if (IsUpdateSpeedRuns && startDateLocal <= currDateLocal && startDateLocal > ImportLastRunDateLocal)
                 {
                     IsGameFullPull = true;
-                    IsUpdateSpeedRuns = true;
                 }
 
                 BaseService.SqlMinDateTime = sqlMinDateTime;

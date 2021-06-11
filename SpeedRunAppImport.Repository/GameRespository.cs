@@ -690,7 +690,7 @@ namespace SpeedRunAppImport.Repository
             _logger.Information("Started SaveGames");
             int count = 1;
             var gamesList = games.ToList();
-            var maxBatchCount = 2000;
+            var maxBatchCount = 500;
             var batchCount = 0;
 
             using (IDatabase db = DBFactory.GetDatabase())

@@ -65,6 +65,7 @@ namespace SpeedRunAppImport.Service
                     }
                 }
                 while (games.Count == MaxElementsPerPage && (isFullPull || games.Min(i => i.CreationDate ?? SqlMinDateTime) > lastImportDateUtc));
+                //while (1 == 0);
 
                 if (!isFullPull)
                 {
@@ -188,7 +189,7 @@ namespace SpeedRunAppImport.Service
             }).ToList();
             var levelEntities = games.SelectMany(i => i.Levels.Select(g => new LevelEntity
             {
-                ID = levelSpeedRunComIDs.Where(g => g.SpeedRunComID == i.ID).Select(g => g.LevelID).FirstOrDefault(),
+                ID = levelSpeedRunComIDs.Where(h => h.SpeedRunComID == g.ID).Select(o => o.LevelID).FirstOrDefault(),
                 SpeedRunComID = g.ID,
                 Name = g.Name,
                 GameSpeedRunComID = i.ID
@@ -200,7 +201,7 @@ namespace SpeedRunAppImport.Service
             })).ToList();
             var categoryEntities = games.SelectMany(i => i.Categories.Select(g => new CategoryEntity
             {
-                ID = categorySpeedRunComIDs.Where(g => g.SpeedRunComID == i.ID).Select(g => g.CategoryID).FirstOrDefault(),
+                ID = categorySpeedRunComIDs.Where(h => h.SpeedRunComID == g.ID).Select(o => o.CategoryID).FirstOrDefault(),
                 SpeedRunComID = g.ID,
                 Name = g.Name,
                 GameSpeedRunComID = i.ID,
@@ -213,7 +214,7 @@ namespace SpeedRunAppImport.Service
             })).ToList();
             var variableEntities = games.SelectMany(i => i.Variables.Select(g => new VariableEntity
             {
-                ID = variableSpeedRunComIDs.Where(g => g.SpeedRunComID == i.ID).Select(g => g.VariableID).FirstOrDefault(),
+                ID = variableSpeedRunComIDs.Where(h => h.SpeedRunComID == g.ID).Select(o => o.VariableID).FirstOrDefault(),
                 SpeedRunComID = g.ID,
                 Name = g.Name,
                 VariableScopeTypeID = (int)g.Scope.Type,
@@ -224,7 +225,7 @@ namespace SpeedRunAppImport.Service
             })).ToList();
             var variableValueEntities = games.SelectMany(i => i.Variables.SelectMany(g => g.Values.Select(h => new VariableValueEntity
             {
-                ID = variableValueSpeedRunComIDs.Where(g => g.SpeedRunComID == i.ID).Select(g => g.VariableValueID).FirstOrDefault(),
+                ID = variableValueSpeedRunComIDs.Where(n => n.SpeedRunComID == h.ID).Select(o => o.VariableValueID).FirstOrDefault(),
                 SpeedRunComID = h.ID,
                 GameSpeedRunComID = g.GameID,
                 VariableSpeedRunComID = h.VariableID,
@@ -234,21 +235,21 @@ namespace SpeedRunAppImport.Service
             var gamePlatformEntities = games.SelectMany(i => i.PlatformIDs.Select(g => new GamePlatformEntity
             {
                 GameSpeedRunComID = i.ID,
-                PlatformID = platformSpeedRunComIDs.Where(h => h.SpeedRunComID == g).Select(h => h.PlatformID).FirstOrDefault()
+                PlatformID = platformSpeedRunComIDs.Where(h => h.SpeedRunComID == g).Select(o => o.PlatformID).FirstOrDefault()
             }))
             .Where(i => i.PlatformID != 0)
             .ToList();
             var gameRegionEntities = games.SelectMany(i => i.RegionIDs.Select(g => new GameRegionEntity
             {
                 GameSpeedRunComID = i.ID,
-                RegionID = regionSpeedRunComIDs.Where(h => h.SpeedRunComID == g).Select(h => h.RegionID).FirstOrDefault()
+                RegionID = regionSpeedRunComIDs.Where(h => h.SpeedRunComID == g).Select(o => o.RegionID).FirstOrDefault()
             }))
             .Where(i => i.RegionID != 0)
             .ToList();
             var gameModeratorEntities = games.SelectMany(i => i.ModeratorUsers.Select(g => new GameModeratorEntity
             {
                 GameSpeedRunComID = i.ID,
-                UserID = userSpeedRunComIDs.Where(h => h.SpeedRunComID == g.ID).Select(h => h.UserID).FirstOrDefault()
+                UserID = userSpeedRunComIDs.Where(h => h.SpeedRunComID == g.ID).Select(o => o.UserID).FirstOrDefault()
             }))
             .Where(i => i.UserID != 0)
             .ToList();

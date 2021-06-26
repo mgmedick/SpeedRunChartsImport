@@ -108,10 +108,10 @@ namespace SpeedRunAppImport
                 var startDateLocal = currDateLocal.Date.Add(updateSpeedRunsTime);
                 var ImportLastRunDateLocal = ImportLastRunDateUtc.ToLocalTime();
 
-                if (IsUpdateSpeedRuns && startDateLocal <= currDateLocal && startDateLocal > ImportLastRunDateLocal)
+                if ((IsUpdateSpeedRuns) || (startDateLocal <= currDateLocal && startDateLocal > ImportLastRunDateLocal))
                 {
                     IsGameFullPull = true;
-                    IsRunUpdateSpeedRuns = true;
+                    IsUpdateSpeedRuns = true;
                 }
 
                 BaseService.SqlMinDateTime = sqlMinDateTime;
@@ -151,7 +151,7 @@ namespace SpeedRunAppImport
 
             if (result && (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.SpeedRun)))
             {
-                result = _speedRunService.ProcessSpeedRuns(SpeedRunLastImportDateUtc, ImportLastRunDateUtc, IsSpeedRunFullPull, IsBulkReload, IsRunUpdateSpeedRuns);
+                result = _speedRunService.ProcessSpeedRuns(SpeedRunLastImportDateUtc, ImportLastRunDateUtc, IsSpeedRunFullPull, IsBulkReload, IsUpdateSpeedRuns);
             }
 
             if (result && IsBulkReload)
@@ -164,7 +164,7 @@ namespace SpeedRunAppImport
                 result = _speedRunRepo.UpdateSpeedRunRanks(ImportLastRunDateUtc);
             }
 
-            if (result && (IsBulkReload || IsRunUpdateSpeedRuns))
+            if (result && (IsBulkReload || IsUpdateSpeedRuns))
             {
                 RunMaintenance();
             }
@@ -194,7 +194,6 @@ namespace SpeedRunAppImport
         public bool IsBulkReload { get; set; }
         public bool IsMaintenance { get; set; }
         public bool IsUpdateSpeedRuns { get; set; }
-        public bool IsRunUpdateSpeedRuns { get; set; }
         public List<ImportProcess> Processes { get; set; }
     }
 }

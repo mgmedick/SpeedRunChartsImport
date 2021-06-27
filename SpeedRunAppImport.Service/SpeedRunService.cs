@@ -118,29 +118,18 @@ namespace SpeedRunAppImport.Service
             gameSpeedRunComIDs = gameSpeedRunComIDs.Join(gameIDs, o => o.GameID, id => id, (o, id) => o).ToList();
             _logger.Information("Found NewOrChangedGames: {@Count}, ImportLastRunDate: {ImportLastRunDateUtc}", gameSpeedRunComIDs.Count(), importLastRunDateUtc);
 
-            /*
-            var gameAndCateogorySpeedRunComIDs = _gameRepo.GetGameSpeedRunComViews(i => (i.ModifiedDate ?? i.CreatedDate) >= importLastRunDateUtc)
-                                                      .SelectMany(i => i.CategorySpeedRunComIDArray.Select(g => new { SpeedRunComID = i.SpeedRunComID, CategorySpeedRunComID = g }))
-                                                      .ToList();
-            var gameSpeedRunComIDs = gameAndCateogorySpeedRunComIDs.Select(i => i.SpeedRunComID).Distinct().ToList();
-            */
-
-            _logger.Information("Found NewOrChangedGames: {@Count}, ImportLastRunDate: {ImportLastRunDateUtc}", gameSpeedRunComIDs.Count(), importLastRunDateUtc);
-
             var prevTotal = 0;
-
             foreach (var gameSpeedRunComID in gameSpeedRunComIDs)
             {
-                var prevGameCategoryTotal = 0;
-                var offset = 0;
+                var prevGameTotal = 0;
                 do
                 {
-                    runs = GetSpeedRunsWithRetry(MaxElementsPerPage, offset, gameSpeedRunComID.SpeedRunComID, null, runEmbeds, orderBy, RunStatusType.Verified);
+                    runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count(i => i.GameID == gameSpeedRunComID.SpeedRunComID) + prevGameTotal, gameSpeedRunComID.SpeedRunComID, null, runEmbeds, orderBy, RunStatusType.Verified);
                     results.AddRange(runs);
-                    _logger.Information("GameID: {@GameID}, pulled runs: {@New}, gamecategory total: {@GameCategoryTotal}, total runs: {@Total}",
-                                         gameSpeedRunComID,
+                    _logger.Information("GameID: {@GameID}, pulled runs: {@New}, game total: {@GameTotal}, total runs: {@Total}",
+                                         gameSpeedRunComID.SpeedRunComID,
                                          runs.Count,
-                                         results.Count(i => i.GameID == gameSpeedRunComID.SpeedRunComID) + prevGameCategoryTotal,
+                                         results.Count(i => i.GameID == gameSpeedRunComID.SpeedRunComID) + prevGameTotal,
                                          results.Count + prevTotal);
                     Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));                    
 
@@ -148,7 +137,7 @@ namespace SpeedRunAppImport.Service
                     if (memorySize > MaxMemorySizeBytes)
                     {
                         prevTotal += results.Count;
-                        prevGameCategoryTotal += results.Count(i => i.GameID == gameSpeedRunComID.SpeedRunComID);
+                        prevGameTotal += results.Count(i => i.GameID == gameSpeedRunComID.SpeedRunComID);
                         _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
                         SaveSpeedRuns(results, isBulkReload);
                         results.ClearMemory();

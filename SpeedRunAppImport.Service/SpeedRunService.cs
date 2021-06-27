@@ -199,7 +199,7 @@ namespace SpeedRunAppImport.Service
             }
             catch (Exception ex)
             {
-                if (((APIException)ex).Message.Contains("Invalid pagination values"))
+                if (ex is APIException && ((APIException)ex).Message.Contains("Invalid pagination values"))
                 {
                     runs = new List<SpeedRun>();
                     _logger.Information(ex, "GetSpeedRunsWithRetry - Invalid pagination values - GameID: {gameID}");

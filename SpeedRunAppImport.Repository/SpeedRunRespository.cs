@@ -464,6 +464,34 @@ namespace SpeedRunAppImport.Repository
             }
         }
 
+        public void DeleteSpeedRuns(Expression<Func<SpeedRunEntity, bool>> predicate)
+        {
+            var maxBatchCount = 500;
+            var batchCount = 0;
+
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                db.OneTimeCommandTimeout = 32767;
+                using (var tran = db.GetTransaction())
+                {
+                    var speedRunIDsToDelete = db.Query<SpeedRunEntity>().Where(predicate).ToList().Select(i => i.ID).ToList();
+                    while (batchCount < speedRunIDsToDelete.Count())
+                    {
+                        var speedRunIDsToDeleteBatch = speedRunIDsToDelete.Skip(batchCount).Take(maxBatchCount).ToList();
+                        db.DeleteMany<SpeedRunVariableValueEntity>().Where(i => speedRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
+                        db.DeleteMany<SpeedRunPlayerEntity>().Where(i => speedRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
+                        db.DeleteMany<SpeedRunGuestEntity>().Where(i => speedRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
+                        db.DeleteMany<SpeedRunVideoEntity>().Where(i => speedRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
+                        db.DeleteMany<SpeedRunSpeedRunComIDEntity>().Where(i => speedRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
+                        db.DeleteMany<SpeedRunEntity>().Where(i => speedRunIDsToDeleteBatch.Contains(i.ID)).Execute();
+                        batchCount += maxBatchCount;
+                    }
+
+                    tran.Complete();
+                }
+            }
+        }
+
         public IEnumerable<SpeedRunSpeedRunComIDEntity> GetSpeedRunSpeedRunComIDs(Expression<Func<SpeedRunSpeedRunComIDEntity, bool>> predicate = null)
         {
             using (IDatabase db = DBFactory.GetDatabase())

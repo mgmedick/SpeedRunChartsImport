@@ -114,7 +114,8 @@ namespace SpeedRunAppImport.Service
             var results = new List<SpeedRun>();
             var runs = new List<SpeedRun>();
             var gameSpeedRunComIDs = _gameRepo.GetGameSpeedRunComIDs();
-            var gameIDs = _gameRepo.GetGames(i => (i.ModifiedDate ?? i.CreatedDate) >= importLastRunDateUtc).Select(i => i.ID).ToList();
+            //var gameIDs = _gameRepo.GetGames(i => (i.ModifiedDate ?? i.CreatedDate) >= importLastRunDateUtc).Select(i => i.ID).ToList();
+            var gameIDs = _gameRepo.GetGames(i => i.ID >= 22589).Select(i => i.ID).ToList();
             gameSpeedRunComIDs = gameSpeedRunComIDs.Join(gameIDs, o => o.GameID, id => id, (o, id) => o).ToList();
             _logger.Information("Found NewOrChangedGames: {@Count}, ImportLastRunDate: {ImportLastRunDateUtc}", gameSpeedRunComIDs.Count(), importLastRunDateUtc);
 

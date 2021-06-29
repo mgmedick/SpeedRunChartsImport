@@ -205,6 +205,11 @@ namespace SpeedRunAppImport.Service
                     runs = new List<SpeedRun>();
                     _logger.Information(ex, "GetSpeedRunsWithRetry - Invalid pagination values - GameID: {gameID}");
                 }
+                else if (ex is APIException && ((APIException)ex).Message.Contains("Non-existing game"))
+                {
+                    runs = new List<SpeedRun>();
+                    _logger.Information(ex, "GetSpeedRunsWithRetry - Non-existing game - GameID: {gameID}");
+                }
                 else if (retryCount <= MaxRetryCount)
                 {
                     Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.ErrorPullDelayMS));

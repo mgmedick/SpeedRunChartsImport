@@ -134,10 +134,10 @@ namespace SpeedRunAppImport
         {
             bool result = true;
 
-            //if (IsBulkReload)
-            //{
-            //    result = _speedRunRepo.CreateFullTables();
-            //}
+            if (IsBulkReload)
+            {
+                result = _speedRunRepo.CreateFullTables();
+            }
 
             if (result && (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Platform)))
             {

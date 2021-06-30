@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using SpeedRunAppImport.Client;
@@ -48,7 +48,7 @@ namespace SpeedRunAppImport.Service
 
                 if (isUpdateSpeedRuns)
                 {
-                    UpdateSpeedRunsByGame(importLastRunDateUtc, isBulkReload);
+                    ProcessSpeedRunsByGame(importLastRunDateUtc, isFullPull, isBulkReload);
                 }
                 else
                 {
@@ -107,16 +107,17 @@ namespace SpeedRunAppImport.Service
         }
 
         #region ProcessSpeedRunsByGame
-        public void UpdateSpeedRunsByGame(DateTime importLastRunDateUtc, bool isBulkReload)
+        public void ProcessSpeedRunsByGame(DateTime importLastRunDateUtc, bool isFullPull, bool isBulkReload)
         {
             RunsOrdering orderBy = RunsOrdering.DateSubmitted;
             var runEmbeds = new SpeedRunEmbeds { EmbedCategory = false, EmbedGame = false, EmbedLevel = false, EmbedPlayers = true, EmbedPlatform = false, EmbedRegion = false };
             var results = new List<SpeedRun>();
             var runs = new List<SpeedRun>();
             var gameSpeedRunComIDs = _gameRepo.GetGameSpeedRunComIDs();
-            //var gameIDs = _gameRepo.GetGames(i => (i.ModifiedDate ?? i.CreatedDate) >= importLastRunDateUtc).Select(i => i.ID).ToList();
-            var gameIDs = _gameRepo.GetGames(i => i.ID >= 22589).Select(i => i.ID).ToList();
+            var gameIDs = isFullPull ? _gameRepo.GetGames().Select(i => i.ID).ToList() : _gameRepo.GetGames(i => (i.ModifiedDate ?? i.CreatedDate) >= importLastRunDateUtc).Select(i => i.ID).ToList();
+            
             gameSpeedRunComIDs = gameSpeedRunComIDs.Join(gameIDs, o => o.GameID, id => id, (o, id) => o).ToList();
+
             _logger.Information("Found NewOrChangedGames: {@Count}, ImportLastRunDate: {ImportLastRunDateUtc}", gameSpeedRunComIDs.Count(), importLastRunDateUtc);
 
             var prevTotal = 0;
@@ -125,14 +126,34 @@ namespace SpeedRunAppImport.Service
                 var prevGameTotal = 0;
                 do
                 {
-                    runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count(i => i.GameID == gameSpeedRunComID.SpeedRunComID) + prevGameTotal, gameSpeedRunComID.SpeedRunComID, null, runEmbeds, orderBy, RunStatusType.Verified);
+                    try
+                    {
+                        runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count(i => i.GameID == gameSpeedRunComID.SpeedRunComID) + prevGameTotal, gameSpeedRunComID.SpeedRunComID, null, runEmbeds, orderBy, RunStatusType.Verified);
+                    }
+                    catch (APIException ex)
+                    {
+                        if (ex.Message.Contains("Invalid pagination values"))
+                        {
+                            DeleteGameSpeedRunsAndProcessByCategory(gameSpeedRunComID.GameID, gameSpeedRunComID.SpeedRunComID, runEmbeds, orderBy, isBulkReload, results, ref prevTotal);
+                            break;
+                        }
+                        else
+                        {
+                            throw ex;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        throw ex;
+                    }
+
                     results.AddRange(runs);
                     _logger.Information("GameID: {@GameID}, pulled runs: {@New}, game total: {@GameTotal}, total runs: {@Total}",
-                                         gameSpeedRunComID.SpeedRunComID,
+                                         gameSpeedRunComID,
                                          runs.Count,
                                          results.Count(i => i.GameID == gameSpeedRunComID.SpeedRunComID) + prevGameTotal,
                                          results.Count + prevTotal);
-                    Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));                    
+                    Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
 
                     var memorySize = GC.GetTotalMemory(false);
                     if (memorySize > MaxMemorySizeBytes)
@@ -151,6 +172,54 @@ namespace SpeedRunAppImport.Service
             {
                 SaveSpeedRuns(results, isBulkReload);
                 results.ClearMemory();
+            }
+        }
+
+        private void DeleteGameSpeedRunsAndProcessByCategory(int gameID, string gameSpeedRunComID, SpeedRunEmbeds runEmbeds, RunsOrdering orderBy, bool isBulkReload, List<SpeedRun> results, ref int prevTotal)
+        {
+            results.RemoveAll(i => i.GameID == gameSpeedRunComID);
+            if (isBulkReload)
+            {
+                _speedRunRepo.DeleteSpeedRuns(i => i.GameID == gameID);
+            }
+
+            var categorySpeedRunComIDs = _gameRepo.GetGameSpeedRunComViews(i => i.SpeedRunComID == gameSpeedRunComID)
+                                               .SelectMany(i => i.CategorySpeedRunComIDArray)
+                                               .ToList();
+            ProcessSpeedRunsByCategory(gameSpeedRunComID, categorySpeedRunComIDs, runEmbeds, orderBy, isBulkReload, results, ref prevTotal);
+        }
+
+        private void ProcessSpeedRunsByCategory(string gameSpeedRunComID, IEnumerable<string> categorySpeedRunComIDs, SpeedRunEmbeds runEmbeds, RunsOrdering orderBy, bool isBulkReload, List<SpeedRun> results, ref int prevTotal)
+        {
+            var runs = new List<SpeedRun>();
+
+            foreach (var categorySpeedRunComID in categorySpeedRunComIDs)
+            {
+                var prevCategoryTotal = 0;
+                do
+                {
+                    runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count(i => i.GameID == gameSpeedRunComID && i.CategoryID == categorySpeedRunComID) + prevCategoryTotal, gameSpeedRunComID, categorySpeedRunComID, runEmbeds, orderBy, RunStatusType.Verified);
+
+                    results.AddRange(runs);
+                    _logger.Information("GameID: {@GameID}, CategoryID: {@CategoryID}, pulled runs: {@New}, game total: {@CategoryTotal}, total runs: {@Total}",
+                                         gameSpeedRunComID,
+                                         categorySpeedRunComID,
+                                         runs.Count,
+                                         results.Count(i => i.GameID == gameSpeedRunComID && i.CategoryID == categorySpeedRunComID) + prevCategoryTotal,
+                                         results.Count + prevTotal);
+                    Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
+
+                    var memorySize = GC.GetTotalMemory(false);
+                    if (memorySize > MaxMemorySizeBytes)
+                    {
+                        prevTotal += results.Count;
+                        prevCategoryTotal += results.Count(i => i.GameID == gameSpeedRunComID && i.CategoryID == categorySpeedRunComID);
+                        _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
+                        SaveSpeedRuns(results, isBulkReload);
+                        results.ClearMemory();
+                    }
+                }
+                while (runs.Count == MaxElementsPerPage);
             }
         }
 
@@ -202,8 +271,13 @@ namespace SpeedRunAppImport.Service
             {
                 if (ex is APIException && ((APIException)ex).Message.Contains("Invalid pagination values"))
                 {
+                    _logger.Information(ex, "GetSpeedRunsWithRetry - Invalid pagination values - GameID: {gameID}", gameID);
+                    throw ex;
+                }
+                else if (ex is APIException && ((APIException)ex).Message.Contains("Non-existing"))
+                {
                     runs = new List<SpeedRun>();
-                    _logger.Information(ex, "GetSpeedRunsWithRetry - Invalid pagination values - GameID: {gameID}");
+                    _logger.Information(ex, "GetSpeedRunsWithRetry - Non-existing - GameID: {gameID}, CategoryID: {categoryID}", gameID, categoryID);
                 }
                 else if (ex is APIException && ((APIException)ex).Message.Contains("Non-existing game"))
                 {

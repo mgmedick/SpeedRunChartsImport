@@ -177,7 +177,11 @@ namespace SpeedRunAppImport.Service
         private void DeleteGameSpeedRunsAndProcessByCategory(int gameID, string gameSpeedRunComID, SpeedRunEmbeds runEmbeds, RunsOrdering orderBy, bool isBulkReload, List<SpeedRun> results, ref int prevTotal)
         {
             results.RemoveAll(i => i.GameID == gameSpeedRunComID);
-            _speedRunRepo.DeleteSpeedRuns(i => i.GameID == gameID);
+            if (isBulkReload)
+            {
+                _speedRunRepo.DeleteSpeedRuns(i => i.GameID == gameID);
+            }
+
             var categorySpeedRunComIDs = _gameRepo.GetGameSpeedRunComViews(i => i.SpeedRunComID == gameSpeedRunComID)
                                                .SelectMany(i => i.CategorySpeedRunComIDArray)
                                                .ToList();
@@ -266,8 +270,13 @@ namespace SpeedRunAppImport.Service
             {
                 if (ex is APIException && ((APIException)ex).Message.Contains("Invalid pagination values"))
                 {
-                    _logger.Information(ex, "GetSpeedRunsWithRetry - Invalid pagination values - GameID: {gameID}");
+                    _logger.Information(ex, "GetSpeedRunsWithRetry - Invalid pagination values - GameID: {gameID}", gameID);
                     throw ex;
+                }
+                else if (ex is APIException && ((APIException)ex).Message.Contains("Non-existing"))
+                {
+                    runs = new List<SpeedRun>();
+                    _logger.Information(ex, "GetSpeedRunsWithRetry - Non-existing - GameID: {gameID}, CategoryID: {categoryID}", gameID, categoryID);
                 }
                 else if (retryCount <= MaxRetryCount)
                 {

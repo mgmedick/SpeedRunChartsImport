@@ -115,7 +115,7 @@ namespace SpeedRunAppImport.Service
             var runs = new List<SpeedRun>();
             var gameSpeedRunComIDs = _gameRepo.GetGameSpeedRunComIDs();
             var gameIDs = isFullPull ? _gameRepo.GetGames().Select(i => i.ID).ToList() : _gameRepo.GetGames(i => (i.ModifiedDate ?? i.CreatedDate) >= importLastRunDateUtc).Select(i => i.ID).ToList();
-            
+            //var gameIDs = new List<int> { 35 };
             gameSpeedRunComIDs = gameSpeedRunComIDs.Join(gameIDs, o => o.GameID, id => id, (o, id) => o).ToList();
 
             _logger.Information("Found NewOrChangedGames: {@Count}, ImportLastRunDate: {ImportLastRunDateUtc}", gameSpeedRunComIDs.Count(), importLastRunDateUtc);
@@ -202,7 +202,7 @@ namespace SpeedRunAppImport.Service
                     { 
                         runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count(i => i.GameID == gameSpeedRunComID && i.CategoryID == categorySpeedRunComID) + prevCategoryTotal, gameSpeedRunComID, categorySpeedRunComID, runEmbeds, orderBy, RunStatusType.Verified);
                     }
-                        catch (APIException ex)
+                    catch (APIException ex)
                     {
                         if (ex.Message.Contains("Invalid pagination values"))
                         {
@@ -218,7 +218,7 @@ namespace SpeedRunAppImport.Service
                         throw ex;
                     }
 
-                results.AddRange(runs);
+                    results.AddRange(runs);
                     _logger.Information("GameID: {@GameID}, CategoryID: {@CategoryID}, pulled runs: {@New}, game total: {@CategoryTotal}, total runs: {@Total}",
                                          gameSpeedRunComID,
                                          categorySpeedRunComID,

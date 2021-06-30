@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using SpeedRunAppImport.Client;
@@ -148,7 +148,7 @@ namespace SpeedRunAppImport.Service
 
                     results.AddRange(runs);
                     _logger.Information("GameID: {@GameID}, pulled runs: {@New}, game total: {@GameTotal}, total runs: {@Total}",
-                                         gameSpeedRunComID,
+                                         gameSpeedRunComID.SpeedRunComID,
                                          runs.Count,
                                          results.Count(i => i.GameID == gameSpeedRunComID.SpeedRunComID) + prevGameTotal,
                                          results.Count + prevTotal);
@@ -197,9 +197,27 @@ namespace SpeedRunAppImport.Service
                 var prevCategoryTotal = 0;
                 do
                 {
-                    runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count(i => i.GameID == gameSpeedRunComID && i.CategoryID == categorySpeedRunComID) + prevCategoryTotal, gameSpeedRunComID, categorySpeedRunComID, runEmbeds, orderBy, RunStatusType.Verified);
+                    try
+                    { 
+                        runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count(i => i.GameID == gameSpeedRunComID && i.CategoryID == categorySpeedRunComID) + prevCategoryTotal, gameSpeedRunComID, categorySpeedRunComID, runEmbeds, orderBy, RunStatusType.Verified);
+                    }
+                        catch (APIException ex)
+                    {
+                        if (ex.Message.Contains("Invalid pagination values"))
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            throw ex;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        throw ex;
+                    }
 
-                    results.AddRange(runs);
+                results.AddRange(runs);
                     _logger.Information("GameID: {@GameID}, CategoryID: {@CategoryID}, pulled runs: {@New}, game total: {@CategoryTotal}, total runs: {@Total}",
                                          gameSpeedRunComID,
                                          categorySpeedRunComID,

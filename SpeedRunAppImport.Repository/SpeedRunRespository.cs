@@ -466,25 +466,26 @@ namespace SpeedRunAppImport.Repository
 
         public void DeleteSpeedRuns(Expression<Func<SpeedRunEntity, bool>> predicate)
         {
-            var maxBatchCount = 500;
-            var batchCount = 0;
-
             using (IDatabase db = DBFactory.GetDatabase())
             {
                 db.OneTimeCommandTimeout = 32767;
+                var speedRunIDsToDelete = db.Query<SpeedRunEntity>().Where(predicate).ToList().Select(i => i.ID).ToList();
+
                 using (var tran = db.GetTransaction())
                 {
-                    var speedRunIDsToDelete = db.Query<SpeedRunEntity>().Where(predicate).ToList().Select(i => i.ID).ToList();
-                    while (batchCount < speedRunIDsToDelete.Count())
+                    foreach (var speedRunID in speedRunIDsToDelete)
                     {
-                        var speedRunIDsToDeleteBatch = speedRunIDsToDelete.Skip(batchCount).Take(maxBatchCount).ToList();
-                        db.DeleteMany<SpeedRunVariableValueEntity>().Where(i => speedRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
-                        db.DeleteMany<SpeedRunPlayerEntity>().Where(i => speedRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
-                        db.DeleteMany<SpeedRunGuestEntity>().Where(i => speedRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
-                        db.DeleteMany<SpeedRunVideoEntity>().Where(i => speedRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
-                        db.DeleteMany<SpeedRunSpeedRunComIDEntity>().Where(i => speedRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
-                        db.DeleteMany<SpeedRunEntity>().Where(i => speedRunIDsToDeleteBatch.Contains(i.ID)).Execute();
-                        batchCount += maxBatchCount;
+
+                        db.DeleteWhere<SpeedRunLinkEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunID });
+                        db.DeleteWhere<SpeedRunSystemEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunID });
+                        db.DeleteWhere<SpeedRunTimeEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunID });
+                        db.DeleteWhere<SpeedRunCommentEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunID });
+                        db.DeleteWhere<SpeedRunVariableValueEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunID });
+                        db.DeleteWhere<SpeedRunPlayerEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunID });
+                        db.DeleteWhere<SpeedRunGuestEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunID });
+                        db.DeleteWhere<SpeedRunVideoEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunID });
+                        db.DeleteWhere<SpeedRunSpeedRunComIDEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunID });
+                        db.DeleteWhere<SpeedRunEntity>("ID = @speedRunID", new { speedRunID = speedRunID });
                     }
 
                     tran.Complete();

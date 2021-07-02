@@ -114,8 +114,9 @@ namespace SpeedRunAppImport.Service
             var results = new List<SpeedRun>();
             var runs = new List<SpeedRun>();
             var gameSpeedRunComIDs = _gameRepo.GetGameSpeedRunComIDs();
-            var gameIDs = isFullPull ? _gameRepo.GetGames().Select(i => i.ID).ToList() : _gameRepo.GetGames(i => (i.ModifiedDate ?? i.CreatedDate) >= importLastRunDateUtc).Select(i => i.ID).ToList();
+            //var gameIDs = isFullPull ? _gameRepo.GetGames().Select(i => i.ID).ToList() : _gameRepo.GetGames(i => (i.ModifiedDate ?? i.CreatedDate) >= importLastRunDateUtc).Select(i => i.ID).ToList();
             //var gameIDs = new List<int> { 35 };
+            var gameIDs = isFullPull ? _gameRepo.GetGames(i=>i.ID >= 8993).Select(i => i.ID).ToList() : _gameRepo.GetGames(i => (i.ModifiedDate ?? i.CreatedDate) >= importLastRunDateUtc).Select(i => i.ID).ToList();
             gameSpeedRunComIDs = gameSpeedRunComIDs.Join(gameIDs, o => o.GameID, id => id, (o, id) => o).ToList();
 
             _logger.Information("Found NewOrChangedGames: {@Count}, ImportLastRunDate: {ImportLastRunDateUtc}", gameSpeedRunComIDs.Count(), importLastRunDateUtc);

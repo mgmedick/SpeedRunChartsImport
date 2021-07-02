@@ -108,7 +108,7 @@ namespace SpeedRunAppImport
                 var startDateLocal = currDateLocal.Date.Add(updateSpeedRunsTime);
                 var ImportLastRunDateLocal = ImportLastRunDateUtc.ToLocalTime();
 
-                if ((IsUpdateSpeedRuns) || (startDateLocal <= currDateLocal && startDateLocal > ImportLastRunDateLocal))
+                if ((IsUpdateSpeedRuns)) //|| (startDateLocal <= currDateLocal && startDateLocal > ImportLastRunDateLocal))
                 {
                     IsGameFullPull = true;
                     IsUpdateSpeedRuns = true;
@@ -134,10 +134,10 @@ namespace SpeedRunAppImport
         {
             bool result = true;
 
-            if (IsBulkReload)
-            {
-                result = _speedRunRepo.CreateFullTables();
-            }
+            //if (IsBulkReload)
+            //{
+            //    result = _speedRunRepo.CreateFullTables();
+            //}
 
             if (result && (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Platform)))
             {

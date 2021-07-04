@@ -102,16 +102,25 @@ namespace SpeedRunAppImport
                 SpeedRunLastImportDateUtc = IsSpeedRunFullPull ? sqlMinDateTime : (_settingService.GetSetting("SpeedRunLastImportDate")?.Dte ?? currDateUtc);
                 ImportLastRunDateUtc = IsBulkReload ? sqlMinDateTime : (_settingService.GetSetting("ImportLastRunDate")?.Dte ?? currDateUtc);
 
-                var currDateLocal = currDateUtc.ToLocalTime();
-                var updateSpeedRunsTimeString = _settingService.GetSetting("UpdateSpeedRunsTime")?.Str ?? "00:00";
-                var updateSpeedRunsTime = TimeSpan.Parse(updateSpeedRunsTimeString);
-                var startDateLocal = currDateLocal.Date.Add(updateSpeedRunsTime);
-                var ImportLastRunDateLocal = ImportLastRunDateUtc.ToLocalTime();
+                var updateSpeedRunsTimeString = _settingService.GetSetting("UpdateSpeedRunsTime")?.Str;
 
-                if ((IsUpdateSpeedRuns)) //|| (startDateLocal <= currDateLocal && startDateLocal > ImportLastRunDateLocal))
+                if (IsUpdateSpeedRuns)
                 {
                     IsGameFullPull = true;
                     IsUpdateSpeedRuns = true;
+                }
+                else if (!string.IsNullOrWhiteSpace(updateSpeedRunsTimeString))
+                {
+                    var currDateLocal = currDateUtc.ToLocalTime();
+                    var ImportLastRunDateLocal = ImportLastRunDateUtc.ToLocalTime();
+                    var updateSpeedRunsTime = TimeSpan.Parse(updateSpeedRunsTimeString);
+                    var startDateLocal = currDateLocal.Date.Add(updateSpeedRunsTime);
+
+                    if (startDateLocal <= currDateLocal && startDateLocal > ImportLastRunDateLocal)
+                    {
+                        IsGameFullPull = true;
+                        IsUpdateSpeedRuns = true;
+                    }
                 }
 
                 BaseService.SqlMinDateTime = sqlMinDateTime;
@@ -134,10 +143,10 @@ namespace SpeedRunAppImport
         {
             bool result = true;
 
-            //if (IsBulkReload)
-            //{
-            //    result = _speedRunRepo.CreateFullTables();
-            //}
+            if (IsBulkReload)
+            {
+                result = _speedRunRepo.CreateFullTables();
+            }
 
             if (result && (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Platform)))
             {

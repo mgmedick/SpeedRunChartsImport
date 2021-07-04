@@ -114,9 +114,7 @@ namespace SpeedRunAppImport.Service
             var results = new List<SpeedRun>();
             var runs = new List<SpeedRun>();
             var gameSpeedRunComIDs = _gameRepo.GetGameSpeedRunComIDs();
-            //var gameIDs = isFullPull ? _gameRepo.GetGames().Select(i => i.ID).ToList() : _gameRepo.GetGames(i => (i.ModifiedDate ?? i.CreatedDate) >= importLastRunDateUtc).Select(i => i.ID).ToList();
-            //var gameIDs = new List<int> { 35 };
-            var gameIDs = isFullPull ? _gameRepo.GetGames(i=>i.ID >= 11376).Select(i => i.ID).ToList() : _gameRepo.GetGames(i => (i.ModifiedDate ?? i.CreatedDate) >= importLastRunDateUtc).Select(i => i.ID).ToList();
+            var gameIDs = isFullPull ? _gameRepo.GetGames().Select(i => i.ID).ToList() : _gameRepo.GetGames(i => (i.ModifiedDate ?? i.CreatedDate) >= importLastRunDateUtc).Select(i => i.ID).ToList();
             gameSpeedRunComIDs = gameSpeedRunComIDs.Join(gameIDs, o => o.GameID, id => id, (o, id) => o).ToList();
 
             _logger.Information("Found NewOrChangedGames: {@Count}, ImportLastRunDate: {ImportLastRunDateUtc}", gameSpeedRunComIDs.Count(), importLastRunDateUtc);
@@ -297,11 +295,6 @@ namespace SpeedRunAppImport.Service
                 {
                     runs = new List<SpeedRun>();
                     _logger.Information(ex, "GetSpeedRunsWithRetry - Non-existing - GameID: {gameID}, CategoryID: {categoryID}", gameID, categoryID);
-                }
-                else if (ex is APIException && ((APIException)ex).Message.Contains("Non-existing game"))
-                {
-                    runs = new List<SpeedRun>();
-                    _logger.Information(ex, "GetSpeedRunsWithRetry - Non-existing game - GameID: {gameID}");
                 }
                 else if (retryCount <= MaxRetryCount)
                 {

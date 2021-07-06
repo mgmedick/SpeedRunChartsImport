@@ -473,8 +473,8 @@ namespace SpeedRunAppImport.Service
             var variableValueEntities = runs.SelectMany(i => i.VariableValueMappings.Select(g => new SpeedRunVariableValueEntity()
             {
                 SpeedRunSpeedRunComID = i.ID,
-                VariableID = variableSpeedRunComIDs.Where(h => h.SpeedRunComID == g.VariableID).Select(g => g.VariableID).FirstOrDefault(),
-                VariableValueID = variableValueSpeedRunComIDs.Where(h => h.SpeedRunComID == g.VariableValueID).Select(g => g.VariableValueID).FirstOrDefault(),
+                VariableID = variableSpeedRunComIDs.Where(h => h.SpeedRunComID == g.VariableID).Select(h => h.VariableID).FirstOrDefault(),
+                VariableValueID = variableValueSpeedRunComIDs.Where(h => h.SpeedRunComID == g.VariableValueID).Select(h => h.VariableValueID).FirstOrDefault(),
             })).Where(i => i.VariableID != 0 && i.VariableValueID != 0)
             .ToList();
             var playerEntities = runs.Where(i => i.PlayerUsers != null).SelectMany(i => i.PlayerUsers.Select(g => new SpeedRunPlayerEntity()

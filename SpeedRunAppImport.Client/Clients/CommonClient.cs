@@ -62,14 +62,17 @@ namespace SpeedRunAppImport.Client
             var image = new ImageAsset();
 
             var uri = imageElement.uri as string;
-            image.Uri = new Uri(uri);
-            if (imageElement.width != null)
+            if (!string.IsNullOrWhiteSpace(uri))
             {
-                image.Width = (int)imageElement.width;
-            }
-            if (imageElement.height != null)
-            {
-                image.Height = (int)imageElement.height;
+                image.Uri = new Uri(uri);
+                if (imageElement.width != null)
+                {
+                    image.Width = (int)imageElement.width;
+                }
+                if (imageElement.height != null)
+                {
+                    image.Height = (int)imageElement.height;
+                }
             }
 
             return image;

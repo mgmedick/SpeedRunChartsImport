@@ -696,6 +696,14 @@ namespace SpeedRunAppImport.Repository
             using (IDatabase db = DBFactory.GetDatabase())
             {
                 db.OneTimeCommandTimeout = 32767;
+                db.Execute(@"DECLARE @Sql NVARCHAR(MAX) = ''
+
+                            SELECT @Sql = 'ALTER TABLE [' + s.name + '].[' + o.name + '] NOCHECK CONSTRAINT all'
+                            FROM sys.foreign_keys i
+                            INNER JOIN sys.objects o ON i.parent_object_id = o.OBJECT_ID
+                            INNER JOIN sys.schemas s ON o.schema_id = s.schema_id
+
+                            EXEC (@Sql)");
 
                 foreach (var game in gamesList)
                 {
@@ -905,13 +913,13 @@ namespace SpeedRunAppImport.Repository
                         if (gameLink != null)
                         {
                             gameLink.GameID = game.ID;
-                            db.Insert<GameLinkEntity>(gameLink);
+                            db.Save<GameLinkEntity>(gameLink);
                         }
 
                         if (gameRuleset != null)
                         {
                             gameRuleset.GameID = game.ID;
-                            db.Insert<GameRulesetEntity>(gameRuleset);
+                            db.Save<GameRulesetEntity>(gameRuleset);
                         }
 
                         gamePlatformsBatch.ForEach(i => i.GameID = game.ID);
@@ -932,6 +940,15 @@ namespace SpeedRunAppImport.Repository
                     _logger.Information("Saved games {@Count} / {@Total}", count, gamesList.Count);
                     count++;
                 }
+
+                db.Execute(@"DECLARE @Sql NVARCHAR(MAX) = ''
+
+                            SELECT @Sql = 'ALTER TABLE [' + s.name + '].[' + o.name + '] WITH CHECK CHECK CONSTRAINT [' + i.name + ']'
+                            FROM sys.foreign_keys i
+                            INNER JOIN sys.objects o ON i.parent_object_id = o.OBJECT_ID
+                            INNER JOIN sys.schemas s ON o.schema_id = s.schema_id
+
+                            EXEC (@Sql)");
             }
         }
 

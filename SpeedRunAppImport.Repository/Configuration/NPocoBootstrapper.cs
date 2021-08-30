@@ -18,7 +18,7 @@ namespace SpeedRunAppImport.Repository.Configuration
             {
                 //var db = new Database(connectionString, DatabaseType.SqlServer2012, SqlClientFactory.Instance);
                 //db.CommandTimeout = 0;
-                i.UsingDatabase(() => new Database(connectionString, DatabaseType.SqlServer2012, SqlClientFactory.Instance));
+                i.UsingDatabase(() => new Database(connectionString, DatabaseType.SqlServer2012, SqlClientFactory.Instance, System.Data.IsolationLevel.ReadUncommitted));
                 i.WithFluentConfig(fluentConfig);
                 
             });

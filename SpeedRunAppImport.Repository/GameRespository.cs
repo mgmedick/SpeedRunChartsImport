@@ -705,7 +705,7 @@ namespace SpeedRunAppImport.Repository
 			                              FOR XML PATH ('')
 			                            ), 1, 1, '')
 
-                            SELECT @@Sql");
+                            EXEC(@@Sql)");
 
                 foreach (var game in gamesList)
                 {
@@ -952,7 +952,7 @@ namespace SpeedRunAppImport.Repository
 			                              FOR XML PATH ('')
 			                            ), 1, 1, '')
 
-                            SELECT @@Sql");
+                            EXEC(@@Sql)");
             }
         }
 

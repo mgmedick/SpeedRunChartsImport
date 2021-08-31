@@ -943,6 +943,7 @@ namespace SpeedRunAppImport.Repository
                     count++;
                 }
 
+                db.OneTimeCommandTimeout = 32767;
                 db.Execute(@"DECLARE @@Sql NVARCHAR(MAX) = ''
 
                             SELECT @@Sql = STUFF((SELECT DISTINCT ' ALTER TABLE [' + s.name + '].[' + o.name + '] WITH CHECK CHECK CONSTRAINT [' + i.name + ']'

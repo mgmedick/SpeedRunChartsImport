@@ -695,17 +695,26 @@ namespace SpeedRunAppImport.Repository
 
             using (IDatabase db = DBFactory.GetDatabase())
             {
-                //db.OneTimeCommandTimeout = 32767;
-                //db.Execute(@"DECLARE @@Sql NVARCHAR(MAX) = ''
+                db.OneTimeCommandTimeout = 32767;
+                db.Execute(@"DELETE dn 
+                                    FROM dbo.tbl_Game_SpeedRunComID dn
+                                    WHERE NOT EXISTS (SELECT 1 from dbo.tbl_Game where ID = dn.GameID)
 
-                //            SELECT @@Sql = STUFF((SELECT DISTINCT ' ALTER TABLE [' + s.name + '].[' + o.name + '] NOCHECK CONSTRAINT all'
-                //               FROM sys.foreign_keys i
-                //               INNER JOIN sys.objects o ON i.parent_object_id = o.OBJECT_ID
-                //               INNER JOIN sys.schemas s ON o.schema_id = s.schema_id
-                //                 FOR XML PATH ('')
-                //               ), 1, 1, '')
+                                    DELETE dn
+                                    FROM dbo.tbl_Category_SpeedRunComID dn
+                                    WHERE NOT EXISTS (SELECT 1 from dbo.tbl_Category where ID = dn.CategoryID)
 
-                //            EXEC(@@Sql)");
+                                    DELETE dn
+                                    FROM dbo.tbl_Level_SpeedRunComID dn
+                                    WHERE NOT EXISTS (SELECT 1 from dbo.tbl_Level where ID = dn.LevelID)
+
+                                    DELETE dn
+                                    FROM dbo.tbl_Variable_SpeedRunComID dn
+                                    WHERE NOT EXISTS (SELECT 1 from dbo.tbl_Variable where ID = dn.VariableID)
+
+                                    DELETE dn
+                                    FROM dbo.tbl_VariableValue_SpeedRunComID dn
+                                    WHERE NOT EXISTS (SELECT 1 from dbo.tbl_VariableValue where ID = dn.VariableValueID)");
 
                 foreach (var game in gamesList)
                 {

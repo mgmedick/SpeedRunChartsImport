@@ -122,6 +122,10 @@ namespace SpeedRunAppImport.Service
         {
             _logger.Information("Started SaveGames: {@Count}, {@IsBulkReload}", games.Count(), isBulkReload);
 
+            games = games.GroupBy(g => new { g.ID })
+                         .Select(i => i.First())
+                         .ToList();
+
             games = games.OrderBy(i => i.CreationDate).ToList();
             var gameIDs = games.Select(i => i.ID).ToList();
             var gameSpeedRunComIDs = _gameRepo.GetGameSpeedRunComIDs();

@@ -173,9 +173,16 @@ namespace SpeedRunAppImport
                 result = _speedRunRepo.UpdateSpeedRunRanks(ImportLastRunDateUtc);
             }
 
-            if (result && (IsBulkReload || IsUpdateSpeedRuns))
+            if (result)
             {
-                RunMaintenance();
+                if (IsBulkReload)
+                {
+                    RunMaintenance();
+                }
+                else if (IsUpdateSpeedRuns)
+                {
+                    _speedRunRepo.RebuildIndexes();
+                }
             }
 
             _settingService.UpdateSetting("ImportLastRunDate", DateTime.UtcNow);

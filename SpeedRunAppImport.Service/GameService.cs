@@ -131,8 +131,9 @@ namespace SpeedRunAppImport.Service
             {
                 var newGames = games.Where(i => !gameSpeedRunComIDs.Any(g => g.SpeedRunComID == i.ID)).ToList();
                 var changedGames = GetChangedGames(games);
+                var totalGames = games.Count();
                 games = newGames.Concat(changedGames);
-                _logger.Information("Found NewGames: {@New}, ChangedGames: {@Changed}, TotalGames: {@Total}", newGames.Count(), changedGames.Count(), games.Count());
+                _logger.Information("Found NewGames: {@New}, ChangedGames: {@Changed}, TotalGames: {@Total}", newGames.Count(), changedGames.Count(), totalGames);
             }
 
             var userIDs = games.SelectMany(i => i.ModeratorUsers.Select(i => i.ID)).Distinct().ToList();

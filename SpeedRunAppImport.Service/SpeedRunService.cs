@@ -133,7 +133,10 @@ namespace SpeedRunAppImport.Service
                     {
                         if (ex.Message.Contains("Invalid pagination values"))
                         {
-                            DeleteGameSpeedRunsAndProcessByCategory(gameSpeedRunComID.GameID, gameSpeedRunComID.SpeedRunComID, runEmbeds, orderBy, isBulkReload, results, ref prevTotal);
+                            if (!isBulkReload)
+                            {
+                                DeleteGameSpeedRunsAndProcessByCategory(gameSpeedRunComID.GameID, gameSpeedRunComID.SpeedRunComID, runEmbeds, orderBy, isBulkReload, results, ref prevTotal);
+                            }
                             break;
                         }
                         else

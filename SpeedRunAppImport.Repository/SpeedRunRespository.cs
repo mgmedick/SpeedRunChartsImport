@@ -475,7 +475,6 @@ namespace SpeedRunAppImport.Repository
                 {
                     foreach (var speedRunID in speedRunIDsToDelete)
                     {
-
                         db.DeleteWhere<SpeedRunLinkEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunID });
                         db.DeleteWhere<SpeedRunSystemEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunID });
                         db.DeleteWhere<SpeedRunTimeEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunID });

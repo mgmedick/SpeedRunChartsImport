@@ -113,7 +113,7 @@ namespace SpeedRunAppImport.Service
             var runEmbeds = new SpeedRunEmbeds { EmbedCategory = false, EmbedGame = false, EmbedLevel = false, EmbedPlayers = true, EmbedPlatform = false, EmbedRegion = false };
             var results = new List<SpeedRun>();
             var runs = new List<SpeedRun>();
-            var gameSpeedRunComIDs = _gameRepo.GetGameSpeedRunComIDs();
+            var gameSpeedRunComIDs = _gameRepo.GetGameSpeedRunComIDs(i => i.GameID > 17324);
             var gameIDs = isFullPull ? _gameRepo.GetGames().Select(i => i.ID).ToList() : _gameRepo.GetGames(i => (i.ModifiedDate ?? i.CreatedDate) >= importLastRunDateUtc).Select(i => i.ID).ToList();
             gameSpeedRunComIDs = gameSpeedRunComIDs.Join(gameIDs, o => o.GameID, id => id, (o, id) => o).ToList();
 

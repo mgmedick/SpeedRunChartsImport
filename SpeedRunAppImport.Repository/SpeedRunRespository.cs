@@ -466,29 +466,42 @@ namespace SpeedRunAppImport.Repository
 
         public void DeleteSpeedRuns(Expression<Func<SpeedRunEntity, bool>> predicate)
         {
+            _logger.Information("Started DeleteSpeedRuns");
             using (IDatabase db = DBFactory.GetDatabase())
             {
                 db.OneTimeCommandTimeout = 32767;
                 var speedRunIDsToDelete = db.Query<SpeedRunEntity>().Where(predicate).ToList().Select(i => i.ID).ToList();
+                _logger.Information("Found {@Count} SpeedRuns to Delete", speedRunIDsToDelete.Count());
 
                 using (var tran = db.GetTransaction())
                 {
                     foreach (var speedRunID in speedRunIDsToDelete)
                     {
+                        db.OneTimeCommandTimeout = 32767;
                         db.DeleteWhere<SpeedRunLinkEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunID });
+                        db.OneTimeCommandTimeout = 32767;
                         db.DeleteWhere<SpeedRunSystemEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunID });
+                        db.OneTimeCommandTimeout = 32767;
                         db.DeleteWhere<SpeedRunTimeEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunID });
+                        db.OneTimeCommandTimeout = 32767;
                         db.DeleteWhere<SpeedRunCommentEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunID });
+                        db.OneTimeCommandTimeout = 32767;
                         db.DeleteWhere<SpeedRunVariableValueEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunID });
+                        db.OneTimeCommandTimeout = 32767;
                         db.DeleteWhere<SpeedRunPlayerEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunID });
+                        db.OneTimeCommandTimeout = 32767;
                         db.DeleteWhere<SpeedRunGuestEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunID });
+                        db.OneTimeCommandTimeout = 32767;
                         db.DeleteWhere<SpeedRunVideoEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunID });
+                        db.OneTimeCommandTimeout = 32767;
                         db.DeleteWhere<SpeedRunSpeedRunComIDEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunID });
+                        db.OneTimeCommandTimeout = 32767;
                         db.DeleteWhere<SpeedRunEntity>("ID = @speedRunID", new { speedRunID = speedRunID });
                     }
 
                     tran.Complete();
                 }
+                _logger.Information("Completed DeleteSpeedRuns");
             }
         }
 

@@ -174,7 +174,22 @@ namespace SpeedRunAppImport.Service
             {
                 SaveSpeedRuns(results, isBulkReload);
                 results.ClearMemory();
+                DeleteObsoleteSpeedRuns(gameIDs, importLastRunDateUtc);
             }
+        }
+
+        private void DeleteObsoleteSpeedRuns(List<int> gameIDs, DateTime importLastRunDateUtc)
+        {
+            _logger.Information("Started DeleteObsoleteSpeedRuns: GameCount: {@GameCount}, LastImportDateUTC: {@ImportLastRunDateUtc}", gameIDs.Count(), importLastRunDateUtc);
+
+            foreach (var gameID in gameIDs)
+            {
+                _logger.Information("Deleting obsolete speedruns for GameID: {@GameID}", gameID);
+                _speedRunRepo.DeleteSpeedRuns(i => i.GameID == gameID && (i.ModifiedDate ?? i.ImportedDate) < importLastRunDateUtc);
+                _logger.Information("Completed deleting obsolete speedruns for GameID: {@GameID}", gameID);
+            }
+
+            _logger.Information("Completed DeleteObsoleteSpeedRuns: GameCount: {@GameCount}, LastImportDateUTC: {@ImportLastRunDateUtc}", gameIDs.Count(), importLastRunDateUtc);
         }
 
         private void DeleteGameSpeedRunsAndProcessByCategory(int gameID, string gameSpeedRunComID, SpeedRunEmbeds runEmbeds, RunsOrdering orderBy, bool isBulkReload, List<SpeedRun> results, ref int prevTotal)
@@ -367,8 +382,6 @@ namespace SpeedRunAppImport.Service
             var runIDs = runs.Select(i => i.ID).ToList();
             var speedRunSpeedRunComIDs = _speedRunRepo.GetSpeedRunSpeedRunComIDs();
             speedRunSpeedRunComIDs = speedRunSpeedRunComIDs.Join(runIDs, o => o.SpeedRunComID, id => id, (o, id) => o).ToList();
-
-            //TODO: if !isBulkReload narrow to only runs that changed.
 
             var gameIDs = runs.Select(i => i.GameID).Distinct().ToList();
             var gameSpeedRunComIDs = _gameRepo.GetGameSpeedRunComIDs();

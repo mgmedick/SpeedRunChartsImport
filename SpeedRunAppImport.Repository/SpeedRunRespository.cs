@@ -385,6 +385,7 @@ namespace SpeedRunAppImport.Repository
 
         public void SaveSpeedRuns(IEnumerable<SpeedRunEntity> speedRuns, IEnumerable<SpeedRunLinkEntity> speedRunLinks, IEnumerable<SpeedRunSystemEntity> speedRunSystems, IEnumerable<SpeedRunTimeEntity> speedRunTimes, IEnumerable<SpeedRunCommentEntity> speedRunComments, IEnumerable<SpeedRunVariableValueEntity> variableValues, IEnumerable<SpeedRunPlayerEntity> players, IEnumerable<SpeedRunGuestEntity> guests, IEnumerable<SpeedRunVideoEntity> videos)
         {
+            _logger.Information("Started SaveSpeedRuns");
             int count = 1;
             var speedRunsList = speedRuns.ToList();
 
@@ -462,6 +463,21 @@ namespace SpeedRunAppImport.Repository
                     count++;
                 }
             }
+
+            _logger.Information("Completed SaveSpeedRuns");
+        }
+
+        public void DeleteSpeedRuns(string predicate)
+        {
+            _logger.Information("Started DeleteSpeedRuns");
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                db.OneTimeCommandTimeout = 32767;
+                var speedRunIDsToDelete = db.Query<SpeedRunEntity>().WhereSql(predicate).ToList().Select(i => i.ID).ToList();
+                _logger.Information("Found {@Count} SpeedRuns to Delete", speedRunIDsToDelete.Count());
+                DeleteSpeedRunsByID(speedRunIDsToDelete);
+                _logger.Information("Completed DeleteSpeedRuns");
+            }
         }
 
         public void DeleteSpeedRuns(Expression<Func<SpeedRunEntity, bool>> predicate)
@@ -472,10 +488,21 @@ namespace SpeedRunAppImport.Repository
                 db.OneTimeCommandTimeout = 32767;
                 var speedRunIDsToDelete = db.Query<SpeedRunEntity>().Where(predicate).ToList().Select(i => i.ID).ToList();
                 _logger.Information("Found {@Count} SpeedRuns to Delete", speedRunIDsToDelete.Count());
+                DeleteSpeedRunsByID(speedRunIDsToDelete);
+                _logger.Information("Completed DeleteSpeedRuns");
+            }
+        }
 
-                using (var tran = db.GetTransaction())
+        public void DeleteSpeedRunsByID(IEnumerable<int> speedRunIDsToDelete)
+        {
+            _logger.Information("Started DeleteSpeedRunsByID");
+            int count = 1;
+
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                foreach (var speedRunID in speedRunIDsToDelete)
                 {
-                    foreach (var speedRunID in speedRunIDsToDelete)
+                    using (var tran = db.GetTransaction())
                     {
                         db.OneTimeCommandTimeout = 32767;
                         db.DeleteWhere<SpeedRunLinkEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunID });
@@ -497,12 +524,16 @@ namespace SpeedRunAppImport.Repository
                         db.DeleteWhere<SpeedRunSpeedRunComIDEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunID });
                         db.OneTimeCommandTimeout = 32767;
                         db.DeleteWhere<SpeedRunEntity>("ID = @speedRunID", new { speedRunID = speedRunID });
+
+                        tran.Complete();
                     }
 
-                    tran.Complete();
+                    _logger.Information("Deleted speedRuns {@Count} / {@Total}", count, speedRunIDsToDelete.Count());
+                    count++;
                 }
-                _logger.Information("Completed DeleteSpeedRuns");
             }
+
+            _logger.Information("Completed DeleteSpeedRunsByID");
         }
 
         public IEnumerable<SpeedRunSpeedRunComIDEntity> GetSpeedRunSpeedRunComIDs(Expression<Func<SpeedRunSpeedRunComIDEntity, bool>> predicate = null)

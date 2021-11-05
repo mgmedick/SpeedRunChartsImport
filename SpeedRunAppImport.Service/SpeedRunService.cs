@@ -185,7 +185,8 @@ namespace SpeedRunAppImport.Service
             foreach (var gameID in gameIDs)
             {
                 _logger.Information("Deleting obsolete speedruns for GameID: {@GameID}", gameID);
-                _speedRunRepo.DeleteSpeedRuns(i => i.GameID == gameID && ((i.ModifiedDate.HasValue && i.ModifiedDate < importLastRunDateUtc) || (i.ImportedDate < importLastRunDateUtc)));
+                var paramString = string.Format("GameID = {0} AND ISNULL(ModifiedDate, ImportedDate) < '{1}'", gameID, importLastRunDateUtc);
+                _speedRunRepo.DeleteSpeedRuns(paramString);
                 _logger.Information("Completed deleting obsolete speedruns for GameID: {@GameID}", gameID);
             }
 

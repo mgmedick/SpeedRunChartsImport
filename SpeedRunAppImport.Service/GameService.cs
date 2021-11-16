@@ -131,15 +131,6 @@ namespace SpeedRunAppImport.Service
             var gameSpeedRunComIDs = _gameRepo.GetGameSpeedRunComIDs();
             gameSpeedRunComIDs = gameSpeedRunComIDs.Join(gameIDs, o => o.SpeedRunComID, id => id, (o, id) => o).ToList();
 
-            if (!isBulkReload)
-            {
-                var newGames = games.Where(i => !gameSpeedRunComIDs.Any(g => g.SpeedRunComID == i.ID)).ToList();
-                var changedGames = GetChangedGames(games);
-                var totalGames = games.Count();
-                games = newGames.Concat(changedGames);
-                _logger.Information("Found NewGames: {@New}, ChangedGames: {@Changed}, TotalGames: {@Total}", newGames.Count(), changedGames.Count(), totalGames);
-            }
-
             var userIDs = games.SelectMany(i => i.ModeratorUsers.Select(i => i.ID)).Distinct().ToList();
             var userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs();
             userSpeedRunComIDs = userSpeedRunComIDs.Join(userIDs, o => o.SpeedRunComID, id => id, (o, id) => o).ToList();
@@ -227,7 +218,9 @@ namespace SpeedRunAppImport.Service
                 CategorySpeedRunComID = g.CategoryID,
                 LevelSpeedRunComID = g.Scope.LevelID,
                 IsSubCategory = g.IsSubCategory
-            })).ToList();
+            })).Where(i => (string.IsNullOrWhiteSpace(i.CategorySpeedRunComID) || categoryEntities.Any(g => g.GameSpeedRunComID == i.GameSpeedRunComID && g.SpeedRunComID == i.CategorySpeedRunComID))
+                            && (string.IsNullOrWhiteSpace(i.LevelSpeedRunComID) || levelEntities.Any(g => g.GameSpeedRunComID == i.GameSpeedRunComID && g.SpeedRunComID == i.LevelSpeedRunComID)))
+               .ToList();
             var variableValueEntities = games.SelectMany(i => i.Variables.SelectMany(g => g.Values.Select(h => new VariableValueEntity
             {
                 ID = variableValueSpeedRunComIDs.Where(n => n.SpeedRunComID == h.ID).Select(o => o.VariableValueID).FirstOrDefault(),
@@ -236,11 +229,13 @@ namespace SpeedRunAppImport.Service
                 VariableSpeedRunComID = h.VariableID,
                 Value = h.Value,
                 IsCustomValue = h.IsCustomValue
-            }))).ToList();
+            }))).Where(i => variableEntities.Any(g => g.SpeedRunComID == i.VariableSpeedRunComID))
+            .ToList();
             var gamePlatformEntities = games.SelectMany(i => i.PlatformIDs.Select(g => new GamePlatformEntity
             {
                 GameSpeedRunComID = i.ID,
-                PlatformID = platformSpeedRunComIDs.Where(h => h.SpeedRunComID == g).Select(o => o.PlatformID).FirstOrDefault()
+                PlatformID = platformSpeedRunComIDs.Where(h => h.SpeedRunComID == g).Select(o => o.PlatformID).FirstOrDefault(),
+                PlatformSpeedRunComID = g
             }))
             .Where(i => i.PlatformID != 0)
             .ToList();
@@ -254,7 +249,8 @@ namespace SpeedRunAppImport.Service
             var gameModeratorEntities = games.SelectMany(i => i.ModeratorUsers.Select(g => new GameModeratorEntity
             {
                 GameSpeedRunComID = i.ID,
-                UserID = userSpeedRunComIDs.Where(h => h.SpeedRunComID == g.ID).Select(o => o.UserID).FirstOrDefault()
+                UserID = userSpeedRunComIDs.Where(h => h.SpeedRunComID == g.ID).Select(o => o.UserID).FirstOrDefault(),
+                UserSpeedRunComID = g.ID
             }))
             .Where(i => i.UserID != 0)
             .ToList();
@@ -279,15 +275,36 @@ namespace SpeedRunAppImport.Service
             }
             else
             {
+                var newGameEntities = gameEntities.Where(i => i.ID == 0).ToList();
+                var changedGameIDs = GetChangedGameIDs(gameEntities, gameLinkEntities, categoryEntities, levelEntities, variableEntities, variableValueEntities, gamePlatformEntities, gameModeratorEntities);
+                var changedGameEntities = gameEntities.Where(i => changedGameIDs.Contains(i.ID)).ToList();
+                var totalGames = gameEntities.Count();
+                gameEntities = newGameEntities.Concat(changedGameEntities).ToList();
+                var saveGameSpeedRunComIDs = gameEntities.Select(i => i.SpeedRunComID).ToList();
+
+                _logger.Information("Found NewGames: {@New}, ChangedGames: {@Changed}, TotalGames: {@Total}", newGameEntities.Count(), changedGameEntities.Count(), totalGames);
+
+                gameLinkEntities = gameLinkEntities.Where(i => saveGameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
+                levelEntities = levelEntities.Where(i => saveGameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
+                levelRuleEntities = levelRuleEntities.Where(i => levelEntities.Any(g => g.SpeedRunComID == i.LevelSpeedRunComID)).ToList();
+                categoryEntities = categoryEntities.Where(i => saveGameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
+                categoryRuleEntities = categoryRuleEntities.Where(i => categoryEntities.Any(g => g.SpeedRunComID == i.CategorySpeedRunComID)).ToList();
+                variableEntities = variableEntities.Where(i => saveGameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
+                variableValueEntities = variableValueEntities.Where(i => saveGameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
+                gamePlatformEntities = gamePlatformEntities.Where(i => saveGameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
+                gameModeratorEntities = gameModeratorEntities.Where(i => saveGameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
+                gameRulesetEntities = gameRulesetEntities.Where(i => saveGameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
+                gameTimingMethodEntities = gameTimingMethodEntities.Where(i => saveGameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
+
                 _gameRepo.SaveGames(gameEntities, gameLinkEntities, levelEntities, levelRuleEntities, categoryEntities, categoryRuleEntities, variableEntities, variableValueEntities, gamePlatformEntities, gameRegionEntities, gameModeratorEntities, gameRulesetEntities, gameTimingMethodEntities);
             }
 
             _logger.Information("Completed SaveGames");
         }
 
-        public IEnumerable<Game> GetChangedGames(IEnumerable<Game> games)
+        public IEnumerable<int> GetChangedGameIDs(List<GameEntity> games, List<GameLinkEntity> gameLinks, IEnumerable<CategoryEntity> categories, IEnumerable<LevelEntity> levels, IEnumerable<VariableEntity> variables, IEnumerable<VariableValueEntity> variableValues, IEnumerable<GamePlatformEntity> gamePlatforms, IEnumerable<GameModeratorEntity> gameModerators)
         {
-            var changedGames = new List<Game>();
+            var changedGameIDs = new List<int>();
             var gameIDs = games.Select(i => i.ID).ToList();
             var gameSpeedRunComViews = _gameRepo.GetGameSpeedRunComViews();
             bool isChanged;
@@ -295,21 +312,26 @@ namespace SpeedRunAppImport.Service
             foreach (var game in games)
             {
                 isChanged = false;
-                var gameSpeedRunComView = gameSpeedRunComViews.FirstOrDefault(i => i.SpeedRunComID == game.ID);
+                var gameSpeedRunComView = gameSpeedRunComViews.FirstOrDefault(i => i.SpeedRunComID == game.SpeedRunComID);
 
                 if (gameSpeedRunComView != null)
                 {
-                    var categoryIDs = game.Categories.Select(h => h.ID).ToList();
-                    var levelIDs = game.Levels.Select(h => h.ID).ToList();
-                    var variableIDs = game.Variables.Select(h => h.ID).ToList();
-                    var variableValueIDs = game.Variables.SelectMany(h => h.Values.Select(n => n.ID)).ToList();
-                    var platformIDs = game.PlatformIDs.ToList();
-                    var moderatorUserIDs = game.ModeratorUsers.Select(h => h.ID).ToList();
+                    var categoryIDs = categories.Where(i => i.GameSpeedRunComID == game.SpeedRunComID).Select(h => h.SpeedRunComID).ToList();
+                    var levelIDs = levels.Where(i => i.GameSpeedRunComID == game.SpeedRunComID).Select(h => h.SpeedRunComID).ToList();
+                    var variableIDs = variables.Where(i => i.GameSpeedRunComID == game.SpeedRunComID).Select(h => h.SpeedRunComID).ToList();
+                    var variableValueIDs = variableValues.Where(i => i.GameSpeedRunComID == game.SpeedRunComID).Select(h => h.SpeedRunComID).ToList();
+                    var platformIDs = gamePlatforms.Where(i => i.GameSpeedRunComID == game.SpeedRunComID).Select(h => h.PlatformSpeedRunComID).ToList();
+                    var moderatorUserIDs = gameModerators.Where(i => i.GameSpeedRunComID == game.SpeedRunComID).Select(h => h.UserSpeedRunComID).ToList();
 
                     isChanged = (game.Name != gameSpeedRunComView.Name
                                  || game.IsRomHack != gameSpeedRunComView.IsRomHack
-                                 || game.YearOfRelease != gameSpeedRunComView.YearOfRelease
-                                 || game.Assets?.CoverLarge?.Uri.ToString() != gameSpeedRunComView.CoverImageUrl);
+                                 || game.YearOfRelease != gameSpeedRunComView.YearOfRelease);
+
+                    if (!isChanged)
+                    {
+                        var gameLink = gameLinks.FirstOrDefault(i => i.GameSpeedRunComID == gameSpeedRunComView.SpeedRunComID);
+                        isChanged = gameLink?.CoverImageUrl != gameSpeedRunComView.CoverImageUrl;
+                    }
 
                     if (!isChanged)
                     {
@@ -349,12 +371,12 @@ namespace SpeedRunAppImport.Service
 
                     if (isChanged)
                     {
-                        changedGames.Add(game);
+                        changedGameIDs.Add(game.ID);
                     }
                 }
             }
 
-            return changedGames;
+            return changedGameIDs;
         }
     }
 }

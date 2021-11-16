@@ -10,5 +10,6 @@ namespace SpeedRunAppImport.Model.Entity
         public int GameID { get; set; }
         public string GameSpeedRunComID { get; set; }
         public int UserID { get; set; }
+        public string UserSpeedRunComID { get; set; }
     }
 } 

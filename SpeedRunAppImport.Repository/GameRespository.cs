@@ -546,10 +546,11 @@ namespace SpeedRunAppImport.Repository
                     var categoriesBatch = categories.Where(i => gameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
                     var categorySpeedRunComIDs = categoriesBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
                     var categoryRulesBatch = categoryRules.Where(i => categorySpeedRunComIDs.Contains(i.CategorySpeedRunComID)).ToList();
-                    var variablesBatch = variables.Where(i => gameSpeedRunComIDs.Contains(i.GameSpeedRunComID)
-                                                            && (string.IsNullOrWhiteSpace(i.CategorySpeedRunComID) || categorySpeedRunComIDs.Contains(i.CategorySpeedRunComID))
-                                                            && (string.IsNullOrWhiteSpace(i.LevelSpeedRunComID) || levelSpeedRunComIDs.Contains(i.LevelSpeedRunComID)))
-                                                  .ToList();
+                    //var variablesBatch = variables.Where(i => gameSpeedRunComIDs.Contains(i.GameSpeedRunComID)
+                    //                                        && (string.IsNullOrWhiteSpace(i.CategorySpeedRunComID) || categorySpeedRunComIDs.Contains(i.CategorySpeedRunComID))
+                    //                                        && (string.IsNullOrWhiteSpace(i.LevelSpeedRunComID) || levelSpeedRunComIDs.Contains(i.LevelSpeedRunComID)))
+                    //                              .ToList();
+                    var variablesBatch = variables.Where(i => gameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
                     var variableSpeedRunComIDs = variablesBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
                     var variablesValuesBatch = variableValues.Where(i => variableSpeedRunComIDs.Contains(i.VariableSpeedRunComID)).ToList();
                     var gamePlatformsBatch = gamePlatforms.Where(i => gameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
@@ -725,10 +726,11 @@ namespace SpeedRunAppImport.Repository
                     var categoriesBatch = categories.Where(i => i.GameSpeedRunComID == game.SpeedRunComID).ToList();
                     var categorySpeedRunComIDsBatch = categoriesBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
                     var categoryRulesBatch = categoryRules.Where(i => categorySpeedRunComIDsBatch.Contains(i.CategorySpeedRunComID)).ToList();
-                    var variablesBatch = variables.Where(i => i.GameSpeedRunComID == game.SpeedRunComID
-                                                            && (string.IsNullOrWhiteSpace(i.CategorySpeedRunComID) || categorySpeedRunComIDsBatch.Contains(i.CategorySpeedRunComID))
-                                                            && (string.IsNullOrWhiteSpace(i.LevelSpeedRunComID) || levelSpeedRunComIDsBatch.Contains(i.LevelSpeedRunComID)))
-                                                  .ToList();
+                    //var variablesBatch = variables.Where(i => i.GameSpeedRunComID == game.SpeedRunComID
+                    //                                        && (string.IsNullOrWhiteSpace(i.CategorySpeedRunComID) || categorySpeedRunComIDsBatch.Contains(i.CategorySpeedRunComID))
+                    //                                        && (string.IsNullOrWhiteSpace(i.LevelSpeedRunComID) || levelSpeedRunComIDsBatch.Contains(i.LevelSpeedRunComID)))
+                    //                              .ToList();
+                    var variablesBatch = variables.Where(i => i.GameSpeedRunComID == game.SpeedRunComID).ToList();
                     var variableSpeedRunComIDsBatch = variablesBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
                     var variablesValuesBatch = variableValues.Where(i => variableSpeedRunComIDsBatch.Contains(i.VariableSpeedRunComID)).ToList();
                     var gamePlatformsBatch = gamePlatforms.Where(i => i.GameSpeedRunComID == game.SpeedRunComID).ToList();

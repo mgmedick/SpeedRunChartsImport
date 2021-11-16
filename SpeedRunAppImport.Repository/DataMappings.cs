@@ -96,6 +96,7 @@ namespace SpeedRunAppImport.Repository
             For<GamePlatformEntity>().PrimaryKey("ID").TableName("dbo.tbl_Game_Platform" + tblEnd).Columns(i =>
             {
                 i.Column(g => g.GameSpeedRunComID).Ignore();
+                i.Column(g => g.PlatformSpeedRunComID).Ignore();
             });
             For<GameRegionEntity>().PrimaryKey("ID").TableName("dbo.tbl_Game_Region" + tblEnd).Columns(i =>
             {
@@ -104,6 +105,7 @@ namespace SpeedRunAppImport.Repository
             For<GameModeratorEntity>().PrimaryKey("ID").TableName("dbo.tbl_Game_Moderator" + tblEnd).Columns(i =>
             {
                 i.Column(g => g.GameSpeedRunComID).Ignore();
+                i.Column(g => g.UserSpeedRunComID).Ignore();
             });
             For<GameRulesetEntity>().PrimaryKey("GameID", false).TableName("dbo.tbl_Game_Ruleset" + tblEnd).Columns(i =>
             {

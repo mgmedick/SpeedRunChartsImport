@@ -178,7 +178,7 @@ namespace SpeedRunAppImport.Service
                 if (!isBulkReload)
                 {
                     DeleteObsoleteSpeedRuns(gameIDs, importLastRunDateUtc);
-                }
+                } 
             }
         }
 

@@ -174,7 +174,11 @@ namespace SpeedRunAppImport.Service
             {
                 SaveSpeedRuns(results, isBulkReload);
                 results.ClearMemory();
-                DeleteObsoleteSpeedRuns(gameIDs, importLastRunDateUtc);
+
+                if (!isBulkReload)
+                {
+                    DeleteObsoleteSpeedRuns(gameIDs, importLastRunDateUtc);
+                }
             }
         }
 

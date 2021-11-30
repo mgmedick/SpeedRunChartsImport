@@ -332,6 +332,10 @@ namespace SpeedRunAppImport.Client
             var videoUriString = element.uri as string;
             if (!string.IsNullOrWhiteSpace(videoUriString))
             {
+                videoUriString = string.Join("https://", videoUriString.Split("https://").Distinct());
+                videoUriString = string.Join("http://", videoUriString.Split("http://").Distinct());
+                videoUriString = string.Join("www.", videoUriString.Split("www.").Distinct());
+                
                 if (!videoUriString.StartsWith("http"))
                 {
                     videoUriString = "http://" + videoUri;

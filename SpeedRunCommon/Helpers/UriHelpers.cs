@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.WebUtilities;
 using System;
 using System.Linq;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace SpeedRunCommon
 {
@@ -60,6 +62,69 @@ namespace SpeedRunCommon
                 {
                     embededURI = new Uri(uriString);
                 }
+            }
+
+            return embededURI;
+        }
+
+        public static string ToThumbnailURIString(this Uri uri, string twitchClientID, string twitchToken)
+        {
+            return uri.ToThumbnailURI(twitchClientID, twitchToken)?.ToString();
+        }
+
+        public static Uri ToThumbnailURI(this Uri uri, string twitchClientID, string twitchToken)
+        {
+            Uri embededURI = null;
+
+            try
+            {
+                if (uri != null)
+                {
+                    string domain = uri.GetLeftPart(UriPartial.Authority);
+                    string path = uri.AbsolutePath;
+                    string query = uri.Query;
+                    string videoIDString = null;
+                    string uriString = null;
+
+                    if (domain.Contains("twitch.tv"))
+                    {
+                        if (path.StartsWith(@"/videos/"))
+                        {
+                            videoIDString = uri.Segments.Last();
+                            var requestString = string.Format(@"https://api.twitch.tv/helix/videos?id={0}", videoIDString);
+                            var parameters = new Dictionary<string, string>() { { "Client-Id", twitchClientID }, { "Authorization", "Bearer " + twitchToken } };
+                            var result = JsonHelper.FromUri(new Uri(requestString), parameters);
+
+                            uriString = result?.data?.First.thumbnail_url;
+                            uriString = uriString.Replace("%{width}", "320").Replace("%{height}", "190");
+                        }
+                    }
+                    else if (domain.Contains("youtube.com") || domain.Contains("youtu.be"))
+                    {
+                        var queryDictionary = QueryHelpers.ParseQuery(query);
+                        videoIDString = queryDictionary.ContainsKey("v") ? queryDictionary["v"].ToString() : uri.Segments.Last();
+                        uriString = string.Format(@"https://img.youtube.com/vi/{0}/1.jpg", videoIDString);
+                    }
+                    //else if (domain.Contains("vimeo.com"))
+                    //{
+                    //    if (path.StartsWith(@"/video/"))
+                    //    {
+                    //        videoIDString = uri.Segments.Last();
+                    //        var requestString = string.Format(@"http://vimeo.com/api/v2/video/{0}.json", videoIDString);
+                    //        var result = JsonHelper.FromUri(new Uri(requestString));
+                    //        uriString = result.thumbnail_large;
+                    //    }
+                    //}
+
+                    if (!string.IsNullOrWhiteSpace(uriString))
+                    {
+                        embededURI = new Uri(uriString);
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+
             }
 
             return embededURI;

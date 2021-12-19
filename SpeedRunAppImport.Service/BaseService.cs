@@ -20,6 +20,8 @@ namespace SpeedRunAppImport.Service
         public static int ErrorPullDelayMS { get; set; }
         public static DateTime SqlMinDateTime { get; set; }
         public static string SpeedRunComLatestRunsUrl { get; set; }
+        public static string TwitchClientID { get; set; }
+        public static string TwitchClientKey { get; set; }
     }
 }
 

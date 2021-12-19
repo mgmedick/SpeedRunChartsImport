@@ -130,6 +130,8 @@ namespace SpeedRunAppImport
                 BaseService.PullDelayMS = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("PullDelayMS").Value);
                 BaseService.ErrorPullDelayMS = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("ErrorPullDelayMS").Value);
                 BaseService.SpeedRunComLatestRunsUrl = _config.GetSection("ApiSettings").GetSection("SpeedRunComLatestRunsUrl").Value;
+                BaseService.TwitchClientID = _config.GetSection("ApiSettings").GetSection("TwitchClientID").Value;
+                BaseService.TwitchClientKey = _config.GetSection("ApiSettings").GetSection("TwitchClientKey").Value;
 
                 _logger.Information("Completed Init");
             }

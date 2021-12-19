@@ -5,6 +5,7 @@ namespace SpeedRunAppImport.Interfaces.Services
 {
     public interface ICacheService
     {
+        string GetTwitchToken();
         //IEnumerable<VariableEntity> GetVariables();
     }
 }

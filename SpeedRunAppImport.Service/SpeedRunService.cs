@@ -562,7 +562,7 @@ namespace SpeedRunAppImport.Service
                 UserID = userSpeedRunComIDs.Where(h => h.SpeedRunComID == g.ID).Select(h => h.UserID).FirstOrDefault()
             })).Where(i => i.UserID != 0)
             .ToList();
-            var twitchToken = _cacheService.GetTwitchToken();
+            var twitchToken = _settingService.GetTwitchToken();
             var videoEntities = runs.Where(i => i.Videos?.Links != null && i.Videos.Links.Any(g => g != null))
             .SelectMany(i => i.Videos?.Links?.Select((g, n) => new SpeedRunVideoEntity()
             {

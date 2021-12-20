@@ -12,6 +12,7 @@ namespace SpeedRunAppImport.Interfaces.Services
         void UpdateSetting(string name, DateTime value);
         void UpdateSetting(string name, int value);
         void UpdateSetting(SettingEntity setting);
+        public string GetTwitchToken();
     }
 }
 

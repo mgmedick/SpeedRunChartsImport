@@ -177,13 +177,9 @@ namespace SpeedRunAppImport
 
             if (result)
             {
-                if (IsBulkReload)
+                if (IsBulkReload || IsUpdateSpeedRuns)
                 {
                     RunMaintenance();
-                }
-                else if (IsUpdateSpeedRuns)
-                {
-                    _speedRunRepo.RebuildIndexes();
                 }
             }
 

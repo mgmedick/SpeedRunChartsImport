@@ -353,6 +353,22 @@ namespace SpeedRunAppImport.Service
 
                     if (!isChanged)
                     {
+                        var variableIndex = 0;
+                        foreach(var variableID in variableIDs)
+                        {
+                            isChanged = (variableID != gameSpeedRunComView.VariableSpeedRunComIDArray[variableIndex]);
+
+                            if (isChanged)
+                            {
+                                break;
+                            }
+
+                            variableIndex++;
+                        }
+                    }
+
+                    if (!isChanged)
+                    {
                         isChanged = (variableValueIDs.Except(gameSpeedRunComView.VariableValueSpeedRunComIDArray).Any()
                                      || gameSpeedRunComView.VariableValueSpeedRunComIDArray.Except(variableValueIDs).Any());
                     }

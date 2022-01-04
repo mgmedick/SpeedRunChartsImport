@@ -848,17 +848,8 @@ namespace SpeedRunAppImport.Repository
                         db.DeleteMany<CategoryEntity>().Where(i => categoryIDsToDelete.Contains(i.ID)).Execute();
 
                         //variables
-                        foreach (var variable in variablesBatch)
-                        {
-                            variable.GameID = game.ID;
-                            variable.CategoryID = !string.IsNullOrWhiteSpace(variable.CategorySpeedRunComID) ? categoriesBatch.Find(g => g.SpeedRunComID == variable.CategorySpeedRunComID).ID : (int?)null;
-                            variable.LevelID = !string.IsNullOrWhiteSpace(variable.LevelSpeedRunComID) ? levelsBatch.Find(g => g.SpeedRunComID == variable.LevelSpeedRunComID).ID : (int?)null;
-                            db.Save<VariableEntity>(variable);
-                            db.Save<VariableSpeedRunComIDEntity>(new VariableSpeedRunComIDEntity { VariableID = variable.ID, SpeedRunComID = variable.SpeedRunComID });
-                        }
-
-                        var variableIDs = variablesBatch.Select(i => i.ID).ToList();
-                        var variableIDsToDelete = db.Query<VariableEntity>().Where(i => i.GameID == game.ID && !variableIDs.Contains(i.ID)).ToList().Select(i => i.ID).ToList();
+                        //var variableIDs = variablesBatch.Select(i => i.ID).ToList();
+                        var variableIDsToDelete = db.Query<VariableEntity>().Where(i => i.GameID == game.ID).ToList().Select(i => i.ID).ToList();
                         var variableRunIDsToDelete = db.Query<SpeedRunVariableValueEntity>().Where(i => variableIDsToDelete.Contains(i.VariableID)).ToList().Select(i => i.SpeedRunID).Distinct().ToList();
                         var variableVariableValueIDsToDelete = db.Query<VariableValueEntity>().Where(i => variableIDsToDelete.Contains(i.VariableID)).ToList().Select(i => i.ID).ToList();
 
@@ -886,6 +877,16 @@ namespace SpeedRunAppImport.Repository
 
                         db.DeleteMany<VariableSpeedRunComIDEntity>().Where(i => variableIDsToDelete.Contains(i.VariableID)).Execute();
                         db.DeleteMany<VariableEntity>().Where(i => variableIDsToDelete.Contains(i.ID)).Execute();
+
+                        foreach (var variable in variablesBatch)
+                        {
+                            variable.ID = 0;
+                            variable.GameID = game.ID;
+                            variable.CategoryID = !string.IsNullOrWhiteSpace(variable.CategorySpeedRunComID) ? categoriesBatch.Find(g => g.SpeedRunComID == variable.CategorySpeedRunComID).ID : (int?)null;
+                            variable.LevelID = !string.IsNullOrWhiteSpace(variable.LevelSpeedRunComID) ? levelsBatch.Find(g => g.SpeedRunComID == variable.LevelSpeedRunComID).ID : (int?)null;
+                            db.Save<VariableEntity>(variable);
+                            db.Save<VariableSpeedRunComIDEntity>(new VariableSpeedRunComIDEntity { VariableID = variable.ID, SpeedRunComID = variable.SpeedRunComID });
+                        }
 
                         //variableValues
                         foreach (var variableValue in variablesValuesBatch)

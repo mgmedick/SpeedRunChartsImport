@@ -174,14 +174,70 @@ namespace SpeedRunAppImport.Service
 
             if (isBulkReload)
             {
-                _userRepo.InsertUsers(userEntities, userLocationEntities, userLinkEntities);
+                var newUserEntities = userEntities.Where(i => i.ID == 0).ToList();
+                userLocationEntities = userLocationEntities.Where(i => userEntities.Any(g => g.ID == i.UserID)).ToList();
+                userLinkEntities = userLinkEntities.Where(i => userEntities.Any(g => g.ID == i.UserID)).ToList();
+                _userRepo.InsertUsers(newUserEntities, userLocationEntities, userLinkEntities);
             }
             else
             {
+                var newUserEntities = userEntities.Where(i => i.ID == 0).ToList();
+                var changedUserIDs = GetChangedUserIDs(userEntities, userLocationEntities, userLinkEntities);
+                var changedUserEntities = userEntities.Where(i => changedUserIDs.Contains(i.ID)).ToList();
+                var totalUsers = userEntities.Count();
+                userEntities = newUserEntities.Concat(changedUserEntities).ToList();
+                userLocationEntities = userLocationEntities.Where(i => userEntities.Any(g => g.ID == i.UserID)).ToList();
+                userLinkEntities = userLinkEntities.Where(i => userEntities.Any(g => g.ID == i.UserID)).ToList();
+
+                _logger.Information("Found NewUsers: {@New}, ChangedUsers: {@Changed}, TotalUsers: {@Total}", newUserEntities.Count(), changedUserEntities.Count(), totalUsers);
+
                 _userRepo.SaveUsers(userEntities, userLocationEntities, userLinkEntities);
             }
 
             _logger.Information("Completed SaveUsers");
+        }
+
+        public IEnumerable<int> GetChangedUserIDs(List<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, List<UserLinkEntity> userLinks)
+        {
+            var changedUserIDs = new List<int>();
+            var userIDs = users.Select(i => i.ID).ToList();
+            var userSpeedRunComViews = _userRepo.GetUserSpeedRunComViews();
+            bool isChanged;
+
+            foreach (var user in users)
+            {
+                isChanged = false;
+                var userSpeedRunComView = userSpeedRunComViews.FirstOrDefault(i => i.SpeedRunComID == user.SpeedRunComID);
+
+                if (userSpeedRunComView != null)
+                {
+                    isChanged = (user.Name != userSpeedRunComView.Name);
+
+                    if (!isChanged)
+                    {
+                        var userLink = userLinks.FirstOrDefault(i => i.UserSpeedRunComID == userSpeedRunComView.SpeedRunComID);
+                        isChanged = userLink?.SpeedRunComUrl != userSpeedRunComView.SpeedRunComUrl
+                                    || userLink?.ProfileImageUrl != userSpeedRunComView.ProfileImageUrl
+                                    || userLink?.TwitchProfileUrl != userSpeedRunComView.TwitchProfileUrl
+                                    || userLink?.HitboxProfileUrl != userSpeedRunComView.HitboxProfileUrl
+                                    || userLink?.YoutubeProfileUrl != userSpeedRunComView.YoutubeProfileUrl
+                                    || userLink?.TwitterProfileUrl != userSpeedRunComView.TwitterProfileUrl;
+                    }
+
+                    if (!isChanged)
+                    {
+                        var userLocation = userLocations.FirstOrDefault(i => i.UserSpeedRunComID == userSpeedRunComView.SpeedRunComID);
+                        isChanged = userLocation?.Location != userSpeedRunComView.Location;
+                    }
+
+                    if (isChanged)
+                    {
+                        changedUserIDs.Add(user.ID);
+                    }
+                }
+            }
+
+            return changedUserIDs;
         }
     }
 }

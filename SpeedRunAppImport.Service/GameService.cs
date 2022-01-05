@@ -158,7 +158,8 @@ namespace SpeedRunAppImport.Service
             var regionSpeedRunComIDs = _gameRepo.GetRegionSpeedRunComIDs(i => regionIDs.Contains(i.SpeedRunComID)).ToList();
 
             var moderators = games.Where(i => i.ModeratorUsers != null)
-                                  .SelectMany(i => i.ModeratorUsers.Where(i => !userSpeedRunComIDs.Any(g => g.SpeedRunComID == i.ID)))
+                                  //.SelectMany(i => i.ModeratorUsers.Where(i => !userSpeedRunComIDs.Any(g => g.SpeedRunComID == i.ID)))
+                                  .SelectMany(i => i.ModeratorUsers)
                                   .GroupBy(g => new { g.ID })
                                   .Select(i => i.First())
                                   .ToList();

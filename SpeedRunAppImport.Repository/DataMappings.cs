@@ -32,6 +32,7 @@ namespace SpeedRunAppImport.Repository
             {
                 i.Column(g => g.UserSpeedRunComID).Ignore();
             });
+            For<UserSpeedRunComView>().PrimaryKey("ID").TableName("dbo.vw_UserSpeedRunCom");
 
             //guest
             For<GuestEntity>().PrimaryKey("ID").TableName("dbo.tbl_Guest" + tblEnd).Columns(i =>

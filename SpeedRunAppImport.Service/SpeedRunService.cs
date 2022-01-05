@@ -483,7 +483,8 @@ namespace SpeedRunAppImport.Service
             guestSpeedRunComIDs = guestSpeedRunComIDs.Join(guestIDs, o => o.Name, id => id, (o, id) => o).ToList();
 
             var users = runs.Where(i => i.PlayerUsers != null)
-                            .SelectMany(i => i.PlayerUsers.Where(i => !userSpeedRunComIDs.Any(g => g.SpeedRunComID == i.ID)))
+                            //.SelectMany(i => i.PlayerUsers.Where(i => !userSpeedRunComIDs.Any(g => g.SpeedRunComID == i.ID)))
+                            .SelectMany(i => i.PlayerUsers)
                             .GroupBy(g => new { g.ID })
                             .Select(i => i.First())
                             .OrderBy(i => i.ID)
@@ -562,14 +563,12 @@ namespace SpeedRunAppImport.Service
                 UserID = userSpeedRunComIDs.Where(h => h.SpeedRunComID == g.ID).Select(h => h.UserID).FirstOrDefault()
             })).Where(i => i.UserID != 0)
             .ToList();
-            var twitchToken = _settingService.GetTwitchToken();
             var videoEntities = runs.Where(i => i.Videos?.Links != null && i.Videos.Links.Any(g => g != null))
             .SelectMany(i => i.Videos?.Links?.Select((g, n) => new SpeedRunVideoEntity()
             {
                 SpeedRunSpeedRunComID = i.ID,
                 VideoLinkUrl = g?.ToString(),
-                EmbeddedVideoLinkUrl = g?.ToEmbeddedURIString(),
-                ThumbnailLinkUrl = g?.ToThumbnailURIString(TwitchClientID, twitchToken)
+                EmbeddedVideoLinkUrl = g?.ToEmbeddedURIString()
             })).Where(i => !string.IsNullOrWhiteSpace(i.VideoLinkUrl))
             .GroupBy(h => new { h.SpeedRunSpeedRunComID, h.VideoLinkUrl })
             .Select(n => n.First())

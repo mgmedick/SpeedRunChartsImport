@@ -260,26 +260,26 @@ namespace SpeedRunAppImport.Repository
                         if (user.ID != 0)
                         {
                             user.ModifiedDate = DateTime.UtcNow;
-                            db.DeleteWhere<UserSpeedRunComIDEntity>("UserID = @userID", new { userID = user.ID });
-                            db.DeleteWhere<UserLocationEntity>("UserID = @userID", new { userID = user.ID });
-                            db.DeleteWhere<UserLinkEntity>("UserID = @userID", new { userID = user.ID });
+                            //db.DeleteWhere<UserSpeedRunComIDEntity>("UserID = @userID", new { userID = user.ID });
+                            //db.DeleteWhere<UserLocationEntity>("UserID = @userID", new { userID = user.ID });
+                            //db.DeleteWhere<UserLinkEntity>("UserID = @userID", new { userID = user.ID });
                         }
 
                         db.Save<UserEntity>(user);
 
                         var userSpeedRunComID = new UserSpeedRunComIDEntity { UserID = user.ID, SpeedRunComID = user.SpeedRunComID };
-                        db.Insert<UserSpeedRunComIDEntity>(userSpeedRunComID);
+                        db.Save<UserSpeedRunComIDEntity>(userSpeedRunComID);
 
                         if (userLocation != null)
                         {
                             userLocation.UserID = user.ID;
-                            db.Insert<UserLocationEntity>(userLocation);
+                            db.Save<UserLocationEntity>(userLocation);
                         }
 
                         if (userLink != null)
                         {
                             userLink.UserID = user.ID;
-                            db.Insert<UserLinkEntity>(userLink);
+                            db.Save<UserLinkEntity>(userLink);
                         }
 
                         tran.Complete();
@@ -306,6 +306,15 @@ namespace SpeedRunAppImport.Repository
             {
                 db.OneTimeCommandTimeout = 32767;
                 return db.Query<GuestEntity>().Where(predicate ?? (x => true)).ToList();
+            }
+        }
+
+        public IEnumerable<UserSpeedRunComView> GetUserSpeedRunComViews(Expression<Func<UserSpeedRunComView, bool>> predicate = null)
+        {
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                db.OneTimeCommandTimeout = 32767;
+                return db.Query<UserSpeedRunComView>().Where(predicate ?? (x => true)).ToList();
             }
         }
     }

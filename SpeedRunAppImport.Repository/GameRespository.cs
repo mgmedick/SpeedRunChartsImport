@@ -857,11 +857,17 @@ namespace SpeedRunAppImport.Repository
                         while (batchCount < variableRunIDsToDelete.Count())
                         {
                             var variableRunIDsToDeleteBatch = variableRunIDsToDelete.Skip(batchCount).Take(maxBatchCount).ToList();
+                            db.OneTimeCommandTimeout = 32767;
                             db.DeleteMany<SpeedRunVariableValueEntity>().Where(i => variableRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
+                            db.OneTimeCommandTimeout = 32767;
                             db.DeleteMany<SpeedRunPlayerEntity>().Where(i => variableRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
+                            db.OneTimeCommandTimeout = 32767;
                             db.DeleteMany<SpeedRunGuestEntity>().Where(i => variableRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
+                            db.OneTimeCommandTimeout = 32767;
                             db.DeleteMany<SpeedRunVideoEntity>().Where(i => variableRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
+                            db.OneTimeCommandTimeout = 32767;
                             db.DeleteMany<SpeedRunSpeedRunComIDEntity>().Where(i => variableRunIDsToDeleteBatch.Contains(i.SpeedRunID)).Execute();
+                            db.OneTimeCommandTimeout = 32767;
                             db.DeleteMany<SpeedRunEntity>().Where(i => variableRunIDsToDeleteBatch.Contains(i.ID)).Execute();
                             batchCount += maxBatchCount;
                         }
@@ -870,12 +876,16 @@ namespace SpeedRunAppImport.Repository
                         while (batchCount < variableVariableValueIDsToDelete.Count())
                         {
                             var variableVariableValueIDsToDeleteBatch = variableVariableValueIDsToDelete.Skip(batchCount).Take(maxBatchCount).ToList();
+                            db.OneTimeCommandTimeout = 32767;
                             db.DeleteMany<VariableValueSpeedRunComIDEntity>().Where(i => variableVariableValueIDsToDeleteBatch.Contains(i.VariableValueID)).Execute();
+                            db.OneTimeCommandTimeout = 32767;
                             db.DeleteMany<VariableValueEntity>().Where(i => variableVariableValueIDsToDeleteBatch.Contains(i.ID)).Execute();
                             batchCount += maxBatchCount;
                         }
 
+                        db.OneTimeCommandTimeout = 32767;
                         db.DeleteMany<VariableSpeedRunComIDEntity>().Where(i => variableIDsToDelete.Contains(i.VariableID)).Execute();
+                        db.OneTimeCommandTimeout = 32767;
                         db.DeleteMany<VariableEntity>().Where(i => variableIDsToDelete.Contains(i.ID)).Execute();
 
                         foreach (var variable in variablesBatch)

@@ -277,8 +277,8 @@ namespace SpeedRunAppImport.Service
             else
             {
                 var newGameEntities = gameEntities.Where(i => i.ID == 0).ToList();
-                var changedGameIDs = GetChangedGameIDs(gameEntities, gameLinkEntities, categoryEntities, levelEntities, variableEntities, variableValueEntities, gamePlatformEntities, gameModeratorEntities);
-                var changedGameEntities = gameEntities.Where(i => changedGameIDs.Contains(i.ID)).ToList();
+                SetChangedGames(gameEntities, gameLinkEntities, categoryEntities, levelEntities, variableEntities, variableValueEntities, gamePlatformEntities, gameModeratorEntities);
+                var changedGameEntities = gameEntities.Where(i => i.IsChanged).ToList();
                 var totalGames = gameEntities.Count();
                 gameEntities = newGameEntities.Concat(changedGameEntities).ToList();
                 var saveGameSpeedRunComIDs = gameEntities.Select(i => i.SpeedRunComID).ToList();
@@ -303,12 +303,13 @@ namespace SpeedRunAppImport.Service
             _logger.Information("Completed SaveGames");
         }
 
-        public IEnumerable<int> GetChangedGameIDs(List<GameEntity> games, List<GameLinkEntity> gameLinks, IEnumerable<CategoryEntity> categories, IEnumerable<LevelEntity> levels, IEnumerable<VariableEntity> variables, IEnumerable<VariableValueEntity> variableValues, IEnumerable<GamePlatformEntity> gamePlatforms, IEnumerable<GameModeratorEntity> gameModerators)
+        public void SetChangedGames(List<GameEntity> games, List<GameLinkEntity> gameLinks, IEnumerable<CategoryEntity> categories, IEnumerable<LevelEntity> levels, IEnumerable<VariableEntity> variables, IEnumerable<VariableValueEntity> variableValues, IEnumerable<GamePlatformEntity> gamePlatforms, IEnumerable<GameModeratorEntity> gameModerators)
         {
             var changedGameIDs = new List<int>();
             var gameIDs = games.Select(i => i.ID).ToList();
             var gameSpeedRunComViews = _gameRepo.GetGameSpeedRunComViews();
-            bool isChanged;
+            bool isChanged = false;
+            bool isVariablesOrderChanged = false;
 
             foreach (var game in games)
             {
@@ -355,12 +356,13 @@ namespace SpeedRunAppImport.Service
                     if (!isChanged)
                     {
                         var variableIndex = 0;
-                        foreach(var variableID in variableIDs)
+                        foreach (var variableID in variableIDs)
                         {
                             isChanged = (variableID != gameSpeedRunComView.VariableSpeedRunComIDArray[variableIndex]);
 
                             if (isChanged)
                             {
+                                isVariablesOrderChanged = true;
                                 break;
                             }
 
@@ -386,14 +388,10 @@ namespace SpeedRunAppImport.Service
                                      || gameSpeedRunComView.ModeratorSpeedRunComIDArray.Except(moderatorUserIDs).Any());
                     }
 
-                    if (isChanged)
-                    {
-                        changedGameIDs.Add(game.ID);
-                    }
+                    game.IsChanged = isChanged;
+                    game.IsVariablesOrderChanged = isVariablesOrderChanged;
                 }
             }
-
-            return changedGameIDs;
         }
     }
 }

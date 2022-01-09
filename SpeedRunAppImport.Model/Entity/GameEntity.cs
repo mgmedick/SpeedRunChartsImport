@@ -14,5 +14,7 @@ namespace SpeedRunAppImport.Model.Entity
         public DateTime? CreatedDate { get; set; }
         public DateTime ImportedDate { get; set; }
         public DateTime? ModifiedDate { get; set; }
+        public bool IsChanged { get; set; }
+        public bool IsVariablesOrderChanged { get; set; }
     }
 } 

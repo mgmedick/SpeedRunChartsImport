@@ -686,14 +686,8 @@ namespace SpeedRunAppImport.Repository
             _logger.Information("Completed InsertGames");
         }
 
-        public void SaveGames(IEnumerable<GameEntity> games, IEnumerable<GameLinkEntity> gameLinks, IEnumerable<LevelEntity> levels, IEnumerable<LevelRuleEntity> levelRules, IEnumerable<CategoryEntity> categories, IEnumerable<CategoryRuleEntity> categoryRules, IEnumerable<VariableEntity> variables, IEnumerable<VariableValueEntity> variableValues, IEnumerable<GamePlatformEntity> gamePlatforms, IEnumerable<GameRegionEntity> gameRegions, IEnumerable<GameModeratorEntity> gameModerators, IEnumerable<GameRulesetEntity> gameRulesets, IEnumerable<GameTimingMethodEntity> gameTimingMethods)
+        public void RemoveObsoleteGameSpeedRunComIDs()
         {
-            _logger.Information("Started SaveGames");
-            int count = 1;
-            var gamesList = games.ToList();
-            var maxBatchCount = 500;
-            var batchCount = 0;
-
             using (IDatabase db = DBFactory.GetDatabase())
             {
                 db.OneTimeCommandTimeout = 32767;
@@ -716,7 +710,19 @@ namespace SpeedRunAppImport.Repository
                                     DELETE dn
                                     FROM dbo.tbl_VariableValue_SpeedRunComID dn
                                     WHERE NOT EXISTS (SELECT 1 from dbo.tbl_VariableValue where ID = dn.VariableValueID)");
+            }
+        }
 
+        public void SaveGames(IEnumerable<GameEntity> games, IEnumerable<GameLinkEntity> gameLinks, IEnumerable<LevelEntity> levels, IEnumerable<LevelRuleEntity> levelRules, IEnumerable<CategoryEntity> categories, IEnumerable<CategoryRuleEntity> categoryRules, IEnumerable<VariableEntity> variables, IEnumerable<VariableValueEntity> variableValues, IEnumerable<GamePlatformEntity> gamePlatforms, IEnumerable<GameRegionEntity> gameRegions, IEnumerable<GameModeratorEntity> gameModerators, IEnumerable<GameRulesetEntity> gameRulesets, IEnumerable<GameTimingMethodEntity> gameTimingMethods)
+        {
+            _logger.Information("Started SaveGames");
+            int count = 1;
+            var gamesList = games.ToList();
+            var maxBatchCount = 500;
+            var batchCount = 0;
+
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
                 foreach (var game in gamesList)
                 {
                     var gameLink = gameLinks.FirstOrDefault(i => i.GameSpeedRunComID == game.SpeedRunComID);

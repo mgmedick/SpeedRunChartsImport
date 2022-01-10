@@ -122,6 +122,8 @@ namespace SpeedRunAppImport.Service
         {
             _logger.Information("Started SaveGames: {@Count}, {@IsBulkReload}", games.Count(), isBulkReload);
 
+            _gameRepo.RemoveObsoleteGameSpeedRunComIDs();
+
             games = games.GroupBy(g => new { g.ID })
                          .Select(i => i.First())
                          .ToList();
@@ -305,8 +307,6 @@ namespace SpeedRunAppImport.Service
 
         public void SetChangedGames(List<GameEntity> games, List<GameLinkEntity> gameLinks, IEnumerable<CategoryEntity> categories, IEnumerable<LevelEntity> levels, IEnumerable<VariableEntity> variables, IEnumerable<VariableValueEntity> variableValues, IEnumerable<GamePlatformEntity> gamePlatforms, IEnumerable<GameModeratorEntity> gameModerators)
         {
-            var changedGameIDs = new List<int>();
-            var gameIDs = games.Select(i => i.ID).ToList();
             var gameSpeedRunComViews = new List<GameSpeedRunComView>();
 
             var maxBatchCount = 500;

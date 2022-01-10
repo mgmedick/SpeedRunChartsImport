@@ -200,10 +200,19 @@ namespace SpeedRunAppImport.Service
         public IEnumerable<int> GetChangedUserIDs(List<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, List<UserLinkEntity> userLinks)
         {
             var changedUserIDs = new List<int>();
-            var userIDs = users.Select(i => i.ID).ToList();
-            var userSpeedRunComViews = _userRepo.GetUserSpeedRunComViews();
-            bool isChanged;
+            var userSpeedRunComViews = new List<UserSpeedRunComView>();
+            
+            var maxBatchCount = 500;
+            var batchCount = 0;
+            while (batchCount < users.Count())
+            {
+                var userSpeedRunComIDsBatch = users.Skip(batchCount).Take(maxBatchCount).Select(i => i.SpeedRunComID).ToList();
+                var userSpeedRunComViewsBatch = _userRepo.GetUserSpeedRunComViews(i => userSpeedRunComIDsBatch.Contains(i.SpeedRunComID));
+                userSpeedRunComViews.AddRange(userSpeedRunComViewsBatch);
+                batchCount += maxBatchCount;
+            }
 
+            bool isChanged;
             foreach (var user in users)
             {
                 isChanged = false;

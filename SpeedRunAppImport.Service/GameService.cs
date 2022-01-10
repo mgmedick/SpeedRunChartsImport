@@ -307,13 +307,24 @@ namespace SpeedRunAppImport.Service
         {
             var changedGameIDs = new List<int>();
             var gameIDs = games.Select(i => i.ID).ToList();
-            var gameSpeedRunComViews = _gameRepo.GetGameSpeedRunComViews();
-            bool isChanged = false;
-            bool isVariablesOrderChanged = false;
+            var gameSpeedRunComViews = new List<GameSpeedRunComView>();
 
+            var maxBatchCount = 500;
+            var batchCount = 0;
+            while (batchCount < games.Count())
+            {
+                var gameSpeedRunComIDsBatch = games.Skip(batchCount).Take(maxBatchCount).Select(i => i.SpeedRunComID).ToList();
+                var gameSpeedRunComViewsBatch = _gameRepo.GetGameSpeedRunComViews(i => gameSpeedRunComIDsBatch.Contains(i.SpeedRunComID));
+                gameSpeedRunComViews.AddRange(gameSpeedRunComViewsBatch);
+                batchCount += maxBatchCount;
+            }
+
+            bool isChanged;
+            bool isVariablesOrderChanged;
             foreach (var game in games)
             {
                 isChanged = false;
+                isVariablesOrderChanged = false;
                 var gameSpeedRunComView = gameSpeedRunComViews.FirstOrDefault(i => i.SpeedRunComID == game.SpeedRunComID);
 
                 if (gameSpeedRunComView != null)

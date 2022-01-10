@@ -186,8 +186,8 @@ namespace SpeedRunAppImport.Service
                 var changedUserEntities = userEntities.Where(i => changedUserIDs.Contains(i.ID)).ToList();
                 var totalUsers = userEntities.Count();
                 userEntities = newUserEntities.Concat(changedUserEntities).ToList();
-                userLocationEntities = userLocationEntities.Where(i => userEntities.Any(g => g.ID == i.UserID)).ToList();
-                userLinkEntities = userLinkEntities.Where(i => userEntities.Any(g => g.ID == i.UserID)).ToList();
+                userLocationEntities = userLocationEntities.Where(i => userEntities.Any(g => g.SpeedRunComID == i.UserSpeedRunComID)).ToList();
+                userLinkEntities = userLinkEntities.Where(i => userEntities.Any(g => g.SpeedRunComID == i.UserSpeedRunComID)).ToList();
 
                 _logger.Information("Found NewUsers: {@New}, ChangedUsers: {@Changed}, TotalUsers: {@Total}", newUserEntities.Count(), changedUserEntities.Count(), totalUsers);
 

@@ -914,6 +914,11 @@ namespace SpeedRunAppImport.Repository
                         //variableValues
                         foreach (var variableValue in variablesValuesBatch)
                         {
+                            if (game.IsVariablesOrderChanged)
+                            {
+                                variableValue.ID = 0;
+                            }
+
                             variableValue.GameID = game.ID;
                             variableValue.VariableID = variablesBatch.Find(g => g.SpeedRunComID == variableValue.VariableSpeedRunComID).ID;
                             db.Save<VariableValueEntity>(variableValue);

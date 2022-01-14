@@ -10,6 +10,7 @@ using SpeedRunAppImport.Interfaces.Repositories;
 using System.Threading;
 using Serilog;
 using SpeedRunCommon;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace SpeedRunAppImport.Service
 {
@@ -563,18 +564,17 @@ namespace SpeedRunAppImport.Service
                 UserID = userSpeedRunComIDs.Where(h => h.SpeedRunComID == g.ID).Select(h => h.UserID).FirstOrDefault()
             })).Where(i => i.UserID != 0)
             .ToList();
-            var twitchToken = _settingService.GetTwitchToken();
             var videoEntities = runs.Where(i => i.Videos?.Links != null && i.Videos.Links.Any(g => g != null))
             .SelectMany(i => i.Videos?.Links?.Select((g, n) => new SpeedRunVideoEntity()
             {
                 SpeedRunSpeedRunComID = i.ID,
                 VideoLinkUrl = g?.ToString(),
-                EmbeddedVideoLinkUrl = g?.ToEmbeddedURIString(),
-                ThumbnailLinkUrl = g?.ToThumbnailURIString(TwitchClientID, twitchToken)
+                EmbeddedVideoLinkUrl = g?.ToEmbeddedURIString()
             })).Where(i => !string.IsNullOrWhiteSpace(i.VideoLinkUrl))
             .GroupBy(h => new { h.SpeedRunSpeedRunComID, h.VideoLinkUrl })
             .Select(n => n.First())
             .ToList();
+            SetSpeedRunVideoApiFields(videoEntities);
             var guestPlayerEntities = runs.Where(i => i.PlayerGuests != null).SelectMany(i => i.PlayerGuests.Select(g => new SpeedRunGuestEntity()
             {
                 SpeedRunSpeedRunComID = i.ID,
@@ -592,6 +592,66 @@ namespace SpeedRunAppImport.Service
             }
 
             _logger.Information("Completed SaveSpeedRuns");
+        }
+
+        public void SetSpeedRunVideoApiFields(IEnumerable<SpeedRunVideoEntity> videos)
+        {
+            var twitchToken = _settingService.GetTwitchToken();
+            foreach (var video in videos) {
+                var uri = new Uri(video.VideoLinkUrl);
+                
+                try
+                {
+                    if (uri != null)
+                    {
+                        string domain = uri.GetLeftPart(UriPartial.Authority);
+                        string path = uri.AbsolutePath;
+                        string query = uri.Query;
+                        string videoIDString = null;
+                        string thumnailUriString = null;
+                        int? viewCount = null;
+
+                        if (domain.Contains("twitch.tv"))
+                        {
+                            if (path.StartsWith(@"/videos/"))
+                            {
+                                videoIDString = uri.Segments.Last();
+                                var requestString = string.Format(@"https://api.twitch.tv/helix/videos?id={0}", videoIDString);
+                                var parameters = new Dictionary<string, string>() { { "Client-Id", TwitchClientID }, { "Authorization", "Bearer " + twitchToken } };
+                                var result = JsonHelper.FromUri(new Uri(requestString), parameters);
+
+                                thumnailUriString = result?.data?.First.thumbnail_url;
+                                thumnailUriString = thumnailUriString.Replace("%{width}", "320").Replace("%{height}", "190");
+                                viewCount = result?.data?.First?.view_count;
+                            }
+                        }
+                        else if (domain.Contains("youtube.com") || domain.Contains("youtu.be"))
+                        {
+                            var queryDictionary = QueryHelpers.ParseQuery(query);
+                            videoIDString = queryDictionary.ContainsKey("v") ? queryDictionary["v"].ToString() : uri.Segments.Last();
+                            thumnailUriString = string.Format(@"https://img.youtube.com/vi/{0}/1.jpg", videoIDString);
+
+                            var requestString = string.Format(@"https://www.googleapis.com/youtube/v3/videos?part=statistics&id={0}&key={1}", videoIDString, YouTubeAPIKey);
+                            var result = JsonHelper.FromUri(new Uri(requestString));
+                            viewCount = result?.items?.First.statistics?.viewCount;
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(thumnailUriString))
+                        {
+                            video.ThumbnailLinkUrl = thumnailUriString;
+                        }
+
+                        if (viewCount.HasValue)
+                        {
+                            video.ViewCount = viewCount;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+
+                }
+            }
         }
     }
 }

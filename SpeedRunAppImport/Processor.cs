@@ -132,6 +132,7 @@ namespace SpeedRunAppImport
                 BaseService.SpeedRunComLatestRunsUrl = _config.GetSection("ApiSettings").GetSection("SpeedRunComLatestRunsUrl").Value;
                 BaseService.TwitchClientID = _config.GetSection("ApiSettings").GetSection("TwitchClientID").Value;
                 BaseService.TwitchClientKey = _config.GetSection("ApiSettings").GetSection("TwitchClientKey").Value;
+                BaseService.YouTubeAPIKey = _config.GetSection("ApiSettings").GetSection("YouTubeAPIKey").Value;
 
                 _logger.Information("Completed Init");
             }

@@ -34,5 +34,6 @@ namespace SpeedRunAppImport.Model.Entity
         public DateTime? VerifyDate { get; set; }
         public DateTime ImportedDate { get; set; }
         public DateTime? ModifiedDate { get; set; }
+        public int? TotalViewCount { get; set; }
     }
 } 

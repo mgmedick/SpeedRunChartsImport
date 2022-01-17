@@ -10,11 +10,11 @@ namespace SpeedRunAppImport.Interfaces.Services
     public interface ISpeedRunService
     {
         bool ProcessSpeedRuns(DateTime lastImportDateUtc, DateTime importLastRunDateUtc, bool isFullPull, bool isBulkReload, bool isUpdateSpeedRuns);
-        void ProcessSpeedRunsDefault(DateTime lastImportDateUtc, bool isFullImport, bool isBulkReload);
+        void ProcessSpeedRunsDefault(DateTime lastImportDateUtc, bool isFullPull, bool isBulkReload);
         void ProcessSpeedRunsByGame(DateTime importLastRunDateUtc, bool isFullPull, bool isBulkReload);
         void ProcessSpeedRunsByScreenScrape();
         List<SpeedRun> GetSpeedRunsWithRetry(int elementsPerPage, int elementsOffset, string gameID, string categoryID, SpeedRunEmbeds embeds, RunsOrdering orderBy, RunStatusType? statusType = null, int retryCount = 0);
-        void SaveSpeedRuns(IEnumerable<SpeedRun> runs, bool isFullImport);
+        void SaveSpeedRuns(IEnumerable<SpeedRun> runs, bool isFullPull, bool isBulkReload);
         void UpdateSpeedRunVideos();
     }
 } 

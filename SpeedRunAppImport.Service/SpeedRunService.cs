@@ -87,7 +87,7 @@ namespace SpeedRunAppImport.Service
                 {
                     prevTotal += results.Count;
                     _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
-                    SaveSpeedRuns(results, isFullPull, isBulkReload);
+                    SaveSpeedRuns(results, isBulkReload, false);
                     results.ClearMemory();
                 }
             }
@@ -100,7 +100,7 @@ namespace SpeedRunAppImport.Service
 
             if (results.Any())
             {
-                SaveSpeedRuns(results, isFullPull, isBulkReload);
+                SaveSpeedRuns(results, isBulkReload, false);
                 var lastUpdateDate = results.Max(i => i.Status.VerifyDate) ?? DateTime.UtcNow;
                 _settingService.UpdateSetting("SpeedRunLastImportDate", lastUpdateDate);
                 results.ClearMemory();
@@ -134,7 +134,7 @@ namespace SpeedRunAppImport.Service
                     {
                         if (ex.Message.Contains("Invalid pagination values"))
                         {
-                            DeleteGameSpeedRunsAndProcessByCategory(gameSpeedRunComID.GameID, gameSpeedRunComID.SpeedRunComID, runEmbeds, orderBy, isFullPull, isBulkReload, results, ref prevTotal);
+                            DeleteGameSpeedRunsAndProcessByCategory(gameSpeedRunComID.GameID, gameSpeedRunComID.SpeedRunComID, runEmbeds, orderBy, isBulkReload, results, ref prevTotal);
                             //if (!isBulkReload)
                             //{
                             //    DeleteGameSpeedRunsAndProcessByCategory(gameSpeedRunComID.GameID, gameSpeedRunComID.SpeedRunComID, runEmbeds, orderBy, isBulkReload, results, ref prevTotal);
@@ -165,7 +165,7 @@ namespace SpeedRunAppImport.Service
                         prevTotal += results.Count;
                         prevGameTotal += results.Count(i => i.GameID == gameSpeedRunComID.SpeedRunComID);
                         _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
-                        SaveSpeedRuns(results, isFullPull, isBulkReload);
+                        SaveSpeedRuns(results, isBulkReload, true);
                         results.ClearMemory();
                     }
                 }
@@ -174,7 +174,7 @@ namespace SpeedRunAppImport.Service
 
             if (results.Any())
             {
-                SaveSpeedRuns(results, isFullPull, isBulkReload);
+                SaveSpeedRuns(results, isBulkReload, true);
                 results.ClearMemory();
 
                 if (!isBulkReload)
@@ -199,7 +199,7 @@ namespace SpeedRunAppImport.Service
             _logger.Information("Completed DeleteObsoleteSpeedRuns: GameCount: {@GameCount}, LastImportDateUTC: {@ImportLastRunDateUtc}", gameSpeedRunComIDs.Count(), importLastRunDateUtc);
         }
 
-        private void DeleteGameSpeedRunsAndProcessByCategory(int gameID, string gameSpeedRunComID, SpeedRunEmbeds runEmbeds, RunsOrdering orderBy, bool isFullPull, bool isBulkReload, List<SpeedRun> results, ref int prevTotal)
+        private void DeleteGameSpeedRunsAndProcessByCategory(int gameID, string gameSpeedRunComID, SpeedRunEmbeds runEmbeds, RunsOrdering orderBy, bool isBulkReload, List<SpeedRun> results, ref int prevTotal)
         {
             results.RemoveAll(i => i.GameID == gameSpeedRunComID);
             if (isBulkReload)
@@ -212,10 +212,10 @@ namespace SpeedRunAppImport.Service
                                                .ToList();
             var categorySpeedRunComIDs = _gameRepo.GetCategorySpeedRunComIDs(i => categorySpeedRunComIDStrings.Contains(i.SpeedRunComID)).ToList();
 
-            ProcessSpeedRunsByCategory(gameID, gameSpeedRunComID, categorySpeedRunComIDs, runEmbeds, orderBy, isFullPull, isBulkReload, results, ref prevTotal);
+            ProcessSpeedRunsByCategory(gameID, gameSpeedRunComID, categorySpeedRunComIDs, runEmbeds, orderBy, isBulkReload, results, ref prevTotal);
         }
 
-        private void ProcessSpeedRunsByCategory(int gameID, string gameSpeedRunComID, IEnumerable<CategorySpeedRunComIDEntity> categorySpeedRunComIDs, SpeedRunEmbeds runEmbeds, RunsOrdering orderBy, bool isFullPull, bool isBulkReload, List<SpeedRun> results, ref int prevTotal)
+        private void ProcessSpeedRunsByCategory(int gameID, string gameSpeedRunComID, IEnumerable<CategorySpeedRunComIDEntity> categorySpeedRunComIDs, SpeedRunEmbeds runEmbeds, RunsOrdering orderBy, bool isBulkReload, List<SpeedRun> results, ref int prevTotal)
         {
             var runs = new List<SpeedRun>();
             var order = orderBy;
@@ -233,7 +233,7 @@ namespace SpeedRunAppImport.Service
                     {
                         if (ex.Message.Contains("Invalid pagination values"))
                         {
-                            ProcessSpeedRunsByCategoryDesc(gameSpeedRunComID, categorySpeedRunComID.SpeedRunComID, runEmbeds, RunsOrdering.DateSubmittedDescending, isFullPull, isBulkReload, results, ref prevTotal);
+                            ProcessSpeedRunsByCategoryDesc(gameSpeedRunComID, categorySpeedRunComID.SpeedRunComID, runEmbeds, RunsOrdering.DateSubmittedDescending, isBulkReload, results, ref prevTotal);
                             break;
                         }
                         else
@@ -261,7 +261,7 @@ namespace SpeedRunAppImport.Service
                         prevTotal += results.Count;
                         prevCategoryTotal += results.Count(i => i.GameID == gameSpeedRunComID && i.CategoryID == categorySpeedRunComID.SpeedRunComID);
                         _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
-                        SaveSpeedRuns(results, isFullPull, isBulkReload);
+                        SaveSpeedRuns(results, isBulkReload, true);
                         results.ClearMemory();
                     }
                 }
@@ -269,7 +269,7 @@ namespace SpeedRunAppImport.Service
             }
         }
 
-        private void ProcessSpeedRunsByCategoryDesc(string gameSpeedRunComID, string categorySpeedRunComID, SpeedRunEmbeds runEmbeds, RunsOrdering orderBy, bool isFullPull, bool isBulkReload, List<SpeedRun> results, ref int prevTotal)
+        private void ProcessSpeedRunsByCategoryDesc(string gameSpeedRunComID, string categorySpeedRunComID, SpeedRunEmbeds runEmbeds, RunsOrdering orderBy, bool isBulkReload, List<SpeedRun> results, ref int prevTotal)
         {
             var runs = new List<SpeedRun>();
             var lastDateSubmitted = results.Where(i => i.GameID == gameSpeedRunComID && i.CategoryID == categorySpeedRunComID).Select(i => i.DateSubmitted).LastOrDefault();
@@ -315,7 +315,7 @@ namespace SpeedRunAppImport.Service
                     prevCategoryTotal += results.Count(i => i.GameID == gameSpeedRunComID && i.CategoryID == categorySpeedRunComID);
                     prevCategoryDescTotal += results.Count(i => i.GameID == gameSpeedRunComID && i.CategoryID == categorySpeedRunComID && i.DateSubmitted > lastDateSubmitted);
                     _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
-                    SaveSpeedRuns(results, isFullPull, isBulkReload);
+                    SaveSpeedRuns(results, isBulkReload, true);
                     results.ClearMemory();
                 }
             }
@@ -437,9 +437,9 @@ namespace SpeedRunAppImport.Service
             _speedRunRepo.UpdateSpeedRunVideos(speedRunVideos);
         }
 
-        public void SaveSpeedRuns(IEnumerable<SpeedRun> runs, bool isFullPull, bool isBulkReload)
+        public void SaveSpeedRuns(IEnumerable<SpeedRun> runs, bool isBulkReload, bool isUpdateSpeedRuns)
         {
-            _logger.Information("Started SaveSpeedRuns: {@Count}, {@IsBulkReload}", runs.Count(), isBulkReload);
+            _logger.Information("Started SaveSpeedRuns: {@Count}, {@IsBulkReload}, {@IsUpdateSpeedRuns}", isBulkReload, isUpdateSpeedRuns);
 
             runs = runs.GroupBy(i => i.ID).Select(i => i.FirstOrDefault()).OrderBy(i => i.Status.VerifyDate).ToList();
 
@@ -574,7 +574,7 @@ namespace SpeedRunAppImport.Service
             .GroupBy(h => new { h.SpeedRunSpeedRunComID, h.VideoLinkUrl })
             .Select(n => n.First())
             .ToList();
-            SetSpeedRunVideoApiFields(runEntities, videoEntities, isFullPull, isBulkReload);
+            SetSpeedRunVideoApiFields(runEntities, videoEntities, isBulkReload, isUpdateSpeedRuns);
             var guestPlayerEntities = runs.Where(i => i.PlayerGuests != null).SelectMany(i => i.PlayerGuests.Select(g => new SpeedRunGuestEntity()
             {
                 SpeedRunSpeedRunComID = i.ID,
@@ -594,7 +594,7 @@ namespace SpeedRunAppImport.Service
             _logger.Information("Completed SaveSpeedRuns");
         }
 
-        public void SetSpeedRunVideoApiFields(IEnumerable<SpeedRunEntity> runs, IEnumerable<SpeedRunVideoEntity> videos, bool isFullPull, bool isBulkReload)
+        public void SetSpeedRunVideoApiFields(IEnumerable<SpeedRunEntity> runs, IEnumerable<SpeedRunVideoEntity> videos, bool isBulkReload, bool isUpdateSpeedRuns)
         {
             var twitchToken = _settingService.GetTwitchToken();
             foreach (var run in runs)
@@ -636,7 +636,7 @@ namespace SpeedRunAppImport.Service
                                 videoIDString = queryDictionary.ContainsKey("v") ? queryDictionary["v"].ToString() : uri.Segments.Last();
                                 thumnailUriString = string.Format(@"https://img.youtube.com/vi/{0}/1.jpg", videoIDString);
 
-                                if (!isFullPull && !isBulkReload) {
+                                if (!isBulkReload && !isUpdateSpeedRuns) {
                                     var requestString = string.Format(@"https://www.googleapis.com/youtube/v3/videos?part=statistics&id={0}&key={1}", videoIDString, YouTubeAPIKey);
                                     var result = JsonHelper.FromUri(new Uri(requestString));
                                     viewCount = result?.items?.First.statistics?.viewCount;

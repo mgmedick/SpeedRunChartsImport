@@ -246,16 +246,16 @@ namespace SpeedRunAppImport.Service
                         }
                     }
 
-                    if (!isChanged)
-                    {
-                        var userLocation = userLocations.FirstOrDefault(i => i.UserSpeedRunComID == userSpeedRunComView.SpeedRunComID);
-                        isChanged = userLocation?.Location != userSpeedRunComView.Location;
+                    //if (!isChanged)
+                    //{
+                    //    var userLocation = userLocations.FirstOrDefault(i => i.UserSpeedRunComID == userSpeedRunComView.SpeedRunComID);
+                    //    isChanged = userLocation?.Location != userSpeedRunComView.Location;
 
-                        if (isChanged)
-                        {
-                            changeReasons.Add("Location changed");
-                        }
-                    }
+                    //    if (isChanged)
+                    //    {
+                    //        changeReasons.Add("Location changed");
+                    //    }
+                    //}
 
                     if (isChanged)
                     {

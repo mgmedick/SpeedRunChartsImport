@@ -199,6 +199,8 @@ namespace SpeedRunAppImport.Service
 
         public IEnumerable<int> GetChangedUserIDs(List<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, List<UserLinkEntity> userLinks)
         {
+            _logger.Information("Started GetChangedUserIDs: {@Count}", users.Count());
+
             var changedUserIDs = new List<int>();
             var userSpeedRunComViews = new List<UserSpeedRunComView>();
             
@@ -216,11 +218,17 @@ namespace SpeedRunAppImport.Service
             foreach (var user in users)
             {
                 isChanged = false;
+                var changeReasons = new List<string>();
                 var userSpeedRunComView = userSpeedRunComViews.FirstOrDefault(i => i.SpeedRunComID == user.SpeedRunComID);
 
                 if (userSpeedRunComView != null)
                 {
                     isChanged = (user.Name != userSpeedRunComView.Name);
+
+                    if (isChanged)
+                    {
+                        changeReasons.Add("Name changed");
+                    }
 
                     if (!isChanged)
                     {
@@ -231,20 +239,33 @@ namespace SpeedRunAppImport.Service
                                     || userLink?.HitboxProfileUrl != userSpeedRunComView.HitboxProfileUrl
                                     || userLink?.YoutubeProfileUrl != userSpeedRunComView.YoutubeProfileUrl
                                     || userLink?.TwitterProfileUrl != userSpeedRunComView.TwitterProfileUrl;
+
+                        if (isChanged)
+                        {
+                            changeReasons.Add("Urls changed");
+                        }
                     }
 
                     if (!isChanged)
                     {
                         var userLocation = userLocations.FirstOrDefault(i => i.UserSpeedRunComID == userSpeedRunComView.SpeedRunComID);
                         isChanged = userLocation?.Location != userSpeedRunComView.Location;
+
+                        if (isChanged)
+                        {
+                            changeReasons.Add("Location changed");
+                        }
                     }
 
                     if (isChanged)
                     {
                         changedUserIDs.Add(user.ID);
+                        _logger.Information("UserID: {@UserID}, ChangeReason: {@ChangeReason}", user.ID, string.Join("; ", changeReasons));
                     }
                 }
             }
+
+            _logger.Information("Completed GetChangedUserIDs");
 
             return changedUserIDs;
         }

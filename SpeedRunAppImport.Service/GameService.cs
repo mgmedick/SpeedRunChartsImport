@@ -307,6 +307,8 @@ namespace SpeedRunAppImport.Service
 
         public void SetChangedGames(List<GameEntity> games, List<GameLinkEntity> gameLinks, IEnumerable<CategoryEntity> categories, IEnumerable<LevelEntity> levels, IEnumerable<VariableEntity> variables, IEnumerable<VariableValueEntity> variableValues, IEnumerable<GamePlatformEntity> gamePlatforms, IEnumerable<GameModeratorEntity> gameModerators)
         {
+            _logger.Information("Started SetChangedGames: {@Count}", games.Count());
+
             var gameSpeedRunComViews = new List<GameSpeedRunComView>();
 
             var maxBatchCount = 500;
@@ -326,6 +328,7 @@ namespace SpeedRunAppImport.Service
                 isChanged = false;
                 isVariablesOrderChanged = false;
                 var gameSpeedRunComView = gameSpeedRunComViews.FirstOrDefault(i => i.SpeedRunComID == game.SpeedRunComID);
+                var changeReasons = new List<string>();
 
                 if (gameSpeedRunComView != null)
                 {
@@ -340,28 +343,53 @@ namespace SpeedRunAppImport.Service
                                  || game.IsRomHack != gameSpeedRunComView.IsRomHack
                                  || game.YearOfRelease != gameSpeedRunComView.YearOfRelease);
 
+                    if (isChanged)
+                    {
+                        changeReasons.Add("Name, IsRomHack or YearOfRelease changed");
+                    }
+
                     if (!isChanged)
                     {
                         var gameLink = gameLinks.FirstOrDefault(i => i.GameSpeedRunComID == gameSpeedRunComView.SpeedRunComID);
                         isChanged = gameLink?.CoverImageUrl != gameSpeedRunComView.CoverImageUrl;
+
+                        if (isChanged)
+                        {
+                            changeReasons.Add("CoverImageUrl changed");
+                        }
                     }
 
                     if (!isChanged)
                     {
                         isChanged = (categoryIDs.Except(gameSpeedRunComView.CategorySpeedRunComIDArray).Any()
                                      || gameSpeedRunComView.CategorySpeedRunComIDArray.Except(categoryIDs).Any());
+
+                        if (isChanged)
+                        {
+                            changeReasons.Add("Categories changed");
+                        }
                     }
 
                     if (!isChanged)
                     {
                         isChanged = (levelIDs.Except(gameSpeedRunComView.LevelSpeedRunComIDArray).Any()
                                      || gameSpeedRunComView.LevelSpeedRunComIDArray.Except(levelIDs).Any());
+
+                        if (isChanged)
+                        {
+                            changeReasons.Add("Levels changed");
+                        }
                     }
 
                     if (!isChanged)
                     {
                         isChanged = (variableIDs.Except(gameSpeedRunComView.VariableSpeedRunComIDArray).Any()
                                      || gameSpeedRunComView.VariableSpeedRunComIDArray.Except(variableIDs).Any());
+
+                        if (isChanged)
+                        {
+                            changeReasons.Add("Variables changed");
+                        }
                     }
 
                     if (!isChanged)
@@ -374,6 +402,7 @@ namespace SpeedRunAppImport.Service
                             if (isChanged)
                             {
                                 isVariablesOrderChanged = true;
+                                changeReasons.Add("Variables order changed");
                                 break;
                             }
 
@@ -385,24 +414,46 @@ namespace SpeedRunAppImport.Service
                     {
                         isChanged = (variableValueIDs.Except(gameSpeedRunComView.VariableValueSpeedRunComIDArray).Any()
                                      || gameSpeedRunComView.VariableValueSpeedRunComIDArray.Except(variableValueIDs).Any());
+
+                        if (isChanged)
+                        {
+                            changeReasons.Add("VariableValues changed");
+                        }
                     }
 
                     if (!isChanged)
                     {
                         isChanged = (platformIDs.Except(gameSpeedRunComView.PlatformSpeedRunComIDArray).Any()
                                      || gameSpeedRunComView.PlatformSpeedRunComIDArray.Except(platformIDs).Any());
+
+                        if (isChanged)
+                        {
+                            changeReasons.Add("Platforms changed");
+                        }
                     }
 
                     if (!isChanged)
                     {
                         isChanged = (moderatorUserIDs.Except(gameSpeedRunComView.ModeratorSpeedRunComIDArray).Any()
                                      || gameSpeedRunComView.ModeratorSpeedRunComIDArray.Except(moderatorUserIDs).Any());
+
+                        if (isChanged)
+                        {
+                            changeReasons.Add("Moderators changed");
+                        }
                     }
 
                     game.IsChanged = isChanged;
                     game.IsVariablesOrderChanged = isVariablesOrderChanged;
+
+                    if (game.IsChanged)
+                    {
+                        _logger.Information("GameID: {@GameID}, ChangeReason: {@ChangeReason}", game.ID, string.Join("; ", changeReasons));
+                    }
                 }
             }
+
+            _logger.Information("Completed SetChangedGames");
         }
     }
 }

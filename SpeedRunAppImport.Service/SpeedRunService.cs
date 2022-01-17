@@ -655,7 +655,7 @@ namespace SpeedRunAppImport.Service
                     }
                     catch (Exception ex)
                     {
-
+                        _logger.Information(ex, "SetSpeedRunVideoApiFields");
                     }
                 }
 

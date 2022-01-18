@@ -6,5 +6,6 @@ namespace SpeedRunAppImport.Interfaces.Services
     public interface IScrapeService
     {
         IEnumerable<string> GetLatestSpeedRunIDs();
+        int? GetYouTubeViewCount(string videoLinkUrl);
     }
 }

@@ -439,7 +439,7 @@ namespace SpeedRunAppImport.Service
 
         public void SaveSpeedRuns(IEnumerable<SpeedRun> runs, bool isBulkReload, bool isUpdateSpeedRuns)
         {
-            _logger.Information("Started SaveSpeedRuns: {@Count}, {@IsBulkReload}, {@IsUpdateSpeedRuns}", isBulkReload, isUpdateSpeedRuns);
+            _logger.Information("Started SaveSpeedRuns: {@IsBulkReload}, {@IsUpdateSpeedRuns}", isBulkReload, isUpdateSpeedRuns);
 
             runs = runs.GroupBy(i => i.ID).Select(i => i.FirstOrDefault()).OrderBy(i => i.Status.VerifyDate).ToList();
 
@@ -635,12 +635,13 @@ namespace SpeedRunAppImport.Service
                                 var queryDictionary = QueryHelpers.ParseQuery(query);
                                 videoIDString = queryDictionary.ContainsKey("v") ? queryDictionary["v"].ToString() : uri.Segments.Last();
                                 thumnailUriString = string.Format(@"https://img.youtube.com/vi/{0}/1.jpg", videoIDString);
+                                viewCount = _scrapeService.GetYouTubeViewCount(video.VideoLinkUrl);
 
-                                if (!isBulkReload && !isUpdateSpeedRuns) {
-                                    var requestString = string.Format(@"https://www.googleapis.com/youtube/v3/videos?part=statistics&id={0}&key={1}", videoIDString, YouTubeAPIKey);
-                                    var result = JsonHelper.FromUri(new Uri(requestString));
-                                    viewCount = result?.items?.First.statistics?.viewCount;
-                                }
+                                //if (!isBulkReload && !isUpdateSpeedRuns) {
+                                //    var requestString = string.Format(@"https://www.googleapis.com/youtube/v3/videos?part=statistics&id={0}&key={1}", videoIDString, YouTubeAPIKey);
+                                //    var result = JsonHelper.FromUri(new Uri(requestString));
+                                //    viewCount = result?.items?.First.statistics?.viewCount;
+                                //}
                             }
 
                             if (!string.IsNullOrWhiteSpace(thumnailUriString))

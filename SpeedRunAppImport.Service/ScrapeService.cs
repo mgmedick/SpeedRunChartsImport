@@ -10,6 +10,7 @@ using System.Linq;
 using System.IO;
 using AngleSharp.Attributes;
 using System.Threading.Tasks;
+using System;
 
 namespace SpeedRunAppImport.Service
 {
@@ -34,6 +35,22 @@ namespace SpeedRunAppImport.Service
             var results = speedRunComIDs.Where(i => !existingSpeedRunComIDs.Any(g => g.SpeedRunComID == i)).ToList();
 
             return results;
+        }
+
+        public int? GetYouTubeViewCount(string videoLinkUrl)
+        {
+            int? viewCount = null;
+            var requester = new DefaultHttpRequester("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36");
+            var angleSharpConfig = Configuration.Default.With(requester).WithDefaultLoader();
+            var context = BrowsingContext.New(angleSharpConfig);
+            var document = Task.Run(async () => await context.OpenAsync(videoLinkUrl)).Result;
+            var viewCountString = document.QuerySelectorAll("meta").Where(i => i.GetAttribute("itemprop") == "interactionCount").Select(i => i.GetAttribute("content")).FirstOrDefault();
+            if (!string.IsNullOrWhiteSpace(viewCountString))
+            {
+                viewCount = Convert.ToInt32(viewCountString);
+            }
+
+            return viewCount;
         }
     }
 }

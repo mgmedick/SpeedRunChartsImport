@@ -635,9 +635,9 @@ namespace SpeedRunAppImport.Service
                             }
                             else if (domain.Contains("youtube.com") || domain.Contains("youtu.be"))
                             {
-                                //var queryDictionary = QueryHelpers.ParseQuery(query);
-                                //videoIDString = queryDictionary.ContainsKey("v") ? queryDictionary["v"].ToString() : uri.Segments.Last();
-                                //thumnailUriString = string.Format(@"https://img.youtube.com/vi/{0}/1.jpg", videoIDString);
+                                var queryDictionary = QueryHelpers.ParseQuery(query);
+                                videoIDString = queryDictionary.ContainsKey("v") ? queryDictionary["v"].ToString() : uri.Segments.Last();
+                                thumnailUriString = string.Format(@"https://img.youtube.com/vi/{0}/1.jpg", videoIDString);
                                 //viewCount = _scrapeService.GetYouTubeViewCount(video.VideoLinkUrl);
 
                                 if (!isBulkReload && !isUpdateSpeedRuns)

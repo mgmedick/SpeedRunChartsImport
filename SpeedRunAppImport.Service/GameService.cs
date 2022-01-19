@@ -366,6 +366,7 @@ namespace SpeedRunAppImport.Service
 
                         if (isChanged)
                         {
+                            GameIDsToUpdateSpeedRuns.Add(game.ID);
                             changeReasons.Add("Categories changed");
                         }
                     }
@@ -377,6 +378,7 @@ namespace SpeedRunAppImport.Service
 
                         if (isChanged)
                         {
+                            GameIDsToUpdateSpeedRuns.Add(game.ID);
                             changeReasons.Add("Levels changed");
                         }
                     }
@@ -388,6 +390,7 @@ namespace SpeedRunAppImport.Service
 
                         if (isChanged)
                         {
+                            GameIDsToUpdateSpeedRuns.Add(game.ID);
                             changeReasons.Add("Variables changed");
                         }
                     }
@@ -402,6 +405,7 @@ namespace SpeedRunAppImport.Service
                             if (isChanged)
                             {
                                 isVariablesOrderChanged = true;
+                                GameIDsToUpdateSpeedRuns.Add(game.ID);
                                 changeReasons.Add("Variables order changed");
                                 break;
                             }
@@ -417,6 +421,7 @@ namespace SpeedRunAppImport.Service
 
                         if (isChanged)
                         {
+                            GameIDsToUpdateSpeedRuns.Add(game.ID);
                             changeReasons.Add("VariableValues changed");
                         }
                     }

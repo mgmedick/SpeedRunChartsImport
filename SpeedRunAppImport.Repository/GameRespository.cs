@@ -725,7 +725,7 @@ namespace SpeedRunAppImport.Repository
             {
                 foreach (var game in gamesList)
                 {
-                    _logger.Information("Saving GameID: {@GameID}, GameSpeedRunComID: {@GameSpeedRunComID}", game.ID, game.SpeedRunComID);
+                    //_logger.Information("Saving GameID: {@GameID}, GameSpeedRunComID: {@GameSpeedRunComID}", game.ID, game.SpeedRunComID);
                     var gameLink = gameLinks.FirstOrDefault(i => i.GameSpeedRunComID == game.SpeedRunComID);
                     var levelsBatch = levels.Where(i => i.GameSpeedRunComID == game.SpeedRunComID).ToList();
                     var levelSpeedRunComIDsBatch = levelsBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
@@ -1012,7 +1012,7 @@ namespace SpeedRunAppImport.Repository
                             gameTimingMethodsBatch.ForEach(i => i.GameID = game.ID);
                             db.InsertBatch<GameTimingMethodEntity>(gameTimingMethodsBatch);
 
-                            _logger.Information("Completed Saving GameID: {@GameID}, GameSpeedRunComID: {@GameSpeedRunComID}", game.ID, game.SpeedRunComID);
+                            //_logger.Information("Completed Saving GameID: {@GameID}, GameSpeedRunComID: {@GameSpeedRunComID}", game.ID, game.SpeedRunComID);
                             tran.Complete();
                         }
                         catch(Exception ex)

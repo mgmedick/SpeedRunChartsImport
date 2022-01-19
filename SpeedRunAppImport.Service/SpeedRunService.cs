@@ -115,7 +115,7 @@ namespace SpeedRunAppImport.Service
             var results = new List<SpeedRun>();
             var runs = new List<SpeedRun>();
             var gameSpeedRunComIDs = _gameRepo.GetGameSpeedRunComIDs();
-            var gameIDs = isFullPull ? _gameRepo.GetGames().Select(i => i.ID).ToList() : _gameRepo.GetGames(i => (i.ModifiedDate ?? i.CreatedDate) >= importLastRunDateUtc).Select(i => i.ID).ToList();
+            var gameIDs = isFullPull ? _gameRepo.GetGames().Select(i => i.ID).ToList() : GameIDsToUpdateSpeedRuns;
             gameSpeedRunComIDs = gameSpeedRunComIDs.Join(gameIDs, o => o.GameID, id => id, (o, id) => o).ToList();
 
             _logger.Information("Found NewOrChangedGames: {@Count}, ImportLastRunDate: {ImportLastRunDateUtc}", gameSpeedRunComIDs.Count(), importLastRunDateUtc);
@@ -594,9 +594,12 @@ namespace SpeedRunAppImport.Service
             _logger.Information("Completed SaveSpeedRuns");
         }
 
-        public void SetSpeedRunVideoApiFields(IEnumerable<SpeedRunEntity> runs, IEnumerable<SpeedRunVideoEntity> videos, bool isBulkReload, bool isUpdateSpeedRuns)
+        public void SetSpeedRunVideoApiFields(List<SpeedRunEntity> runs, List<SpeedRunVideoEntity> videos, bool isBulkReload, bool isUpdateSpeedRuns)
         {
+            _logger.Information("Started SetSpeedRunVideoApiFields RunCount: {@RunCount}, VideoCount: {@VideoCount}", runs.Count, videos.Count);
+
             var twitchToken = _settingService.GetTwitchToken();
+            int count = 1;
             foreach (var run in runs)
             {
                 int? totalViewCount = null;
@@ -632,16 +635,17 @@ namespace SpeedRunAppImport.Service
                             }
                             else if (domain.Contains("youtube.com") || domain.Contains("youtu.be"))
                             {
-                                var queryDictionary = QueryHelpers.ParseQuery(query);
-                                videoIDString = queryDictionary.ContainsKey("v") ? queryDictionary["v"].ToString() : uri.Segments.Last();
-                                thumnailUriString = string.Format(@"https://img.youtube.com/vi/{0}/1.jpg", videoIDString);
-                                viewCount = _scrapeService.GetYouTubeViewCount(video.VideoLinkUrl);
+                                //var queryDictionary = QueryHelpers.ParseQuery(query);
+                                //videoIDString = queryDictionary.ContainsKey("v") ? queryDictionary["v"].ToString() : uri.Segments.Last();
+                                //thumnailUriString = string.Format(@"https://img.youtube.com/vi/{0}/1.jpg", videoIDString);
+                                //viewCount = _scrapeService.GetYouTubeViewCount(video.VideoLinkUrl);
 
-                                //if (!isBulkReload && !isUpdateSpeedRuns) {
-                                //    var requestString = string.Format(@"https://www.googleapis.com/youtube/v3/videos?part=statistics&id={0}&key={1}", videoIDString, YouTubeAPIKey);
-                                //    var result = JsonHelper.FromUri(new Uri(requestString));
-                                //    viewCount = result?.items?.First.statistics?.viewCount;
-                                //}
+                                if (!isBulkReload && !isUpdateSpeedRuns)
+                                {
+                                    var requestString = string.Format(@"https://www.googleapis.com/youtube/v3/videos?part=statistics&id={0}&key={1}", videoIDString, YouTubeAPIKey);
+                                    var result = JsonHelper.FromUri(new Uri(requestString));
+                                    viewCount = result?.items?.First.statistics?.viewCount;
+                                }
                             }
 
                             if (!string.IsNullOrWhiteSpace(thumnailUriString))
@@ -666,7 +670,12 @@ namespace SpeedRunAppImport.Service
                 {
                     run.TotalViewCount = totalViewCount;
                 }
+
+                _logger.Information("Pulled Details {@Count} / {@Total}", count, runs.Count);
+                count++;
             }
+
+            _logger.Information("Completed SetSpeedRunVideoApiFields");
         }
     }
 }

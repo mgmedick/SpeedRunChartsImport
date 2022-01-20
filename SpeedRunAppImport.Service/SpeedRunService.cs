@@ -114,7 +114,6 @@ namespace SpeedRunAppImport.Service
             var runEmbeds = new SpeedRunEmbeds { EmbedCategory = false, EmbedGame = false, EmbedLevel = false, EmbedPlayers = true, EmbedPlatform = false, EmbedRegion = false };
             var results = new List<SpeedRun>();
             var runs = new List<SpeedRun>();
-            //var gameSpeedRunComIDs = new List<GameSpeedRunComIDEntity>() { new GameSpeedRunComIDEntity { GameID = 6516, SpeedRunComID = "ldeolx63" } };
             var gameSpeedRunComIDs = _gameRepo.GetGameSpeedRunComIDs();
             var gameIDs = isFullPull ? _gameRepo.GetGames().Select(i => i.ID).ToList() : GameIDsToUpdateSpeedRuns;
             gameSpeedRunComIDs = gameSpeedRunComIDs.Join(gameIDs, o => o.GameID, id => id, (o, id) => o).ToList();
@@ -644,7 +643,7 @@ namespace SpeedRunAppImport.Service
                 foreach (var video in videosBatch)
                 {
                     dynamic result = null;
-                    if(result != null)
+                    if(results != null)
                     {
                         foreach(var res in results)
                         {
@@ -659,7 +658,8 @@ namespace SpeedRunAppImport.Service
                     if(result != null)
                     {
                         video.ViewCount = (int?)result.view_count;
-                        video.ThumbnailLinkUrl = (string)result.thumbnail_url?.Replace("%{width}", "320").Replace("%{height}", "190");
+                        var thumnailUriString = (string)result.thumbnail_url;
+                        video.ThumbnailLinkUrl = thumnailUriString?.Replace("%{width}", "320").Replace("%{height}", "190");
                     }
                 }
 
@@ -698,7 +698,7 @@ namespace SpeedRunAppImport.Service
                     foreach (var video in videosBatch)
                     {
                         dynamic result = null;
-                        if (result != null)
+                        if (results != null)
                         {
                             foreach (var res in results)
                             {
@@ -712,7 +712,7 @@ namespace SpeedRunAppImport.Service
 
                         if (result != null)
                         {
-                            video.ViewCount = (int?)result?.statistics?.viewCount;
+                            video.ViewCount = (int?)result.statistics?.viewCount;
                         }
                     }
 

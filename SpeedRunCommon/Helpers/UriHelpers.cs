@@ -67,12 +67,12 @@ namespace SpeedRunCommon
             return embededURI;
         }
 
-        public static string ToThumbnailURIString(this Uri uri, string twitchClientID, string twitchToken)
+        public static string ToThumbnailURIString(this Uri uri)
         {
-            return uri.ToThumbnailURI(twitchClientID, twitchToken)?.ToString();
+            return uri.ToThumbnailURI()?.ToString();
         }
 
-        public static Uri ToThumbnailURI(this Uri uri, string twitchClientID, string twitchToken)
+        public static Uri ToThumbnailURI(this Uri uri)
         {
             Uri embededURI = null;
 
@@ -86,20 +86,7 @@ namespace SpeedRunCommon
                     string videoIDString = null;
                     string uriString = null;
 
-                    if (domain.Contains("twitch.tv"))
-                    {
-                        if (path.StartsWith(@"/videos/"))
-                        {
-                            videoIDString = uri.Segments.Last();
-                            var requestString = string.Format(@"https://api.twitch.tv/helix/videos?id={0}", videoIDString);
-                            var parameters = new Dictionary<string, string>() { { "Client-Id", twitchClientID }, { "Authorization", "Bearer " + twitchToken } };
-                            var result = JsonHelper.FromUri(new Uri(requestString), parameters);
-
-                            uriString = result?.data?.First.thumbnail_url;
-                            uriString = uriString.Replace("%{width}", "320").Replace("%{height}", "190");
-                        }
-                    }
-                    else if (domain.Contains("youtube.com") || domain.Contains("youtu.be"))
+                    if (domain.Contains("youtube.com") || domain.Contains("youtu.be"))
                     {
                         var queryDictionary = QueryHelpers.ParseQuery(query);
                         videoIDString = queryDictionary.ContainsKey("v") ? queryDictionary["v"].ToString() : uri.Segments.Last();

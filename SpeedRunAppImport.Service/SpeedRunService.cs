@@ -114,6 +114,7 @@ namespace SpeedRunAppImport.Service
             var runEmbeds = new SpeedRunEmbeds { EmbedCategory = false, EmbedGame = false, EmbedLevel = false, EmbedPlayers = true, EmbedPlatform = false, EmbedRegion = false };
             var results = new List<SpeedRun>();
             var runs = new List<SpeedRun>();
+            //var gameSpeedRunComIDs = new List<GameSpeedRunComIDEntity>() { new GameSpeedRunComIDEntity { GameID = 6516, SpeedRunComID = "ldeolx63" } };
             var gameSpeedRunComIDs = _gameRepo.GetGameSpeedRunComIDs();
             var gameIDs = isFullPull ? _gameRepo.GetGames().Select(i => i.ID).ToList() : GameIDsToUpdateSpeedRuns;
             gameSpeedRunComIDs = gameSpeedRunComIDs.Join(gameIDs, o => o.GameID, id => id, (o, id) => o).ToList();
@@ -568,13 +569,15 @@ namespace SpeedRunAppImport.Service
             .SelectMany(i => i.Videos?.Links?.Select((g, n) => new SpeedRunVideoEntity()
             {
                 SpeedRunSpeedRunComID = i.ID,
+                VideoLinkUri = g,
                 VideoLinkUrl = g?.ToString(),
-                EmbeddedVideoLinkUrl = g?.ToEmbeddedURIString()
+                EmbeddedVideoLinkUrl = g?.ToEmbeddedURIString(),
+                ThumbnailLinkUrl = g?.ToThumbnailURIString()
             })).Where(i => !string.IsNullOrWhiteSpace(i.VideoLinkUrl))
             .GroupBy(h => new { h.SpeedRunSpeedRunComID, h.VideoLinkUrl })
             .Select(n => n.First())
             .ToList();
-            SetSpeedRunVideoApiFields(runEntities, videoEntities, isBulkReload, isUpdateSpeedRuns);
+            SetSpeedRunApiFields(runEntities, videoEntities, isBulkReload);
             var guestPlayerEntities = runs.Where(i => i.PlayerGuests != null).SelectMany(i => i.PlayerGuests.Select(g => new SpeedRunGuestEntity()
             {
                 SpeedRunSpeedRunComID = i.ID,
@@ -594,7 +597,131 @@ namespace SpeedRunAppImport.Service
             _logger.Information("Completed SaveSpeedRuns");
         }
 
-        public void SetSpeedRunVideoApiFields(List<SpeedRunEntity> runs, List<SpeedRunVideoEntity> videos, bool isBulkReload, bool isUpdateSpeedRuns)
+        public void SetSpeedRunApiFields(List<SpeedRunEntity> runs, List<SpeedRunVideoEntity> videos, bool isBulkReload)
+        {
+            SetSpeedRunVideoApiFields(videos, isBulkReload);
+
+            foreach (var run in runs)
+            {
+                run.TotalViewCount = videos.Where(i => i.SpeedRunSpeedRunComID == run.SpeedRunComID).Sum(i => i.ViewCount);
+                if(run.TotalViewCount == 0)
+                {
+                    run.TotalViewCount = null;
+                }
+            }
+        }
+
+        public void SetSpeedRunVideoApiFields(List<SpeedRunVideoEntity> videos, bool isBulkReload)
+        {
+            var batchCount = 0;
+            var maxBatchCountTwitch = 100;
+            var twitchToken = _settingService.GetTwitchToken();
+            var twitchIdentifiers = new List<string> { "twitch.tv" };
+            var twitchVideos = videos.Where(i => i.VideoLinkUri != null && twitchIdentifiers.Any(g => i.VideoLinkUri.GetLeftPart(UriPartial.Authority).Contains(g)) && i.VideoLinkUri.AbsolutePath.StartsWith(@"/videos/"))
+                                     .ToList();
+            foreach (var twitchVideo in twitchVideos)
+            {
+                twitchVideo.VideoID = twitchVideo.VideoLinkUri.Segments.Last();
+            }
+
+            while (batchCount < twitchVideos.Count())
+            {
+                var videosBatch = twitchVideos.Skip(batchCount).Take(maxBatchCountTwitch).ToList();
+                var videoIDsBatch = videosBatch.Where(i => !string.IsNullOrWhiteSpace(i.VideoID)).Select(i => i.VideoID).ToList();
+                var videoIDsString = string.Join(",", videoIDsBatch);
+                var requestString = string.Format(@"https://api.twitch.tv/helix/videos?id={0}", videoIDsString);
+                var parameters = new Dictionary<string, string>() { { "Client-Id", TwitchClientID }, { "Authorization", "Bearer " + twitchToken } };
+                dynamic results = null;
+                try
+                {
+                    results = JsonHelper.FromUri(new Uri(requestString), parameters)?.data;
+                }
+                catch (Exception ex)
+                {
+                    _logger.Information(ex, "SetSpeedRunVideoApiFields");
+                }
+
+                foreach (var video in videosBatch)
+                {
+                    dynamic result = null;
+                    if(result != null)
+                    {
+                        foreach(var res in results)
+                        {
+                            if(res.id == video.VideoID)
+                            {
+                                result = res;
+                                break;
+                            }
+                        }
+                    }
+
+                    if(result != null)
+                    {
+                        video.ViewCount = (int?)result.view_count;
+                        video.ThumbnailLinkUrl = (string)result.thumbnail_url?.Replace("%{width}", "320").Replace("%{height}", "190");
+                    }
+                }
+
+                batchCount += maxBatchCountTwitch;
+            }
+
+            if (!isBulkReload)
+            {
+                batchCount = 0;
+                var maxBatchCountYoutube = 50;
+                var youtubeIdentifiers = new List<string> { "youtube.com", "youtu.be" };
+                var youtubeVideos = videos.Where(i => i.VideoLinkUri != null && youtubeIdentifiers.Any(g => i.VideoLinkUri.GetLeftPart(UriPartial.Authority).Contains(g)))
+                                         .ToList();
+                foreach (var youtubeVideo in youtubeVideos)
+                {
+                    var queryDictionary = QueryHelpers.ParseQuery(youtubeVideo.VideoLinkUri.Query);
+                    youtubeVideo.VideoID = queryDictionary.ContainsKey("v") ? queryDictionary["v"].ToString() : youtubeVideo.VideoLinkUri.Segments.Last();
+                }
+
+                while (batchCount < youtubeVideos.Count())
+                {
+                    var videosBatch = youtubeVideos.Skip(batchCount).Take(maxBatchCountYoutube).ToList();
+                    var videoIDsBatch = videosBatch.Where(i => !string.IsNullOrWhiteSpace(i.VideoID)).Select(i => i.VideoID).ToList();
+                    var videoIDsString = string.Join(",", videoIDsBatch);
+                    var requestString = string.Format(@"https://www.googleapis.com/youtube/v3/videos?part=statistics&id={0}&key={1}", videoIDsString, YouTubeAPIKey);
+                    dynamic results = null;
+                    try
+                    {
+                        results = JsonHelper.FromUri(new Uri(requestString))?.items;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Information(ex, "SetSpeedRunVideoApiFields");
+                    }
+
+                    foreach (var video in videosBatch)
+                    {
+                        dynamic result = null;
+                        if (result != null)
+                        {
+                            foreach (var res in results)
+                            {
+                                if (res.id == video.VideoID)
+                                {
+                                    result = res;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (result != null)
+                        {
+                            video.ViewCount = (int?)result?.statistics?.viewCount;
+                        }
+                    }
+
+                    batchCount += maxBatchCountYoutube;
+                }
+            }
+        }
+
+        public void SetSpeedRunApiFields(List<SpeedRunEntity> runs, List<SpeedRunVideoEntity> videos, bool isBulkReload, bool isUpdateSpeedRuns)
         {
             _logger.Information("Started SetSpeedRunVideoApiFields RunCount: {@RunCount}, VideoCount: {@VideoCount}", runs.Count, videos.Count);
 

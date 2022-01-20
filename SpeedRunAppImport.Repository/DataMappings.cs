@@ -166,6 +166,8 @@ namespace SpeedRunAppImport.Repository
             For<SpeedRunVideoEntity>().PrimaryKey("ID").TableName("dbo.tbl_SpeedRun_Video" + tblEnd).Columns(i =>
             {
                 i.Column(g => g.SpeedRunSpeedRunComID).Ignore();
+                i.Column(g => g.VideoLinkUri).Ignore();
+                i.Column(g => g.VideoID).Ignore();
             });
         }
     }

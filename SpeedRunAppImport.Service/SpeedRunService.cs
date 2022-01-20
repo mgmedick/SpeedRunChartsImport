@@ -721,6 +721,7 @@ namespace SpeedRunAppImport.Service
             }
         }
 
+        /*
         public void SetSpeedRunApiFields(List<SpeedRunEntity> runs, List<SpeedRunVideoEntity> videos, bool isBulkReload, bool isUpdateSpeedRuns)
         {
             _logger.Information("Started SetSpeedRunVideoApiFields RunCount: {@RunCount}, VideoCount: {@VideoCount}", runs.Count, videos.Count);
@@ -804,6 +805,7 @@ namespace SpeedRunAppImport.Service
 
             _logger.Information("Completed SetSpeedRunVideoApiFields");
         }
+        */
     }
 }
 

@@ -257,32 +257,38 @@ namespace SpeedRunAppImport.Repository
 
                     using (var tran = db.GetTransaction())
                     {
-                        if (user.ID != 0)
+                        try
                         {
-                            user.ModifiedDate = DateTime.UtcNow;
-                            //db.DeleteWhere<UserSpeedRunComIDEntity>("UserID = @userID", new { userID = user.ID });
-                            //db.DeleteWhere<UserLocationEntity>("UserID = @userID", new { userID = user.ID });
-                            //db.DeleteWhere<UserLinkEntity>("UserID = @userID", new { userID = user.ID });
+                            if (user.ID != 0)
+                            {
+                                user.ModifiedDate = DateTime.UtcNow;
+                                //db.DeleteWhere<UserSpeedRunComIDEntity>("UserID = @userID", new { userID = user.ID });
+                                //db.DeleteWhere<UserLocationEntity>("UserID = @userID", new { userID = user.ID });
+                                //db.DeleteWhere<UserLinkEntity>("UserID = @userID", new { userID = user.ID });
+                            }
+
+                            db.Save<UserEntity>(user);
+
+                            var userSpeedRunComID = new UserSpeedRunComIDEntity { UserID = user.ID, SpeedRunComID = user.SpeedRunComID };
+                            db.Save<UserSpeedRunComIDEntity>(userSpeedRunComID);
+
+                            if (userLocation != null)
+                            {
+                                userLocation.UserID = user.ID;
+                                db.Save<UserLocationEntity>(userLocation);
+                            }
+
+                            if (userLink != null)
+                            {
+                                userLink.UserID = user.ID;
+                                db.Save<UserLinkEntity>(userLink);
+                            }
+                            tran.Complete();
                         }
-
-                        db.Save<UserEntity>(user);
-
-                        var userSpeedRunComID = new UserSpeedRunComIDEntity { UserID = user.ID, SpeedRunComID = user.SpeedRunComID };
-                        db.Save<UserSpeedRunComIDEntity>(userSpeedRunComID);
-
-                        if (userLocation != null)
+                        catch (Exception ex)
                         {
-                            userLocation.UserID = user.ID;
-                            db.Save<UserLocationEntity>(userLocation);
+                            _logger.Error(ex, "SaveUsers GameID: {@GameID}, GameSpeedRunComID: {@GameSpeedRunComID}", user.ID, user.SpeedRunComID);
                         }
-
-                        if (userLink != null)
-                        {
-                            userLink.UserID = user.ID;
-                            db.Save<UserLinkEntity>(userLink);
-                        }
-
-                        tran.Complete();
                     }
 
                     _logger.Information("Saved users {@Count} / {@Total}", count, usersList.Count);

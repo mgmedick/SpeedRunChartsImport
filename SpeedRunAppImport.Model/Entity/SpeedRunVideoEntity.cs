@@ -12,8 +12,9 @@ namespace SpeedRunAppImport.Model.Entity
         public string VideoLinkUrl { get; set; }
         public string EmbeddedVideoLinkUrl { get; set; }
         public string ThumbnailLinkUrl { get; set; }
-        public int? ViewCount { get; set; }
         public Uri VideoLinkUri { get; set; }
         public string VideoID { get; set; }
+        public int? ViewCount { get; set; }
+        public string ChannelID { get; set; }
     }
 } 

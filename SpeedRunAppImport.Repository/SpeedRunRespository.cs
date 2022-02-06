@@ -347,6 +347,17 @@ namespace SpeedRunAppImport.Repository
                         videosBatch.ForEach(i => i.SpeedRunID = runsBatch.Find(g => g.SpeedRunComID == i.SpeedRunSpeedRunComID).ID);
                         db.InsertBulk<SpeedRunVideoEntity>(videosBatch);
 
+                        var videoIDs = db.Query<int>("SELECT TOP (@0) ID FROM dbo.tbl_SpeedRun_Video_Full ORDER BY ID DESC", videosBatch.Count).Reverse().ToArray();
+                        var videoDetailsBatch = videosBatch.Select((i, index) => new SpeedRunVideoDetailEntity()
+                                                           {
+                                                               SpeedRunVideoID = videoIDs[index],
+                                                               SpeedRunID = runsBatch.Find(g => g.SpeedRunComID == i.SpeedRunSpeedRunComID).ID,
+                                                               ChannelID = i.ChannelID,
+                                                               ViewCount = i.ViewCount
+                                                           })
+                                                           .ToList();
+                        db.InsertBatch<SpeedRunVideoDetailEntity>(videoDetailsBatch);
+
                         tran.Complete();
                     }
 
@@ -418,6 +429,7 @@ namespace SpeedRunAppImport.Repository
                                 db.DeleteWhere<SpeedRunPlayerEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
                                 db.DeleteWhere<SpeedRunGuestEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
                                 db.DeleteWhere<SpeedRunVideoEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
+                                db.DeleteWhere<SpeedRunVideoDetailEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRun.ID });
                             }
 
                             //_logger.Information("Saving run");
@@ -466,7 +478,21 @@ namespace SpeedRunAppImport.Repository
 
                             //_logger.Information("Saving run videos");
                             videosBatch.ForEach(i => i.SpeedRunID = speedRun.ID);
-                            db.InsertBatch<SpeedRunVideoEntity>(videosBatch);
+                            foreach(var video in videosBatch)
+                            {
+                                video.SpeedRunID = speedRun.ID;
+                                db.Save<SpeedRunVideoEntity>(video);
+                            }
+
+                            var videoDetailsBatch = videosBatch.Select(i => new SpeedRunVideoDetailEntity()
+                                                                        {
+                                                                            SpeedRunVideoID = i.ID,
+                                                                            SpeedRunID = speedRun.ID,
+                                                                            ChannelID = i.ChannelID,
+                                                                            ViewCount = i.ViewCount
+                                                                        })
+                                                               .ToList();
+                            db.InsertBatch<SpeedRunVideoDetailEntity>(videoDetailsBatch);
 
                             tran.Complete();
                         }
@@ -537,6 +563,8 @@ namespace SpeedRunAppImport.Repository
                         db.DeleteWhere<SpeedRunGuestEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunID });
                         db.OneTimeCommandTimeout = 32767;
                         db.DeleteWhere<SpeedRunVideoEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunID });
+                        db.OneTimeCommandTimeout = 32767;
+                        db.DeleteWhere<SpeedRunVideoDetailEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunID });
                         db.OneTimeCommandTimeout = 32767;
                         db.DeleteWhere<SpeedRunSpeedRunComIDEntity>("SpeedRunID = @speedRunID", new { speedRunID = speedRunID });
                         db.OneTimeCommandTimeout = 32767;

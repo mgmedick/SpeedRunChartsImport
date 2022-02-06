@@ -576,7 +576,7 @@ namespace SpeedRunAppImport.Service
             .GroupBy(h => new { h.SpeedRunSpeedRunComID, h.VideoLinkUrl })
             .Select(n => n.First())
             .ToList();
-            SetSpeedRunApiFields(runEntities, videoEntities, isBulkReload);
+            SetSpeedRunVideoApiFields(videoEntities, isBulkReload);
             var guestPlayerEntities = runs.Where(i => i.PlayerGuests != null).SelectMany(i => i.PlayerGuests.Select(g => new SpeedRunGuestEntity()
             {
                 SpeedRunSpeedRunComID = i.ID,
@@ -594,20 +594,6 @@ namespace SpeedRunAppImport.Service
             }
 
             _logger.Information("Completed SaveSpeedRuns");
-        }
-
-        public void SetSpeedRunApiFields(List<SpeedRunEntity> runs, List<SpeedRunVideoEntity> videos, bool isBulkReload)
-        {
-            SetSpeedRunVideoApiFields(videos, isBulkReload);
-
-            foreach (var run in runs)
-            {
-                run.TotalViewCount = videos.Where(i => i.SpeedRunSpeedRunComID == run.SpeedRunComID).Sum(i => i.ViewCount);
-                if(run.TotalViewCount == 0)
-                {
-                    run.TotalViewCount = null;
-                }
-            }
         }
 
         public void SetSpeedRunVideoApiFields(List<SpeedRunVideoEntity> videos, bool isBulkReload)
@@ -657,6 +643,7 @@ namespace SpeedRunAppImport.Service
 
                     if(result != null)
                     {
+                        video.ChannelID = (string)result.user_id;
                         video.ViewCount = (int?)result.view_count;
                         var thumnailUriString = (string)result.thumbnail_url;
                         video.ThumbnailLinkUrl = thumnailUriString?.Replace("%{width}", "320").Replace("%{height}", "190");
@@ -684,7 +671,7 @@ namespace SpeedRunAppImport.Service
                     var videosBatch = youtubeVideos.Skip(batchCount).Take(maxBatchCountYoutube).ToList();
                     var videoIDsBatch = videosBatch.Where(i => !string.IsNullOrWhiteSpace(i.VideoID)).Select(i => i.VideoID).ToList();
                     var videoIDsString = string.Join(",", videoIDsBatch);
-                    var requestString = string.Format(@"https://www.googleapis.com/youtube/v3/videos?part=statistics&id={0}&key={1}", videoIDsString, YouTubeAPIKey);
+                    var requestString = string.Format(@"https://www.googleapis.com/youtube/v3/videos?part=statistics,snippet&id={0}&key={1}", videoIDsString, YouTubeAPIKey);
                     dynamic results = null;
                     try
                     {
@@ -712,6 +699,7 @@ namespace SpeedRunAppImport.Service
 
                         if (result != null)
                         {
+                            video.ChannelID = (string)result.snippet?.channelId;
                             video.ViewCount = (int?)result.statistics?.viewCount;
                         }
                     }

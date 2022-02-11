@@ -23,6 +23,8 @@ namespace SpeedRunAppImport.Service
         public static string TwitchClientID { get; set; }
         public static string TwitchClientKey { get; set; }
         public static string YouTubeAPIKey { get; set; }
+        public static int YouTubeAPIDailyRequestLimit { get; set; }
+        public static int YouTubeAPIRequestCount { get; set; }
         public static List<int> GameIDsToUpdateSpeedRuns { get; set; }
     }
 }

@@ -576,7 +576,7 @@ namespace SpeedRunAppImport.Service
             .GroupBy(h => new { h.SpeedRunSpeedRunComID, h.VideoLinkUrl })
             .Select(n => n.First())
             .ToList();
-            SetSpeedRunVideoApiFields(videoEntities, isBulkReload);
+            SetSpeedRunVideoApiFields(videoEntities);
             var guestPlayerEntities = runs.Where(i => i.PlayerGuests != null).SelectMany(i => i.PlayerGuests.Select(g => new SpeedRunGuestEntity()
             {
                 SpeedRunSpeedRunComID = i.ID,
@@ -596,7 +596,7 @@ namespace SpeedRunAppImport.Service
             _logger.Information("Completed SaveSpeedRuns");
         }
 
-        public void SetSpeedRunVideoApiFields(List<SpeedRunVideoEntity> videos, bool isBulkReload)
+        public void SetSpeedRunVideoApiFields(List<SpeedRunVideoEntity> videos)
         {
             var batchCount = 0;
             var maxBatchCountTwitch = 100;
@@ -608,11 +608,12 @@ namespace SpeedRunAppImport.Service
             {
                 twitchVideo.VideoID = twitchVideo.VideoLinkUri.Segments.Last();
             }
+            twitchVideos = twitchVideos.Where(i => !string.IsNullOrWhiteSpace(i.VideoID)).ToList();
 
             while (batchCount < twitchVideos.Count())
             {
                 var videosBatch = twitchVideos.Skip(batchCount).Take(maxBatchCountTwitch).ToList();
-                var videoIDsBatch = videosBatch.Where(i => !string.IsNullOrWhiteSpace(i.VideoID)).Select(i => i.VideoID).ToList();
+                var videoIDsBatch = videosBatch.Select(i => i.VideoID).ToList();
                 var videoIDsString = string.Join(",", videoIDsBatch);
                 var requestString = string.Format(@"https://api.twitch.tv/helix/videos?id={0}", videoIDsString);
                 var parameters = new Dictionary<string, string>() { { "Client-Id", TwitchClientID }, { "Authorization", "Bearer " + twitchToken } };
@@ -629,11 +630,11 @@ namespace SpeedRunAppImport.Service
                 foreach (var video in videosBatch)
                 {
                     dynamic result = null;
-                    if(results != null)
+                    if (results != null)
                     {
-                        foreach(var res in results)
+                        foreach (var res in results)
                         {
-                            if(res.id == video.VideoID)
+                            if (res.id == video.VideoID)
                             {
                                 result = res;
                                 break;
@@ -641,7 +642,7 @@ namespace SpeedRunAppImport.Service
                         }
                     }
 
-                    if(result != null)
+                    if (result != null)
                     {
                         video.ChannelID = (string)result.user_id;
                         video.ViewCount = (int?)result.view_count;
@@ -653,59 +654,62 @@ namespace SpeedRunAppImport.Service
                 batchCount += maxBatchCountTwitch;
             }
 
-            if (!isBulkReload)
+            batchCount = 0;
+            var maxBatchCountYoutube = 50;
+            var youtubeIdentifiers = new List<string> { "youtube.com", "youtu.be" };
+            var youtubeVideos = videos.Where(i => i.VideoLinkUri != null && youtubeIdentifiers.Any(g => i.VideoLinkUri.GetLeftPart(UriPartial.Authority).Contains(g)))
+                                        .ToList();
+            foreach (var youtubeVideo in youtubeVideos)
             {
-                batchCount = 0;
-                var maxBatchCountYoutube = 50;
-                var youtubeIdentifiers = new List<string> { "youtube.com", "youtu.be" };
-                var youtubeVideos = videos.Where(i => i.VideoLinkUri != null && youtubeIdentifiers.Any(g => i.VideoLinkUri.GetLeftPart(UriPartial.Authority).Contains(g)))
-                                         .ToList();
-                foreach (var youtubeVideo in youtubeVideos)
+                var queryDictionary = QueryHelpers.ParseQuery(youtubeVideo.VideoLinkUri.Query);
+                youtubeVideo.VideoID = queryDictionary.ContainsKey("v") ? queryDictionary["v"].ToString() : youtubeVideo.VideoLinkUri.Segments.Last();
+            }
+            youtubeVideos = youtubeVideos.Where(i => !string.IsNullOrWhiteSpace(i.VideoID)).ToList();
+
+            while (batchCount < youtubeVideos.Count() && YouTubeAPIRequestCount < YouTubeAPIDailyRequestLimit)
+            {
+                var videosBatch = youtubeVideos.Skip(batchCount).Take(maxBatchCountYoutube).ToList();
+                var videoIDsBatch = videosBatch.Select(i => i.VideoID).ToList();
+                var videoIDsString = string.Join(",", videoIDsBatch);
+                var requestString = string.Format(@"https://www.googleapis.com/youtube/v3/videos?part=statistics,snippet&id={0}&key={1}", videoIDsString, YouTubeAPIKey);
+                dynamic results = null;
+                try
                 {
-                    var queryDictionary = QueryHelpers.ParseQuery(youtubeVideo.VideoLinkUri.Query);
-                    youtubeVideo.VideoID = queryDictionary.ContainsKey("v") ? queryDictionary["v"].ToString() : youtubeVideo.VideoLinkUri.Segments.Last();
+                    results = JsonHelper.FromUri(new Uri(requestString))?.items;
+                }
+                catch (Exception ex)
+                {
+                    _logger.Information(ex, "SetSpeedRunVideoApiFields");
+                    if (ex.Message.Contains("exceeded"))
+                    {
+                        break;
+                    }
                 }
 
-                while (batchCount < youtubeVideos.Count())
+                foreach (var video in videosBatch)
                 {
-                    var videosBatch = youtubeVideos.Skip(batchCount).Take(maxBatchCountYoutube).ToList();
-                    var videoIDsBatch = videosBatch.Where(i => !string.IsNullOrWhiteSpace(i.VideoID)).Select(i => i.VideoID).ToList();
-                    var videoIDsString = string.Join(",", videoIDsBatch);
-                    var requestString = string.Format(@"https://www.googleapis.com/youtube/v3/videos?part=statistics,snippet&id={0}&key={1}", videoIDsString, YouTubeAPIKey);
-                    dynamic results = null;
-                    try
+                    dynamic result = null;
+                    if (results != null)
                     {
-                        results = JsonHelper.FromUri(new Uri(requestString))?.items;
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.Information(ex, "SetSpeedRunVideoApiFields");
-                    }
-
-                    foreach (var video in videosBatch)
-                    {
-                        dynamic result = null;
-                        if (results != null)
+                        foreach (var res in results)
                         {
-                            foreach (var res in results)
+                            if (res.id == video.VideoID)
                             {
-                                if (res.id == video.VideoID)
-                                {
-                                    result = res;
-                                    break;
-                                }
+                                result = res;
+                                break;
                             }
                         }
-
-                        if (result != null)
-                        {
-                            video.ChannelID = (string)result.snippet?.channelId;
-                            video.ViewCount = (int?)result.statistics?.viewCount;
-                        }
                     }
 
-                    batchCount += maxBatchCountYoutube;
+                    if (result != null)
+                    {
+                        video.ChannelID = (string)result.snippet?.channelId;
+                        video.ViewCount = (int?)result.statistics?.viewCount;
+                    }
                 }
+
+                batchCount += maxBatchCountYoutube;
+                YouTubeAPIRequestCount += 1;
             }
         }
 

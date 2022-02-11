@@ -133,6 +133,8 @@ namespace SpeedRunAppImport
                 BaseService.TwitchClientID = _config.GetSection("ApiSettings").GetSection("TwitchClientID").Value;
                 BaseService.TwitchClientKey = _config.GetSection("ApiSettings").GetSection("TwitchClientKey").Value;
                 BaseService.YouTubeAPIKey = _config.GetSection("ApiSettings").GetSection("YouTubeAPIKey").Value;
+                BaseService.YouTubeAPIDailyRequestLimit = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("YouTubeAPIDailyRequestLimit").Value);
+                BaseService.YouTubeAPIRequestCount = 0;
                 BaseService.GameIDsToUpdateSpeedRuns = new List<int>();
 
                 _logger.Information("Completed Init");

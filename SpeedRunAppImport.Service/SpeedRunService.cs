@@ -610,7 +610,7 @@ namespace SpeedRunAppImport.Service
             }
             twitchVideos = twitchVideos.Where(i => !string.IsNullOrWhiteSpace(i.VideoID)).ToList();
 
-            while (batchCount < twitchVideos.Count())
+            while (batchCount < twitchVideos.Count)
             {
                 var videosBatch = twitchVideos.Skip(batchCount).Take(maxBatchCountTwitch).ToList();
                 var videoIDsBatch = videosBatch.Select(i => i.VideoID).ToList();
@@ -652,6 +652,7 @@ namespace SpeedRunAppImport.Service
                 }
 
                 batchCount += maxBatchCountTwitch;
+                _logger.Information("Set Twitch Video Details {@Count} / {@Total}", videosBatch.Count, twitchVideos.Count);
             }
 
             batchCount = 0;
@@ -666,7 +667,7 @@ namespace SpeedRunAppImport.Service
             }
             youtubeVideos = youtubeVideos.Where(i => !string.IsNullOrWhiteSpace(i.VideoID)).ToList();
 
-            while (batchCount < youtubeVideos.Count() && YouTubeAPIRequestCount < YouTubeAPIDailyRequestLimit)
+            while (batchCount < youtubeVideos.Count && YouTubeAPIRequestCount < YouTubeAPIDailyRequestLimit)
             {
                 var videosBatch = youtubeVideos.Skip(batchCount).Take(maxBatchCountYoutube).ToList();
                 var videoIDsBatch = videosBatch.Select(i => i.VideoID).ToList();
@@ -710,6 +711,7 @@ namespace SpeedRunAppImport.Service
 
                 batchCount += maxBatchCountYoutube;
                 YouTubeAPIRequestCount += 1;
+                _logger.Information("Set Youtube Video Details {@Count} / {@Total}", videosBatch.Count, youtubeVideos.Count);
             }
         }
 

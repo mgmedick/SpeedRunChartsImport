@@ -1,5 +1,7 @@
 ﻿using SpeedRunAppImport.Model.Data;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SpeedRunAppImport.Client
 {
@@ -49,8 +51,13 @@ namespace SpeedRunAppImport.Client
         public Guest Parse(dynamic guestElement)
         {
             var guest = new Guest();
+            var properties = guestElement.Properties as IDictionary<string, dynamic>;
 
             guest.Name = guestElement.name;
+
+            //Parse Links
+            var links = properties["links"] as IEnumerable<dynamic>;
+            guest.WebLink = new Uri(links.First(x => x.rel == "self").uri as string);
 
             return guest;
         }

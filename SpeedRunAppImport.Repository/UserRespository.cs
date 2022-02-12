@@ -193,7 +193,7 @@ namespace SpeedRunAppImport.Repository
             _logger.Information("Completed InsertUsers");
         }
 
-        public void InsertGuests(IEnumerable<GuestEntity> guests)
+        public void InsertGuests(IEnumerable<GuestEntity> guests, IEnumerable<GuestLinkEntity> guestLinks)
         {
             _logger.Information("Started InsertGuests");
             int batchCount = 0;
@@ -204,10 +204,20 @@ namespace SpeedRunAppImport.Repository
                 while (batchCount < guestList.Count)
                 {
                     var guestsBatch = guestList.Skip(batchCount).Take(MaxBulkRows).ToList();
+                    var guestSpeedRunComIDs = guestsBatch.Select(i => i.Name).Distinct().ToList();
+                    var guestLinksBatch = guestLinks.Where(i => guestSpeedRunComIDs.Contains(i.GuestSpeedRunComID)).ToList();
 
                     using (var tran = db.GetTransaction())
                     {
                         db.InsertBulk<GuestEntity>(guestsBatch);
+                        var guestIDs = db.Query<int>("SELECT TOP (@0) ID FROM dbo.tbl_Guest_Full ORDER BY ID DESC", guestsBatch.Count).Reverse().ToArray();
+                        for (int i = 0; i < guestsBatch.Count; i++)
+                        {
+                            guestsBatch[i].ID = guestIDs[i];
+                        }
+
+                        guestLinksBatch.ForEach(i => i.GuestID = guestsBatch.Find(g => g.Name == i.GuestSpeedRunComID).ID);
+                        db.InsertBulk<GuestLinkEntity>(guestLinksBatch);
 
                         tran.Complete();
                     }
@@ -219,7 +229,7 @@ namespace SpeedRunAppImport.Repository
             _logger.Information("Completed InsertGuests");
         }
 
-        public void SaveGuests(IEnumerable<GuestEntity> guests)
+        public void SaveGuests(IEnumerable<GuestEntity> guests, IEnumerable<GuestLinkEntity> guestLinks)
         {
             _logger.Information("Started SaveGuests");
             int count = 1;
@@ -229,14 +239,21 @@ namespace SpeedRunAppImport.Repository
             {
                 foreach (var guest in guestList)
                 {
+                    var guestLink = guestLinks.FirstOrDefault(i => i.GuestSpeedRunComID == guest.Name);
+
                     using (var tran = db.GetTransaction())
                     {
                         db.Save<GuestEntity>(guest);
 
+                        if (guestLink != null)
+                        {
+                            guestLink.GuestID = guest.ID;
+                            db.Save<GuestLinkEntity>(guestLink);
+                        }
                         tran.Complete();
                     }
 
-                    _logger.Information("Saved users {@Count} / {@Total}", count, guestList.Count);
+                    _logger.Information("Saved guests {@Count} / {@Total}", count, guestList.Count);
                     count++;
                 }
             }

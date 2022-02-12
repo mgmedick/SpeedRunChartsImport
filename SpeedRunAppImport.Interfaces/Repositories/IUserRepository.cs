@@ -15,8 +15,8 @@ namespace SpeedRunAppImport.Interfaces.Repositories
         IEnumerable<UserSpeedRunComIDEntity> GetUserSpeedRunComIDs(Expression<Func<UserSpeedRunComIDEntity, bool>> predicate = null);
         IEnumerable<GuestEntity> GetGuests(Expression<Func<GuestEntity, bool>> predicate = null);
         IEnumerable<UserSpeedRunComView> GetUserSpeedRunComViews(Expression<Func<UserSpeedRunComView, bool>> predicate = null);
-        void InsertGuests(IEnumerable<GuestEntity> guests);
-        void SaveGuests(IEnumerable<GuestEntity> guests);
+        void InsertGuests(IEnumerable<GuestEntity> guests, IEnumerable<GuestLinkEntity> guestLinks);
+        void SaveGuests(IEnumerable<GuestEntity> guests, IEnumerable<GuestLinkEntity> guestLinks);
     }
 }
 

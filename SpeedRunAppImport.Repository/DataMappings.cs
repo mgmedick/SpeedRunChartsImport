@@ -39,6 +39,10 @@ namespace SpeedRunAppImport.Repository
             {
                 i.Column(g => g.ImportedDate).Ignore();
             });
+            For<GuestLinkEntity>().PrimaryKey("GuestID", false).TableName("dbo.tbl_Guest_Link" + tblEnd).Columns(i =>
+            {
+                i.Column(g => g.GuestSpeedRunComID).Ignore();
+            });
 
             //platform
             For<PlatformEntity>().PrimaryKey("ID").TableName("dbo.tbl_Platform" + tblEnd).Columns(i =>

@@ -1,8 +1,11 @@
-﻿namespace SpeedRunAppImport.Model.Data
+﻿using System;
+
+namespace SpeedRunAppImport.Model.Data
 {
     public class Guest
     {
         public string Name { get; set; }
+        public Uri WebLink { get; set; }
 
         //#region Links
 

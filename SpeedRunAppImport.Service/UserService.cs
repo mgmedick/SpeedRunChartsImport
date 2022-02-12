@@ -119,17 +119,25 @@ namespace SpeedRunAppImport.Service
             var guestEntities = guests.Select(i => new GuestEntity
             {
                 ID = guestSpeedRunComIDs.Where(g => g.Name == i.Name).Select(g => g.ID).FirstOrDefault(),
-                Name = i.Name
+                Name = i.Name,
+                Abbr = i.WebLink?.Segments.LastOrDefault()
+            })
+            .ToList();
+
+            var guestLinkEntities = guests.Select(i => new GuestLinkEntity
+            {
+                GuestSpeedRunComID = i.Name,
+                SpeedRunComUrl = i.WebLink.ToString()
             })
             .ToList();
 
             if (isBulkReload)
             {
-                _userRepo.InsertGuests(guestEntities);
+                _userRepo.InsertGuests(guestEntities, guestLinkEntities);
             }
             else
             {
-                _userRepo.SaveGuests(guestEntities);
+                _userRepo.SaveGuests(guestEntities, guestLinkEntities);
             }
         }
 
@@ -150,7 +158,7 @@ namespace SpeedRunAppImport.Service
                 SpeedRunComID = i.ID,
                 Name = i.Name,
                 UserRoleID = (int)i.Role,
-                Abbr = i.WebLink?.Segments.Last(),
+                Abbr = i.WebLink?.Segments.LastOrDefault(),
                 SignUpDate = i.SignUpDate 
             })
             .ToList();

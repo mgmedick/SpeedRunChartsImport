@@ -178,6 +178,7 @@ namespace SpeedRunAppImport.Service
                 Name = i.Name,
                 YearOfRelease = i.YearOfRelease,
                 IsRomHack = i.IsRomHack,
+                Abbr = i.Abbreviation,
                 CreatedDate = i.CreationDate
             }).ToList();
             var gameLinkEntities = games.Select(i => new GameLinkEntity()

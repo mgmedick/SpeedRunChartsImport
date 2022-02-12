@@ -150,6 +150,7 @@ namespace SpeedRunAppImport.Service
                 SpeedRunComID = i.ID,
                 Name = i.Name,
                 UserRoleID = (int)i.Role,
+                Abbr = i.WebLink?.Segments.Last(),
                 SignUpDate = i.SignUpDate 
             })
             .ToList();

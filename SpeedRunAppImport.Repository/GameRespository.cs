@@ -820,8 +820,11 @@ namespace SpeedRunAppImport.Repository
                             //_logger.Information("Deleting levelsToDelete related levels");
                             if (levelIDsToDelete.Any())
                             {
+                                db.OneTimeCommandTimeout = 32767;
                                 db.DeleteMany<LevelRuleEntity>().Where(i => levelIDsToDelete.Contains(i.LevelID)).Execute();
+                                db.OneTimeCommandTimeout = 32767;
                                 db.DeleteMany<LevelSpeedRunComIDEntity>().Where(i => levelIDsToDelete.Contains(i.LevelID)).Execute();
+                                db.OneTimeCommandTimeout = 32767;
                                 db.DeleteMany<LevelEntity>().Where(i => levelIDsToDelete.Contains(i.ID)).Execute();
                             }
 

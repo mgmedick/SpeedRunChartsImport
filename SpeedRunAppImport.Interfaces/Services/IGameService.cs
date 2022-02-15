@@ -10,7 +10,7 @@ namespace SpeedRunAppImport.Interfaces.Services
     public interface IGameService
     {
         bool ProcessGames(DateTime lastImportDate, bool isFullImport, bool isBulkReload);
-        List<Game> GetGamesWithRetry(int elementsPerPage, int elementsOffset, GameEmbeds embeds, GamesOrdering orderBy, int retryCount = 0);
+        List<Game> GetGamesWithRetry(int elementsPerPage, int elementsOffset, GameEmbeds embeds, GamesOrdering? orderBy, int retryCount = 0);
         void SaveGames(IEnumerable<Game> games, bool isBulkReload);
     }
 } 

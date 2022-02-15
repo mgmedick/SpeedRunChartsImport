@@ -28,12 +28,13 @@ namespace SpeedRunAppImport.Client
             string platformId = null, string regionId = null,
             string moderatorId = null, int? elementsPerPage = null,
             GameEmbeds embeds = null,
-            GamesOrdering orderBy = default(GamesOrdering),
+            GamesOrdering? orderBy = null,
             int? elementsOffset = null)
         {
             var parameters = new List<string>() { embeds?.ToString() };
 
-            parameters.AddRange(orderBy.ToParameters());
+            if (orderBy.HasValue)
+                parameters.AddRange(orderBy.Value.ToParameters());
 
             if (!string.IsNullOrWhiteSpace(name))
                 parameters.Add(string.Format("name={0}", Uri.EscapeDataString(name)));

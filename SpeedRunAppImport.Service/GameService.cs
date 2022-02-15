@@ -42,7 +42,7 @@ namespace SpeedRunAppImport.Service
             try
             {
                 _logger.Information("Started ProcessGames: {@LastImportDateUtc}, {@IsFullPull}, {@IsBulkReload}", lastImportDateUtc, isFullPull, isBulkReload);
-                GamesOrdering orderBy = isFullPull ? GamesOrdering.CreationDate : GamesOrdering.CreationDateDescending;
+                GamesOrdering? orderBy = isFullPull ? (GamesOrdering?)null : GamesOrdering.CreationDateDescending;
                 var gameEmbeds = new GameEmbeds { EmbedCategories = true, EmbedLevels = true, EmbedModerators = true, EmbedPlatforms = false, EmbedVariables = true };
                 var results = new List<Game>();
                 var games = new List<Game>();
@@ -91,7 +91,7 @@ namespace SpeedRunAppImport.Service
             return result;
         }
 
-        public List<Game> GetGamesWithRetry(int elementsPerPage, int elementsOffset, GameEmbeds embeds, GamesOrdering orderBy, int retryCount = 0)
+        public List<Game> GetGamesWithRetry(int elementsPerPage, int elementsOffset, GameEmbeds embeds, GamesOrdering? orderBy, int retryCount = 0)
         {
             ClientContainer clientContainer = new ClientContainer();
             List<Game> games = null;

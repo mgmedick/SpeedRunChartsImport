@@ -527,7 +527,7 @@ namespace SpeedRunAppImport.Repository
         }
         */
 
-        public void InsertGames(IEnumerable<GameEntity> games, IEnumerable<GameLinkEntity> gameLinks, IEnumerable<LevelEntity> levels, IEnumerable<LevelRuleEntity> levelRules, IEnumerable<CategoryEntity> categories, IEnumerable<CategoryRuleEntity> categoryRules, IEnumerable<VariableEntity> variables, IEnumerable<VariableValueEntity> variableValues, IEnumerable<GamePlatformEntity> gamePlatforms, IEnumerable<GameRegionEntity> gameRegions, IEnumerable<GameModeratorEntity> gameModerators, IEnumerable<GameRulesetEntity> gameRulesets, IEnumerable<GameTimingMethodEntity> gameTimingMethods)
+        public void InsertGames(IEnumerable<GameEntity> games, IEnumerable<GameLinkEntity> gameLinks, IEnumerable<GameImageEntity> gameImages, IEnumerable<LevelEntity> levels, IEnumerable<LevelRuleEntity> levelRules, IEnumerable<CategoryEntity> categories, IEnumerable<CategoryRuleEntity> categoryRules, IEnumerable<VariableEntity> variables, IEnumerable<VariableValueEntity> variableValues, IEnumerable<GamePlatformEntity> gamePlatforms, IEnumerable<GameRegionEntity> gameRegions, IEnumerable<GameModeratorEntity> gameModerators, IEnumerable<GameRulesetEntity> gameRulesets, IEnumerable<GameTimingMethodEntity> gameTimingMethods)
         {
             _logger.Information("Started InsertGames");
             int batchCount = 0;
@@ -540,6 +540,7 @@ namespace SpeedRunAppImport.Repository
                     var gamesBatch = gamesList.Skip(batchCount).Take(MaxBulkRows).ToList();
                     var gameSpeedRunComIDs = gamesBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
                     var gameLinksBatch = gameLinks.Where(i => gameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
+                    var gameImagesBatch = gameImages.Where(i => gameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
                     var levelsBatch = levels.Where(i => gameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
                     var levelSpeedRunComIDs = levelsBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
                     var levelRulesBatch = levelRules.Where(i => levelSpeedRunComIDs.Contains(i.LevelSpeedRunComID)).ToList();
@@ -578,6 +579,9 @@ namespace SpeedRunAppImport.Repository
 
                         gameLinksBatch.ForEach(i => i.GameID = gamesBatch.Find(g => g.SpeedRunComID == i.GameSpeedRunComID).ID);
                         db.InsertBulk<GameLinkEntity>(gameLinksBatch);
+
+                        gameImagesBatch.ForEach(i => i.GameID = gamesBatch.Find(g => g.SpeedRunComID == i.GameSpeedRunComID).ID);
+                        db.InsertBulk<GameImageEntity>(gameImagesBatch);
 
                         //foreach (var level in levelsBatch)
                         //{
@@ -713,7 +717,7 @@ namespace SpeedRunAppImport.Repository
             }
         }
 
-        public void SaveGames(IEnumerable<GameEntity> games, IEnumerable<GameLinkEntity> gameLinks, IEnumerable<LevelEntity> levels, IEnumerable<LevelRuleEntity> levelRules, IEnumerable<CategoryEntity> categories, IEnumerable<CategoryRuleEntity> categoryRules, IEnumerable<VariableEntity> variables, IEnumerable<VariableValueEntity> variableValues, IEnumerable<GamePlatformEntity> gamePlatforms, IEnumerable<GameRegionEntity> gameRegions, IEnumerable<GameModeratorEntity> gameModerators, IEnumerable<GameRulesetEntity> gameRulesets, IEnumerable<GameTimingMethodEntity> gameTimingMethods)
+        public void SaveGames(IEnumerable<GameEntity> games, IEnumerable<GameLinkEntity> gameLinks, IEnumerable<GameImageEntity> gameImages, IEnumerable<LevelEntity> levels, IEnumerable<LevelRuleEntity> levelRules, IEnumerable<CategoryEntity> categories, IEnumerable<CategoryRuleEntity> categoryRules, IEnumerable<VariableEntity> variables, IEnumerable<VariableValueEntity> variableValues, IEnumerable<GamePlatformEntity> gamePlatforms, IEnumerable<GameRegionEntity> gameRegions, IEnumerable<GameModeratorEntity> gameModerators, IEnumerable<GameRulesetEntity> gameRulesets, IEnumerable<GameTimingMethodEntity> gameTimingMethods)
         {
             _logger.Information("Started SaveGames");
             int count = 1;
@@ -727,6 +731,7 @@ namespace SpeedRunAppImport.Repository
                 {
                     //_logger.Information("Saving GameID: {@GameID}, GameSpeedRunComID: {@GameSpeedRunComID}", game.ID, game.SpeedRunComID);
                     var gameLink = gameLinks.FirstOrDefault(i => i.GameSpeedRunComID == game.SpeedRunComID);
+                    var gameImage = gameImages.FirstOrDefault(i => i.GameSpeedRunComID == game.SpeedRunComID);
                     var levelsBatch = levels.Where(i => i.GameSpeedRunComID == game.SpeedRunComID).ToList();
                     var levelSpeedRunComIDsBatch = levelsBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
                     var levelRulesBatch = levelRules.Where(i => levelSpeedRunComIDsBatch.Contains(i.LevelSpeedRunComID)).ToList();
@@ -755,6 +760,7 @@ namespace SpeedRunAppImport.Repository
                                 //_logger.Information("Deleting secondary game entities");
                                 game.ModifiedDate = DateTime.UtcNow;
                                 db.DeleteWhere<GameLinkEntity>("GameID = @gameID", new { gameID = game.ID });
+                                db.DeleteWhere<GameImageEntity>("GameID = @gameID", new { gameID = game.ID });
                                 db.DeleteWhere<GameRulesetEntity>("GameID = @gameID", new { gameID = game.ID });
                                 db.DeleteWhere<GamePlatformEntity>("GameID = @gameID", new { gameID = game.ID });
                                 db.DeleteWhere<GameRegionEntity>("GameID = @gameID", new { gameID = game.ID });
@@ -990,6 +996,13 @@ namespace SpeedRunAppImport.Repository
                             {
                                 gameLink.GameID = game.ID;
                                 db.Save<GameLinkEntity>(gameLink);
+                            }
+
+                            //_logger.Information("Saving gameImage");
+                            if (gameImage != null)
+                            {
+                                gameImage.GameID = game.ID;
+                                db.Save<GameImageEntity>(gameImage);
                             }
 
                             //_logger.Information("Saving gameRuleset");

@@ -180,13 +180,18 @@ namespace SpeedRunAppImport.Service
                 TwitterProfileUrl = i.TwitterProfile?.ToString()
             })
             .ToList();
+            var userImageEntities = users.Select(i => new UserImageEntity()
+            {
+                UserSpeedRunComID = i.ID,
+                ProfileImage = i.ProfileImage?.ReadAllBytesFromUri()
+            }).Where(i => i.ProfileImage != null).ToList();
 
             if (isBulkReload)
             {
                 var newUserEntities = userEntities.Where(i => i.ID == 0).ToList();
                 userLocationEntities = userLocationEntities.Where(i => userEntities.Any(g => g.ID == i.UserID)).ToList();
                 userLinkEntities = userLinkEntities.Where(i => userEntities.Any(g => g.ID == i.UserID)).ToList();
-                _userRepo.InsertUsers(newUserEntities, userLocationEntities, userLinkEntities);
+                _userRepo.InsertUsers(newUserEntities, userLocationEntities, userLinkEntities, userImageEntities);
             }
             else
             {
@@ -197,10 +202,11 @@ namespace SpeedRunAppImport.Service
                 userEntities = newUserEntities.Concat(changedUserEntities).ToList();
                 userLocationEntities = userLocationEntities.Where(i => userEntities.Any(g => g.SpeedRunComID == i.UserSpeedRunComID)).ToList();
                 userLinkEntities = userLinkEntities.Where(i => userEntities.Any(g => g.SpeedRunComID == i.UserSpeedRunComID)).ToList();
+                userImageEntities = userImageEntities.Where(i => userEntities.Any(g => g.SpeedRunComID == i.UserSpeedRunComID)).ToList();
 
                 _logger.Information("Found NewUsers: {@New}, ChangedUsers: {@Changed}, TotalUsers: {@Total}", newUserEntities.Count(), changedUserEntities.Count(), totalUsers);
 
-                _userRepo.SaveUsers(userEntities, userLocationEntities, userLinkEntities);
+                _userRepo.SaveUsers(userEntities, userLocationEntities, userLinkEntities, userImageEntities);
             }
 
             _logger.Information("Completed SaveUsers");

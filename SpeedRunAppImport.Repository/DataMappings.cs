@@ -32,6 +32,10 @@ namespace SpeedRunAppImport.Repository
             {
                 i.Column(g => g.UserSpeedRunComID).Ignore();
             });
+            For<UserImageEntity>().PrimaryKey("UserID", false).TableName("dbo.tbl_User_Image" + tblEnd).Columns(i =>
+            {
+                i.Column(g => g.UserSpeedRunComID).Ignore();
+            });
             For<UserSpeedRunComView>().PrimaryKey("ID").TableName("dbo.vw_UserSpeedRunCom");
 
             //guest
@@ -62,6 +66,10 @@ namespace SpeedRunAppImport.Repository
             });
             For<GameSpeedRunComIDEntity>().PrimaryKey("GameID", false).TableName("dbo.tbl_Game_SpeedRunComID" + tblEnd);
             For<GameLinkEntity>().PrimaryKey("GameID", false).TableName("dbo.tbl_Game_Link" + tblEnd).Columns(i =>
+            {
+                i.Column(g => g.GameSpeedRunComID).Ignore();
+            });
+            For<GameImageEntity>().PrimaryKey("GameID", false).TableName("dbo.tbl_Game_Image" + tblEnd).Columns(i =>
             {
                 i.Column(g => g.GameSpeedRunComID).Ignore();
             });

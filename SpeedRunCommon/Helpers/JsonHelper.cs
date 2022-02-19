@@ -13,98 +13,31 @@ namespace SpeedRunCommon
     {
         public static dynamic FromUri(Uri uri, Dictionary<string, string> parameters = null, string userAgent = null, TimeSpan? timeout = null)
         {
-            var request = (HttpWebRequest)WebRequest.Create(uri);
-            request.Timeout = timeout.HasValue ? (int)timeout.Value.TotalMilliseconds : (int)DefaultTimeout.TotalMilliseconds;
-            request.UserAgent = string.IsNullOrWhiteSpace(userAgent) ? DefaultUserAgent : userAgent;
+            var response = uri.GetResponse(parameters, userAgent, timeout);
 
-            if (parameters != null)
-            {
-                foreach (var param in parameters)
-                {
-                    request.Headers.Add(param.Key, param.Value);
-                }
-            }
-
-            var response = request.GetResponse();
-            return FromResponse(response);
-        }
-
-        public static dynamic FromResponse(WebResponse response)
-        {
+            var jsonString = string.Empty;
             using (var stream = response.GetResponseStream())
             {
-                return FromStream(stream);
+                var reader = new StreamReader(stream);
+                jsonString = reader.ReadToEnd();
             }
-        }
 
-        public static dynamic FromStream(Stream stream)
-        {
-            var reader = new StreamReader(stream);
-            var json = "";
-            try
-            {
-                json = reader.ReadToEnd();
-            }
-            catch { }
-            return FromString(json);
-        }
-
-        public static dynamic FromString(string value)
-        {
-            JObject obj = JObject.Parse(value);
-
-            return obj;
-        }
-
-        public static string Escape(string value)
-        {
-            return JavaScriptEncoder.Default.Encode(value);
+            return JObject.Parse(jsonString);
         }
 
         public static dynamic FromUriPost(Uri uri, string postBody = null, Dictionary<string, string> parameters = null, string userAgent = null, TimeSpan? timeout = null)
         {
-            var request = (HttpWebRequest)WebRequest.Create(uri);
-            request.Timeout = timeout.HasValue ? (int)timeout.Value.TotalMilliseconds : (int)DefaultTimeout.TotalMilliseconds;
-            request.UserAgent = string.IsNullOrWhiteSpace(userAgent) ? DefaultUserAgent : userAgent;
-            request.Method = "POST";
-
-            if (parameters != null)
-            {
-                foreach (var param in parameters)
-                {
-                    request.Headers.Add(param.Key, param.Value);
-                }
-            }
-
-            request.ContentType = "application/json";
-
-            if (!string.IsNullOrWhiteSpace(postBody))
-            {
-                using (var writer = new StreamWriter(request.GetRequestStream()))
-                {
-                    writer.Write(postBody);
-                }
-            }
-
+            var request = uri.PostRequest(postBody, parameters, "application/json", userAgent, timeout);
             var response = request.GetResponse();
 
-            return FromResponse(response);
-        }
-
-        public static string DefaultUserAgent
-        {
-            get
+            var jsonString = string.Empty;
+            using (var stream = response.GetResponseStream())
             {
-                return "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.190 Safari/537.36";
+                var reader = new StreamReader(stream);
+                jsonString = reader.ReadToEnd();
             }
-        }
 
-        public static TimeSpan DefaultTimeout
-        {
-            get
-            {
-                return TimeSpan.FromSeconds(120);
-            }
+            return JObject.Parse(jsonString);
         }
     }
 }

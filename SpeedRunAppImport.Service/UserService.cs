@@ -153,13 +153,14 @@ namespace SpeedRunAppImport.Service
                 userSpeedRunComIDs = userSpeedRunComIDs.Join(userIDs, o => o.SpeedRunComID, id => id, (o, id) => o).ToList();
             }
 
-            var userEntities = users.Select(i => new UserEntity {
+            var userEntities = users.Select(i => new UserEntity
+            {
                 ID = userSpeedRunComIDs.Where(g => g.SpeedRunComID == i.ID).Select(g => g.UserID).FirstOrDefault(),
                 SpeedRunComID = i.ID,
                 Name = i.Name,
                 UserRoleID = (int)i.Role,
                 Abbr = i.WebLink?.Segments.LastOrDefault(),
-                SignUpDate = i.SignUpDate 
+                SignUpDate = i.SignUpDate
             })
             .ToList();
             var userLocationEntities = users.Where(i => !string.IsNullOrWhiteSpace(i.Location?.ToString()))
@@ -180,11 +181,7 @@ namespace SpeedRunAppImport.Service
                 TwitterProfileUrl = i.TwitterProfile?.ToString()
             })
             .ToList();
-            var userImageEntities = users.Select(i => new UserImageEntity()
-            {
-                UserSpeedRunComID = i.ID,
-                ProfileImage = i.ProfileImage?.ReadAllBytesFromUri()
-            }).Where(i => i.ProfileImage != null).ToList();
+            var userImageEntities = GetUserImages(userLinkEntities);
 
             if (isBulkReload)
             {
@@ -210,6 +207,38 @@ namespace SpeedRunAppImport.Service
             }
 
             _logger.Information("Completed SaveUsers");
+        }
+
+        public IEnumerable<UserImageEntity> GetUserImages(List<UserLinkEntity> userLinks)
+        {
+            _logger.Information("Started GetUserImages: {@Count}", userLinks.Count());
+            var userImages = new List<UserImageEntity>();
+
+            int count = 1;
+            foreach (var userLink in userLinks)
+            {
+                try
+                {
+                    if (!string.IsNullOrWhiteSpace(userLink.ProfileImageUrl))
+                    {
+                        var profileImage = new Uri(userLink.ProfileImageUrl).ReadAllBytesFromUri();
+                        if (profileImage != null)
+                        {
+                            userImages.Add(new UserImageEntity() { UserSpeedRunComID = userLink.UserSpeedRunComID, ProfileImage = profileImage });
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.Information(ex, "GetUserImages");
+                }
+
+                _logger.Information("Set userImage {@Count} / {@Total}", count, userLinks.Count);
+                count++;
+            }
+
+            _logger.Information("Completed GetUserImages");
+            return userImages;
         }
 
         public IEnumerable<int> GetChangedUserIDs(List<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, List<UserLinkEntity> userLinks)

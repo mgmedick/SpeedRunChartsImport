@@ -187,11 +187,7 @@ namespace SpeedRunAppImport.Service
                 SpeedRunComUrl = i.WebLink.ToString(),
                 CoverImageUrl = i.Assets?.CoverLarge?.Uri.ToString()
             }).ToList();
-            var gameImageEntities = games.Select(i => new GameImageEntity()
-            {
-                GameSpeedRunComID = i.ID,
-                CoverImage = i.Assets?.CoverLarge?.Uri?.ReadAllBytesFromUri()
-            }).Where(i => i.CoverImage != null).ToList();
+            var gameImageEntities = GetGameImages(gameLinkEntities);
             var levelEntities = games.SelectMany(i => i.Levels.Select(g => new LevelEntity
             {
                 ID = levelSpeedRunComIDs.Where(h => h.SpeedRunComID == g.ID).Select(o => o.LevelID).FirstOrDefault(),
@@ -310,6 +306,38 @@ namespace SpeedRunAppImport.Service
             }
 
             _logger.Information("Completed SaveGames");
+        }
+
+        public IEnumerable<GameImageEntity> GetGameImages(List<GameLinkEntity> gameLinks)
+        {
+            _logger.Information("Started GetGameImages: {@Count}", gameLinks.Count());
+            var gameImages = new List<GameImageEntity>();
+
+            int count = 1;
+            foreach (var gameLink in gameLinks)
+            {
+                try
+                {
+                    if (!string.IsNullOrWhiteSpace(gameLink.CoverImageUrl))
+                    {
+                        var coverImage = new Uri(gameLink.CoverImageUrl).ReadAllBytesFromUri();
+                        if (coverImage != null)
+                        {
+                            gameImages.Add(new GameImageEntity() { GameSpeedRunComID = gameLink.GameSpeedRunComID, CoverImage = coverImage });
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.Information(ex, "GetGameImages");
+                }
+
+                _logger.Information("Set gameImage {@Count} / {@Total}", count, gameLinks.Count);
+                count++;
+            }
+
+            _logger.Information("Completed GetGameImages");
+            return gameImages;
         }
 
         public void SetChangedGames(List<GameEntity> games, List<GameLinkEntity> gameLinks, IEnumerable<CategoryEntity> categories, IEnumerable<LevelEntity> levels, IEnumerable<VariableEntity> variables, IEnumerable<VariableValueEntity> variableValues, IEnumerable<GamePlatformEntity> gamePlatforms, IEnumerable<GameModeratorEntity> gameModerators)

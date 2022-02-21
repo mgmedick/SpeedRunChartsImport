@@ -10,5 +10,7 @@ namespace SpeedRunAppImport.Model.Entity
         public string GameSpeedRunComID { get; set; }
         public string SpeedRunComUrl { get; set; }
         public string CoverImageUrl { get; set; }
+        public string TempCoverImagePath { get; set; }
+        public string LocalCoverImagePath { get; set; }
     }
 } 

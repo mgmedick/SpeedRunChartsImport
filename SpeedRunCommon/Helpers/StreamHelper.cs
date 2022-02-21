@@ -11,7 +11,13 @@ namespace SpeedRunCommon
 {
     public static class StreamHelper
     {
-        public static byte[] ReadAllBytesFromUri(this Uri uri, Dictionary<string, string> parameters = null, string userAgent = null, TimeSpan? timeout = null)
+        public static void SaveAllBytesFromUri(this Uri uri, string outputFilePath)
+        {
+            var bytes = uri.ReadAllBytesFromUri();
+            File.WriteAllBytes(outputFilePath, bytes);
+        }
+
+        public static byte[] ReadAllBytesFromUri(this Uri uri)
         {
             var response = RequestHelper.GetResponse(uri);
             var stream = response.GetResponseStream();

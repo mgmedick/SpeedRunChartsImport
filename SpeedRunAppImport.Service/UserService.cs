@@ -10,6 +10,8 @@ using SpeedRunAppImport.Interfaces.Repositories;
 using System.Threading;
 using Serilog;
 using SpeedRunCommon;
+using System.IO;
+using System.Net;
 
 namespace SpeedRunAppImport.Service
 {
@@ -181,14 +183,14 @@ namespace SpeedRunAppImport.Service
                 TwitterProfileUrl = i.TwitterProfile?.ToString()
             })
             .ToList();
-            var userImageEntities = GetUserImages(userLinkEntities);
+            SetTempProfileImages(userLinkEntities);
 
             if (isBulkReload)
             {
                 var newUserEntities = userEntities.Where(i => i.ID == 0).ToList();
                 userLocationEntities = userLocationEntities.Where(i => userEntities.Any(g => g.ID == i.UserID)).ToList();
                 userLinkEntities = userLinkEntities.Where(i => userEntities.Any(g => g.ID == i.UserID)).ToList();
-                _userRepo.InsertUsers(newUserEntities, userLocationEntities, userLinkEntities, userImageEntities);
+                _userRepo.InsertUsers(newUserEntities, userLocationEntities, userLinkEntities);
             }
             else
             {
@@ -199,46 +201,51 @@ namespace SpeedRunAppImport.Service
                 userEntities = newUserEntities.Concat(changedUserEntities).ToList();
                 userLocationEntities = userLocationEntities.Where(i => userEntities.Any(g => g.SpeedRunComID == i.UserSpeedRunComID)).ToList();
                 userLinkEntities = userLinkEntities.Where(i => userEntities.Any(g => g.SpeedRunComID == i.UserSpeedRunComID)).ToList();
-                userImageEntities = userImageEntities.Where(i => userEntities.Any(g => g.SpeedRunComID == i.UserSpeedRunComID)).ToList();
 
                 _logger.Information("Found NewUsers: {@New}, ChangedUsers: {@Changed}, TotalUsers: {@Total}", newUserEntities.Count(), changedUserEntities.Count(), totalUsers);
 
-                _userRepo.SaveUsers(userEntities, userLocationEntities, userLinkEntities, userImageEntities);
+                _userRepo.SaveUsers(userEntities, userLocationEntities, userLinkEntities);
             }
 
             _logger.Information("Completed SaveUsers");
         }
 
-        public IEnumerable<UserImageEntity> GetUserImages(List<UserLinkEntity> userLinks)
+        public void SetTempProfileImages(List<UserLinkEntity> userLinks)
         {
-            _logger.Information("Started GetUserImages: {@Count}", userLinks.Count());
-            var userImages = new List<UserImageEntity>();
+            _logger.Information("Started SetTempProfileImages: {@Count}", userLinks.Count());
 
             int count = 1;
             foreach (var userLink in userLinks)
             {
-                try
+                if (!string.IsNullOrWhiteSpace(userLink.ProfileImageUrl))
                 {
-                    if (!string.IsNullOrWhiteSpace(userLink.ProfileImageUrl))
+                    var fileName = "UserProfile_" + userLink.UserSpeedRunComID + ".jpg";
+                    var tempFilePath = Path.Combine(TempImportPath, fileName);
+                    try
                     {
-                        var profileImage = new Uri(userLink.ProfileImageUrl).ReadAllBytesFromUri();
-                        if (profileImage != null)
+                        using (WebClient _wc = new WebClient())
                         {
-                            userImages.Add(new UserImageEntity() { UserSpeedRunComID = userLink.UserSpeedRunComID, ProfileImage = profileImage });
+                            _wc.DownloadFile(new Uri(userLink.ProfileImageUrl), tempFilePath);
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    _logger.Information(ex, "GetUserImages");
+                    catch (Exception ex)
+                    {
+                        _logger.Information(ex, "SetTempCoverImages");
+                        tempFilePath = null;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(tempFilePath))
+                    {
+                        userLink.TempProfileImagePath = tempFilePath;
+                        userLink.LocalProfileImagePath = Path.Combine(BaseWebPath, UserImageWebDir, fileName);
+                    }
                 }
 
                 _logger.Information("Set userImage {@Count} / {@Total}", count, userLinks.Count);
                 count++;
             }
 
-            _logger.Information("Completed GetUserImages");
-            return userImages;
+            _logger.Information("Completed SetTempCoverImages");
         }
 
         public IEnumerable<int> GetChangedUserIDs(List<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, List<UserLinkEntity> userLinks)

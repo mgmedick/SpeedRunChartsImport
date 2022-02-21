@@ -11,6 +11,8 @@ using SpeedRunAppImport.Interfaces.Repositories;
 //using Microsoft.Extensions.Configuration;
 using System.Threading;
 using SpeedRunCommon;
+using System.IO;
+using System.Net;
 
 namespace SpeedRunAppImport.Service
 {
@@ -187,7 +189,7 @@ namespace SpeedRunAppImport.Service
                 SpeedRunComUrl = i.WebLink.ToString(),
                 CoverImageUrl = i.Assets?.CoverLarge?.Uri.ToString()
             }).ToList();
-            var gameImageEntities = GetGameImages(gameLinkEntities);
+            SetTempCoverImages(gameLinkEntities);
             var levelEntities = games.SelectMany(i => i.Levels.Select(g => new LevelEntity
             {
                 ID = levelSpeedRunComIDs.Where(h => h.SpeedRunComID == g.ID).Select(o => o.LevelID).FirstOrDefault(),
@@ -276,7 +278,7 @@ namespace SpeedRunAppImport.Service
 
             if (isBulkReload)
             {
-                _gameRepo.InsertGames(gameEntities, gameLinkEntities, gameImageEntities, levelEntities, levelRuleEntities, categoryEntities, categoryRuleEntities, variableEntities, variableValueEntities, gamePlatformEntities, gameRegionEntities, gameModeratorEntities, gameRulesetEntities, gameTimingMethodEntities);
+                _gameRepo.InsertGames(gameEntities, gameLinkEntities, levelEntities, levelRuleEntities, categoryEntities, categoryRuleEntities, variableEntities, variableValueEntities, gamePlatformEntities, gameRegionEntities, gameModeratorEntities, gameRulesetEntities, gameTimingMethodEntities);
             }
             else
             {
@@ -290,7 +292,6 @@ namespace SpeedRunAppImport.Service
                 _logger.Information("Found NewGames: {@New}, ChangedGames: {@Changed}, TotalGames: {@Total}", newGameEntities.Count(), changedGameEntities.Count(), totalGames);
 
                 gameLinkEntities = gameLinkEntities.Where(i => saveGameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
-                gameImageEntities = gameImageEntities.Where(i => saveGameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
                 levelEntities = levelEntities.Where(i => saveGameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
                 levelRuleEntities = levelRuleEntities.Where(i => levelEntities.Any(g => g.SpeedRunComID == i.LevelSpeedRunComID)).ToList();
                 categoryEntities = categoryEntities.Where(i => saveGameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
@@ -302,42 +303,54 @@ namespace SpeedRunAppImport.Service
                 gameRulesetEntities = gameRulesetEntities.Where(i => saveGameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
                 gameTimingMethodEntities = gameTimingMethodEntities.Where(i => saveGameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
 
-                _gameRepo.SaveGames(gameEntities, gameLinkEntities, gameImageEntities, levelEntities, levelRuleEntities, categoryEntities, categoryRuleEntities, variableEntities, variableValueEntities, gamePlatformEntities, gameRegionEntities, gameModeratorEntities, gameRulesetEntities, gameTimingMethodEntities);
+                _gameRepo.SaveGames(gameEntities, gameLinkEntities, levelEntities, levelRuleEntities, categoryEntities, categoryRuleEntities, variableEntities, variableValueEntities, gamePlatformEntities, gameRegionEntities, gameModeratorEntities, gameRulesetEntities, gameTimingMethodEntities);
+            }
+
+            var di = new DirectoryInfo(TempImportPath);
+            foreach (FileInfo file in di.GetFiles())
+            {
+                file.Delete();
             }
 
             _logger.Information("Completed SaveGames");
         }
 
-        public IEnumerable<GameImageEntity> GetGameImages(List<GameLinkEntity> gameLinks)
+        public void SetTempCoverImages(List<GameLinkEntity> gameLinks)
         {
-            _logger.Information("Started GetGameImages: {@Count}", gameLinks.Count());
-            var gameImages = new List<GameImageEntity>();
+            _logger.Information("Started SetTempCoverImages: {@Count}", gameLinks.Count());
 
             int count = 1;
             foreach (var gameLink in gameLinks)
             {
-                try
+                if (!string.IsNullOrWhiteSpace(gameLink.CoverImageUrl))
                 {
-                    if (!string.IsNullOrWhiteSpace(gameLink.CoverImageUrl))
+                    var fileName = "GameCover_" + gameLink.GameSpeedRunComID + ".jpg";
+                    var tempFilePath = Path.Combine(TempImportPath, fileName);
+                    try
                     {
-                        var coverImage = new Uri(gameLink.CoverImageUrl).ReadAllBytesFromUri();
-                        if (coverImage != null)
+                        using (WebClient _wc = new WebClient())
                         {
-                            gameImages.Add(new GameImageEntity() { GameSpeedRunComID = gameLink.GameSpeedRunComID, CoverImage = coverImage });
+                            _wc.DownloadFile(new Uri(gameLink.CoverImageUrl), tempFilePath);
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    _logger.Information(ex, "GetGameImages");
+                    catch (Exception ex)
+                    {
+                        _logger.Information(ex, "SetTempCoverImages");
+                        tempFilePath = null;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(tempFilePath))
+                    {
+                        gameLink.TempCoverImagePath = tempFilePath;
+                        gameLink.LocalCoverImagePath = Path.Combine(BaseWebPath, GameImageWebDir, fileName);
+                    }
                 }
 
                 _logger.Information("Set gameImage {@Count} / {@Total}", count, gameLinks.Count);
                 count++;
             }
 
-            _logger.Information("Completed GetGameImages");
-            return gameImages;
+            _logger.Information("Completed SetTempCoverImages");
         }
 
         public void SetChangedGames(List<GameEntity> games, List<GameLinkEntity> gameLinks, IEnumerable<CategoryEntity> categories, IEnumerable<LevelEntity> levels, IEnumerable<VariableEntity> variables, IEnumerable<VariableValueEntity> variableValues, IEnumerable<GamePlatformEntity> gamePlatforms, IEnumerable<GameModeratorEntity> gameModerators)

@@ -183,7 +183,7 @@ namespace SpeedRunAppImport.Service
                 TwitterProfileUrl = i.TwitterProfile?.ToString()
             })
             .ToList();
-            SetTempProfileImages(userLinkEntities);
+            //SetTempProfileImages(userLinkEntities);
 
             if (isBulkReload)
             {
@@ -206,11 +206,12 @@ namespace SpeedRunAppImport.Service
 
                 _userRepo.SaveUsers(userEntities, userLocationEntities, userLinkEntities);
             }
-            MoveTempProfileImages(userLinkEntities);
+            //MoveTempProfileImages(userLinkEntities);
 
             _logger.Information("Completed SaveUsers");
         }
 
+        /*
         public void SetTempProfileImages(IEnumerable<UserLinkEntity> userLinks)
         {
             _logger.Information("Started SetTempProfileImages: {@Count}", userLinks.Count());
@@ -264,6 +265,7 @@ namespace SpeedRunAppImport.Service
                 }
             }
         }
+        */
 
         public IEnumerable<int> GetChangedUserIDs(List<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, List<UserLinkEntity> userLinks)
         {

@@ -14,8 +14,7 @@ namespace SpeedRunAppImport.Model.Entity
         public string HitboxProfileUrl { get; set; }
         public string YoutubeProfileUrl { get; set; }
         public string TwitterProfileUrl { get; set; }
-        //TempProfileImagePath
-        public string TempProfileImagePath { get; set; }
-        public string LocalProfileImagePath { get; set; }
+        //public string TempProfileImagePath { get; set; }
+        //public string LocalProfileImagePath { get; set; }
     }
 } 

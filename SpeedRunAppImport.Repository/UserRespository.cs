@@ -181,15 +181,7 @@ namespace SpeedRunAppImport.Repository
                         userLocationsBatch.ForEach(i => i.UserID = usersBatch.Find(g => g.SpeedRunComID == i.UserSpeedRunComID).ID);
                         db.InsertBulk<UserLocationEntity>(userLocationsBatch);
 
-                        foreach (var userLink in userLinksBatch)
-                        {
-                            userLink.UserID = usersBatch.Find(g => g.SpeedRunComID == userLink.UserSpeedRunComID).ID;
-                            userLink.LocalProfileImagePath = userLink.LocalProfileImagePath?.Replace(userLink.UserSpeedRunComID, userLink.UserID.ToString());
-                            //File.Move(userLink.TempProfileImagePath, userLink.LocalProfileImagePath, true);
-                            //db.Insert<UserLinkEntity>(userLink);
-                        }
-
-                        //userLinksBatch.ForEach(i => i.UserID = usersBatch.Find(g => g.SpeedRunComID == i.UserSpeedRunComID).ID);
+                        userLinksBatch.ForEach(i => i.UserID = usersBatch.Find(g => g.SpeedRunComID == i.UserSpeedRunComID).ID);
                         db.InsertBulk<UserLinkEntity>(userLinksBatch);
 
                         tran.Complete();
@@ -307,13 +299,6 @@ namespace SpeedRunAppImport.Repository
                             if (userLink != null)
                             {
                                 userLink.UserID = user.ID;
-                                userLink.LocalProfileImagePath = userLink.LocalProfileImagePath?.Replace(userLink.UserSpeedRunComID, userLink.UserID.ToString());
-                                //if (userLink.TempProfileImagePath != null)
-                                //{
-                                //    userLink.LocalProfileImagePath = userLink.LocalProfileImagePath.Replace(userLink.UserSpeedRunComID, userLink.UserID.ToString());
-                                //    File.Move(userLink.TempProfileImagePath, userLink.LocalProfileImagePath, true);
-                                //}
-
                                 db.Save<UserLinkEntity>(userLink);
                             }
 

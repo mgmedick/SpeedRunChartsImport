@@ -31,7 +31,7 @@ namespace SpeedRunAppImport.Repository
             For<UserLinkEntity>().PrimaryKey("UserID", false).TableName("dbo.tbl_User_Link" + tblEnd).Columns(i =>
             {
                 i.Column(g => g.UserSpeedRunComID).Ignore();
-                i.Column(g => g.TempProfileImagePath).Ignore();
+                //i.Column(g => g.TempProfileImagePath).Ignore();
             });
             For<UserSpeedRunComView>().PrimaryKey("ID").TableName("dbo.vw_UserSpeedRunCom");
 

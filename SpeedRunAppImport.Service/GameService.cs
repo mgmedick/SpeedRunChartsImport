@@ -305,6 +305,7 @@ namespace SpeedRunAppImport.Service
 
                 _gameRepo.SaveGames(gameEntities, gameLinkEntities, levelEntities, levelRuleEntities, categoryEntities, categoryRuleEntities, variableEntities, variableValueEntities, gamePlatformEntities, gameRegionEntities, gameModeratorEntities, gameRulesetEntities, gameTimingMethodEntities);
             }
+            MoveTempCoverImages(gameLinkEntities);
 
             var di = new DirectoryInfo(TempImportPath);
             foreach (FileInfo file in di.GetFiles())
@@ -356,6 +357,17 @@ namespace SpeedRunAppImport.Service
             }
 
             _logger.Information("Completed SetTempCoverImages");
+        }
+
+        public void MoveTempCoverImages(List<GameLinkEntity> gameLinks)
+        {
+            foreach (var gameLink in gameLinks)
+            {
+                if (!string.IsNullOrWhiteSpace(gameLink.TempCoverImagePath))
+                {
+                    File.Move(gameLink.TempCoverImagePath, gameLink.LocalCoverImagePath, true);
+                }
+            }
         }
 
         public void SetChangedGames(List<GameEntity> games, List<GameLinkEntity> gameLinks, IEnumerable<CategoryEntity> categories, IEnumerable<LevelEntity> levels, IEnumerable<VariableEntity> variables, IEnumerable<VariableValueEntity> variableValues, IEnumerable<GamePlatformEntity> gamePlatforms, IEnumerable<GameModeratorEntity> gameModerators)

@@ -580,13 +580,13 @@ namespace SpeedRunAppImport.Repository
                         foreach (var gameLink in gameLinksBatch)
                         {
                             gameLink.GameID = gamesBatch.Find(g => g.SpeedRunComID == gameLink.GameSpeedRunComID).ID;
-                            gameLink.LocalCoverImagePath = gameLink.LocalCoverImagePath.Replace(gameLink.GameSpeedRunComID, gameLink.GameID.ToString());
-                            File.Move(gameLink.TempCoverImagePath, gameLink.LocalCoverImagePath, true);
-                            db.Insert<GameLinkEntity>(gameLink);
+                            gameLink.LocalCoverImagePath = gameLink.LocalCoverImagePath?.Replace(gameLink.GameSpeedRunComID, gameLink.GameID.ToString());
+                            //File.Move(gameLink.TempCoverImagePath, gameLink.LocalCoverImagePath, true);
+                            //db.Insert<GameLinkEntity>(gameLink);
                         }
 
                         //gameLinksBatch.ForEach(i => i.GameID = gamesBatch.Find(g => g.SpeedRunComID == i.GameSpeedRunComID).ID);
-                        //db.InsertBulk<GameLinkEntity>(gameLinksBatch);
+                        db.InsertBulk<GameLinkEntity>(gameLinksBatch);
 
                         //foreach (var level in levelsBatch)
                         //{
@@ -1001,11 +1001,12 @@ namespace SpeedRunAppImport.Repository
                             if (gameLink != null)
                             {
                                 gameLink.GameID = game.ID;
-                                if (gameLink.TempCoverImagePath != null)
-                                {
-                                    gameLink.LocalCoverImagePath = gameLink.LocalCoverImagePath.Replace(gameLink.GameSpeedRunComID, gameLink.GameID.ToString());
-                                    File.Move(gameLink.TempCoverImagePath, gameLink.LocalCoverImagePath, true);
-                                }
+                                gameLink.LocalCoverImagePath = gameLink.LocalCoverImagePath?.Replace(gameLink.GameSpeedRunComID, gameLink.GameID.ToString());
+                                //if (gameLink.TempCoverImagePath != null)
+                                //{
+                                //    gameLink.LocalCoverImagePath = gameLink.LocalCoverImagePath.Replace(gameLink.GameSpeedRunComID, gameLink.GameID.ToString());
+                                //    File.Move(gameLink.TempCoverImagePath, gameLink.LocalCoverImagePath, true);
+                                //}
 
                                 db.Save<GameLinkEntity>(gameLink);
                             }

@@ -206,11 +206,12 @@ namespace SpeedRunAppImport.Service
 
                 _userRepo.SaveUsers(userEntities, userLocationEntities, userLinkEntities);
             }
+            MoveTempProfileImages(userLinkEntities);
 
             _logger.Information("Completed SaveUsers");
         }
 
-        public void SetTempProfileImages(List<UserLinkEntity> userLinks)
+        public void SetTempProfileImages(IEnumerable<UserLinkEntity> userLinks)
         {
             _logger.Information("Started SetTempProfileImages: {@Count}", userLinks.Count());
 
@@ -246,11 +247,22 @@ namespace SpeedRunAppImport.Service
                     }
                 }
 
-                _logger.Information("Set userImage {@Count} / {@Total}", count, userLinks.Count);
+                _logger.Information("Set userImage {@Count} / {@Total}", count, userLinks.Count());
                 count++;
             }
 
             _logger.Information("Completed SetTempProfileImages");
+        }
+
+        public void MoveTempProfileImages(List<UserLinkEntity> userLinks)
+        {
+            foreach (var userLink in userLinks)
+            {
+                if (!string.IsNullOrWhiteSpace(userLink.TempProfileImagePath))
+                {
+                    File.Move(userLink.TempProfileImagePath, userLink.LocalProfileImagePath, true);
+                }
+            }
         }
 
         public IEnumerable<int> GetChangedUserIDs(List<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, List<UserLinkEntity> userLinks)

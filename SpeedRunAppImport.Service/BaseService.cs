@@ -32,6 +32,7 @@ namespace SpeedRunAppImport.Service
         public static string BaseWebPath { get; set; }
         public static string GameImageWebDir { get; set; }
         public static string UserImageWebDir { get; set; }
+        public static string ImageFileExt { get; set; }
     }
 }
 

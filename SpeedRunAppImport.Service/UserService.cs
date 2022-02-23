@@ -214,12 +214,17 @@ namespace SpeedRunAppImport.Service
         {
             _logger.Information("Started SetTempProfileImages: {@Count}", userLinks.Count());
 
+            if (!Directory.Exists(TempImportPath))
+            {
+                Directory.CreateDirectory(TempImportPath);
+            }
+
             int count = 1;
             foreach (var userLink in userLinks)
             {
                 if (!string.IsNullOrWhiteSpace(userLink.ProfileImageUrl))
                 {
-                    var fileName = "UserProfile_" + userLink.UserSpeedRunComID + ".jpg";
+                    var fileName = string.Format("UserProfile_{0}.{1}", userLink.UserSpeedRunComID, ImageFileExt);
                     var tempFilePath = Path.Combine(TempImportPath, fileName);
                     try
                     {
@@ -230,7 +235,7 @@ namespace SpeedRunAppImport.Service
                     }
                     catch (Exception ex)
                     {
-                        _logger.Information(ex, "SetTempCoverImages");
+                        _logger.Information(ex, "SetTempProfileImages");
                         tempFilePath = null;
                     }
 
@@ -245,7 +250,7 @@ namespace SpeedRunAppImport.Service
                 count++;
             }
 
-            _logger.Information("Completed SetTempCoverImages");
+            _logger.Information("Completed SetTempProfileImages");
         }
 
         public IEnumerable<int> GetChangedUserIDs(List<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, List<UserLinkEntity> userLinks)

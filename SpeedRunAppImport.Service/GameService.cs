@@ -319,12 +319,17 @@ namespace SpeedRunAppImport.Service
         {
             _logger.Information("Started SetTempCoverImages: {@Count}", gameLinks.Count());
 
+            if (!Directory.Exists(TempImportPath))
+            {
+                Directory.CreateDirectory(TempImportPath);
+            }
+
             int count = 1;
             foreach (var gameLink in gameLinks)
             {
                 if (!string.IsNullOrWhiteSpace(gameLink.CoverImageUrl))
                 {
-                    var fileName = "GameCover_" + gameLink.GameSpeedRunComID + ".jpg";
+                    var fileName = string.Format("GameCover_{0}.{1}", gameLink.GameSpeedRunComID, ImageFileExt);
                     var tempFilePath = Path.Combine(TempImportPath, fileName);
                     try
                     {

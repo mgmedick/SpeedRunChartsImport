@@ -65,7 +65,6 @@ namespace SpeedRunAppImport.Repository
             For<GameLinkEntity>().PrimaryKey("GameID", false).TableName("dbo.tbl_Game_Link" + tblEnd).Columns(i =>
             {
                 i.Column(g => g.GameSpeedRunComID).Ignore();
-                i.Column(g => g.TempCoverImagePath).Ignore();
             });
             For<LevelEntity>().PrimaryKey("ID").TableName("dbo.tbl_Level" + tblEnd).Columns(i =>
             {

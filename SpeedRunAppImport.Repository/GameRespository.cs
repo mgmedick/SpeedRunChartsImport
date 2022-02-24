@@ -577,12 +577,7 @@ namespace SpeedRunAppImport.Repository
                         var gameSpeedRunComIDsBatch = gamesBatch.Select(i => new GameSpeedRunComIDEntity { GameID = i.ID, SpeedRunComID = i.SpeedRunComID }).ToList();
                         db.InsertBulk<GameSpeedRunComIDEntity>(gameSpeedRunComIDsBatch);
 
-                        foreach (var gameLink in gameLinksBatch)
-                        {
-                            gameLink.GameID = gamesBatch.Find(g => g.SpeedRunComID == gameLink.GameSpeedRunComID).ID;
-                            gameLink.LocalCoverImagePath = gameLink.LocalCoverImagePath?.Replace(gameLink.GameSpeedRunComID, gameLink.GameID.ToString());
-                        }
-
+                        gameLinksBatch.ForEach(i => i.GameID = gamesBatch.Find(g => g.SpeedRunComID == i.GameSpeedRunComID).ID);
                         db.InsertBulk<GameLinkEntity>(gameLinksBatch);
 
                         //foreach (var level in levelsBatch)
@@ -998,7 +993,6 @@ namespace SpeedRunAppImport.Repository
                             if (gameLink != null)
                             {
                                 gameLink.GameID = game.ID;
-                                gameLink.LocalCoverImagePath = gameLink.LocalCoverImagePath?.Replace(gameLink.GameSpeedRunComID, gameLink.GameID.ToString());
                                 db.Save<GameLinkEntity>(gameLink);
                             }
 
@@ -1049,6 +1043,24 @@ namespace SpeedRunAppImport.Repository
                 //               ), 1, 1, '')
 
                 //            EXEC(@@Sql)");
+            }
+        }
+
+        public void UpdateGameCoverImages(IEnumerable<GameLinkEntity> gameLinks)
+        {
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                foreach (var gameLink in gameLinks)
+                {
+                    try
+                    {
+                        db.Update<GameLinkEntity>(gameLink, i => new { i.CoverImagePath });
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Error(ex, "UpdateGameCoverImages GameID: {@GameID}", gameLink.GameID);
+                    }
+                }
             }
         }
 

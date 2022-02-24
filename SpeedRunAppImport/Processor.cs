@@ -17,6 +17,7 @@ using SpeedRunAppImport.Model.Data;
 using SpeedRunAppImport.Service;
 using SpeedRunAppImport.Model.Entity;
 using System.Data.SqlTypes;
+using System.IO;
 
 namespace SpeedRunAppImport
 {
@@ -139,10 +140,15 @@ namespace SpeedRunAppImport
                 BaseService.YouTubeAPIRequestCount = 0;
                 BaseService.YouTubeAPIEnabled = _settingService.GetSetting("YouTubeAPIEnabled")?.Num == 1;
                 BaseService.GameIDsToUpdateSpeedRuns = new List<int>();
-                BaseService.TempImportPath = _config.GetSection("AppSettings").GetSection("TempImportPath").Value;
                 BaseService.BaseWebPath = _config.GetSection("AppSettings").GetSection("BaseWebPath").Value;
                 BaseService.GameImageWebPath = _config.GetSection("AppSettings").GetSection("GameImageWebPath").Value;
                 BaseService.ImageFileExt = _config.GetSection("AppSettings").GetSection("ImageFileExt").Value;
+                BaseService.TempImportPath = _config.GetSection("AppSettings").GetSection("TempImportPath").Value;
+
+                if (!Directory.Exists(BaseService.TempImportPath))
+                {
+                    Directory.CreateDirectory(BaseService.TempImportPath);
+                }
 
                 _logger.Information("Completed Init");
             }

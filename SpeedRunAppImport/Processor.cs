@@ -128,6 +128,7 @@ namespace SpeedRunAppImport
                 BaseService.MaxRetryCount = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxRetryCount").Value);
                 BaseService.MaxMemorySizeBytes = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxMemorySizeBytes").Value);
                 BaseService.PullDelayMS = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("PullDelayMS").Value);
+                BaseService.PullDelayShortMS = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("PullDelayShortMS").Value);
                 BaseService.ErrorPullDelayMS = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("ErrorPullDelayMS").Value);
                 BaseService.SpeedRunComLatestRunsUrl = _config.GetSection("ApiSettings").GetSection("SpeedRunComLatestRunsUrl").Value;
                 BaseService.TwitchClientID = _config.GetSection("ApiSettings").GetSection("TwitchClientID").Value;

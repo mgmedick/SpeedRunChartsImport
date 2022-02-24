@@ -17,6 +17,7 @@ namespace SpeedRunAppImport.Service
         public static int MaxRetryCount { get; set; }
         public static long MaxMemorySizeBytes { get; set; }
         public static int PullDelayMS { get; set; }
+        public static int PullDelayShortMS { get; set; }
         public static int ErrorPullDelayMS { get; set; }
         public static DateTime SqlMinDateTime { get; set; }
         public static string SpeedRunComLatestRunsUrl { get; set; }

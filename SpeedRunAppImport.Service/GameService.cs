@@ -338,7 +338,7 @@ namespace SpeedRunAppImport.Service
                         {
                             _wc.DownloadFile(new Uri(gameLink.CoverImageUrl), tempFilePath);
                         }
-                        Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
+                        Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayShortMS));
                     }
                     catch (Exception ex)
                     {

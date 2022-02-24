@@ -350,7 +350,7 @@ namespace SpeedRunAppImport.Service
                     if (!string.IsNullOrWhiteSpace(tempFilePath))
                     {
                         gameLink.TempCoverImagePath = tempFilePath;
-                        gameLink.LocalCoverImagePath = Path.Combine(BaseWebPath, GameImageWebDir, fileName);
+                        gameLink.LocalCoverImagePath = Path.Combine(BaseWebPath, GameImageWebPath, fileName);
                     }
                 }
 

@@ -183,7 +183,6 @@ namespace SpeedRunAppImport.Service
                 TwitterProfileUrl = i.TwitterProfile?.ToString()
             })
             .ToList();
-            //SetTempProfileImages(userLinkEntities);
 
             if (isBulkReload)
             {
@@ -206,66 +205,9 @@ namespace SpeedRunAppImport.Service
 
                 _userRepo.SaveUsers(userEntities, userLocationEntities, userLinkEntities);
             }
-            //MoveTempProfileImages(userLinkEntities);
 
             _logger.Information("Completed SaveUsers");
         }
-
-        /*
-        public void SetTempProfileImages(IEnumerable<UserLinkEntity> userLinks)
-        {
-            _logger.Information("Started SetTempProfileImages: {@Count}", userLinks.Count());
-
-            if (!Directory.Exists(TempImportPath))
-            {
-                Directory.CreateDirectory(TempImportPath);
-            }
-
-            int count = 1;
-            foreach (var userLink in userLinks)
-            {
-                if (!string.IsNullOrWhiteSpace(userLink.ProfileImageUrl))
-                {
-                    var fileName = string.Format("UserProfile_{0}.{1}", userLink.UserSpeedRunComID, ImageFileExt);
-                    var tempFilePath = Path.Combine(TempImportPath, fileName);
-                    try
-                    {
-                        using (WebClient _wc = new WebClient())
-                        {
-                            _wc.DownloadFile(new Uri(userLink.ProfileImageUrl), tempFilePath);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.Information(ex, "SetTempProfileImages");
-                        tempFilePath = null;
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(tempFilePath))
-                    {
-                        userLink.TempProfileImagePath = tempFilePath;
-                        userLink.LocalProfileImagePath = Path.Combine(BaseWebPath, UserImageWebDir, fileName);
-                    }
-                }
-
-                _logger.Information("Set userImage {@Count} / {@Total}", count, userLinks.Count());
-                count++;
-            }
-
-            _logger.Information("Completed SetTempProfileImages");
-        }
-
-        public void MoveTempProfileImages(List<UserLinkEntity> userLinks)
-        {
-            foreach (var userLink in userLinks)
-            {
-                if (!string.IsNullOrWhiteSpace(userLink.TempProfileImagePath))
-                {
-                    File.Move(userLink.TempProfileImagePath, userLink.LocalProfileImagePath, true);
-                }
-            }
-        }
-        */
 
         public IEnumerable<int> GetChangedUserIDs(List<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, List<UserLinkEntity> userLinks)
         {

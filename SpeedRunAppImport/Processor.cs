@@ -141,8 +141,7 @@ namespace SpeedRunAppImport
                 BaseService.GameIDsToUpdateSpeedRuns = new List<int>();
                 BaseService.TempImportPath = _config.GetSection("AppSettings").GetSection("TempImportPath").Value;
                 BaseService.BaseWebPath = _config.GetSection("AppSettings").GetSection("BaseWebPath").Value;
-                BaseService.GameImageWebDir = _config.GetSection("AppSettings").GetSection("GameImageWebDir").Value;
-                BaseService.UserImageWebDir = _config.GetSection("AppSettings").GetSection("UserImageWebDir").Value;
+                BaseService.GameImageWebPath = _config.GetSection("AppSettings").GetSection("GameImageWebPath").Value;
                 BaseService.ImageFileExt = _config.GetSection("AppSettings").GetSection("ImageFileExt").Value;
 
                 _logger.Information("Completed Init");

@@ -304,62 +304,65 @@ namespace SpeedRunAppImport.Service
 
                 _gameRepo.SaveGames(gameEntities, gameLinkEntities, levelEntities, levelRuleEntities, categoryEntities, categoryRuleEntities, variableEntities, variableValueEntities, gamePlatformEntities, gameRegionEntities, gameModeratorEntities, gameRulesetEntities, gameTimingMethodEntities);
             }
-            ProcessGameCoverImages(gameLinkEntities);
+            ProcessGameCoverImages(gameLinkEntities, isBulkReload);
 
             _logger.Information("Completed SaveGames");
         }
 
-        public void ProcessGameCoverImages(List<GameLinkEntity> gameLinks)
+        public void ProcessGameCoverImages(List<GameLinkEntity> gameLinks, bool isBulkReload)
         {
             gameLinks = gameLinks.Where(i => !string.IsNullOrWhiteSpace(i.CoverImageUrl)).ToList();
-            var tempGameCoverPaths = GetGameCoverImages(gameLinks);
+            var tempGameCoverPaths = GetGameCoverImages(gameLinks, isBulkReload);
             var gameCoverPaths = MoveGameCoverImages(tempGameCoverPaths);
             ClearTempFolder();
             SaveGameCoverImages(gameLinks, gameCoverPaths);
         }
 
-        public Dictionary<int, string> GetGameCoverImages(List<GameLinkEntity> gameLinks)
+        public Dictionary<int, string> GetGameCoverImages(List<GameLinkEntity> gameLinks, bool isBulkReload)
         {
-            _logger.Information("Started SetTempCoverImages: {@Count}", gameLinks.Count);
-            Dictionary<int, string> tempGameCoverPaths = new Dictionary<int, string>();
+            _logger.Information("Started GetGameCoverImages: {@Count}", gameLinks.Count);
+            var tempGameCoverPaths = new Dictionary<int, string>();
 
             int count = 1;
             foreach (var gameLink in gameLinks)
             {
                 var fileName = string.Format("GameCover_{0}.{1}", gameLink.GameID, ImageFileExt);
-                var tempFilePath = Path.Combine(TempImportPath, fileName);
-                try
+                if (isBulkReload || !File.Exists(fileName))
                 {
-                    using (WebClient _wc = new WebClient())
+                    var tempFilePath = Path.Combine(TempImportPath, fileName);
+                    try
                     {
-                        _wc.DownloadFile(new Uri(gameLink.CoverImageUrl), tempFilePath);
+                        using (WebClient _wc = new WebClient())
+                        {
+                            _wc.DownloadFile(new Uri(gameLink.CoverImageUrl), tempFilePath);
+                        }
+                        Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayShortMS));
                     }
-                    Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayShortMS));
-                }
-                catch (Exception ex)
-                {
-                    Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.ErrorPullDelayMS));
-                    _logger.Information(ex, "SetTempCoverImages");
-                    tempFilePath = null;
-                }
+                    catch (Exception ex)
+                    {
+                        Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.ErrorPullDelayMS));
+                        _logger.Information(ex, "SetTempCoverImages");
+                        tempFilePath = null;
+                    }
 
-                if(!string.IsNullOrWhiteSpace(tempFilePath))
-                {
-                    tempGameCoverPaths.Add(gameLink.GameID, tempFilePath);
+                    if (!string.IsNullOrWhiteSpace(tempFilePath) && !tempGameCoverPaths.ContainsKey(gameLink.GameID))
+                    {
+                        tempGameCoverPaths.Add(gameLink.GameID, tempFilePath);
+                    }
                 }
 
                 _logger.Information("Set gameImage {@Count} / {@Total}", count, gameLinks.Count);
                 count++;
             }
 
-            _logger.Information("Completed SetTempCoverImages");
+            _logger.Information("Completed GetGameCoverImages");
 
             return tempGameCoverPaths;
         }
 
         public Dictionary<int, string> MoveGameCoverImages(Dictionary<int, string> tempGameCoverPaths)
         {
-            Dictionary<int, string> gameCoverPaths = new Dictionary<int, string>();
+            var gameCoverPaths = new Dictionary<int, string>();
 
             foreach (var tempGameCoverPath in tempGameCoverPaths)
             {
@@ -391,6 +394,7 @@ namespace SpeedRunAppImport.Service
                 }
             }
 
+            gameLinks = gameLinks.Where(i => !string.IsNullOrWhiteSpace(i.CoverImagePath)).ToList();
             _gameRepo.UpdateGameCoverImages(gameLinks);
         }
 

@@ -369,7 +369,8 @@ namespace SpeedRunAppImport.Service
                 var fileName = Path.GetFileName(tempGameCoverPath.Value);
                 var destFilePath = Path.Combine(BaseWebPath, GameImageWebPath, fileName);
                 File.Move(tempGameCoverPath.Value, destFilePath, true);
-                gameCoverPaths.Add(tempGameCoverPath.Key, destFilePath);
+                var gameCoverPath = Path.Combine("/" + GameImageWebPath, fileName);
+                gameCoverPaths.Add(tempGameCoverPath.Key, gameCoverPath);
             }
 
             return gameCoverPaths;

@@ -746,6 +746,7 @@ namespace SpeedRunAppImport.Repository
                     var gameModeratorsBatch = gameModerators.Where(i => i.GameSpeedRunComID == game.SpeedRunComID).ToList();
                     var gameRuleset = gameRulesets.FirstOrDefault(i => i.GameSpeedRunComID == game.SpeedRunComID);
                     var gameTimingMethodsBatch = gameTimingMethods.Where(i => i.GameSpeedRunComID == game.SpeedRunComID).ToList();
+                    var gameExists = false;
 
                     using (var tran = db.GetTransaction())
                     {
@@ -753,9 +754,10 @@ namespace SpeedRunAppImport.Repository
                         {
                             if (game.ID != 0)
                             {
+                                gameExists = true;
                                 //_logger.Information("Deleting secondary game entities");
                                 game.ModifiedDate = DateTime.UtcNow;
-                                db.DeleteWhere<GameLinkEntity>("GameID = @gameID", new { gameID = game.ID });
+                                //db.DeleteWhere<GameLinkEntity>("GameID = @gameID", new { gameID = game.ID });
                                 db.DeleteWhere<GameRulesetEntity>("GameID = @gameID", new { gameID = game.ID });
                                 db.DeleteWhere<GamePlatformEntity>("GameID = @gameID", new { gameID = game.ID });
                                 db.DeleteWhere<GameRegionEntity>("GameID = @gameID", new { gameID = game.ID });
@@ -993,7 +995,14 @@ namespace SpeedRunAppImport.Repository
                             if (gameLink != null)
                             {
                                 gameLink.GameID = game.ID;
-                                db.Save<GameLinkEntity>(gameLink);
+                                if (gameExists)
+                                {
+                                    db.Update<GameLinkEntity>(gameLink, i => new { i.GameID, i.SpeedRunComUrl, i.CoverImageUrl });
+                                }
+                                else
+                                {
+                                    db.Insert<GameLinkEntity>(gameLink);
+                                }
                             }
 
                             //_logger.Information("Saving gameRuleset");

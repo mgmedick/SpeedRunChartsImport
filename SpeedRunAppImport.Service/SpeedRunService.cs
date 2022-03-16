@@ -54,6 +54,11 @@ namespace SpeedRunAppImport.Service
                 else
                 {
                     ProcessSpeedRunsDefault(lastImportDateUtc, isFullPull, isBulkReload);
+
+                    if (GameIDsToUpdateSpeedRuns.Any())
+                    {
+                        ProcessSpeedRunsByGame(importLastRunDateUtc, isFullPull, isBulkReload);
+                    }
                 }
 
                 _logger.Information("Completed ProcessSpeedRuns");

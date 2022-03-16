@@ -757,6 +757,7 @@ namespace SpeedRunAppImport.Repository
                                 gameExists = true;
                                 //_logger.Information("Deleting secondary game entities");
                                 game.ModifiedDate = DateTime.UtcNow;
+                                game.IsChanged = null;
                                 //db.DeleteWhere<GameLinkEntity>("GameID = @gameID", new { gameID = game.ID });
                                 db.DeleteWhere<GameRulesetEntity>("GameID = @gameID", new { gameID = game.ID });
                                 db.DeleteWhere<GamePlatformEntity>("GameID = @gameID", new { gameID = game.ID });

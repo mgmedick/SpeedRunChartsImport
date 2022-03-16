@@ -20,6 +20,7 @@ namespace SpeedRunAppImport.Model.Entity
         public string ModeratorSpeedRunComIDs { get; set; }
         public DateTime? CreatedDate { get; set; }
         public DateTime? ModifiedDate { get; set; }
+        public bool? IsChanged { get; set; }
 
         //ignore
         public string[] CategorySpeedRunComIDArray { get { return string.IsNullOrWhiteSpace(CategorySpeedRunComIDs) ? new string[0] : CategorySpeedRunComIDs.Split(","); } }

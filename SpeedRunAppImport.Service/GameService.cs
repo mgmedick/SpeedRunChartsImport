@@ -82,6 +82,11 @@ namespace SpeedRunAppImport.Service
                     results.ClearMemory();
                 }
 
+                if (!isBulkReload)
+                {
+                    ProcessChangedGames(gameEmbeds);
+                }
+
                 _logger.Information("Completed ProcessGames");
             }
             catch (Exception ex)
@@ -91,6 +96,35 @@ namespace SpeedRunAppImport.Service
             }
 
             return result;
+        }
+
+        public void ProcessChangedGames(GameEmbeds gameEmbeds)
+        {
+            _logger.Information("Started ProcessChangedGames");
+
+            var results = new List<Game>();
+            var gameSpeedRunComViews = _gameRepo.GetGameSpeedRunComViews(i => i.IsChanged == true);
+
+            if (gameSpeedRunComViews.Any())
+            {
+                var clientContainer = new ClientContainer();
+                foreach (var gameSpeedRunComView in gameSpeedRunComViews)
+                {
+                    var game = clientContainer.Games.GetGame(gameSpeedRunComView.SpeedRunComID, gameEmbeds);
+                    if (game != null && !results.Any(i => i.ID == game.ID))
+                    {
+                        results.Add(game);
+                    }
+                }
+            }
+
+            if (results.Any())
+            {
+                SaveGames(results, false);
+                results.ClearMemory();
+            }
+
+            _logger.Information("Completed ProcessChangedGames");
         }
 
         public List<Game> GetGamesWithRetry(int elementsPerPage, int elementsOffset, GameEmbeds embeds, GamesOrdering? orderBy, int retryCount = 0)
@@ -283,7 +317,7 @@ namespace SpeedRunAppImport.Service
             {
                 var newGameEntities = gameEntities.Where(i => i.ID == 0).ToList();
                 SetChangedGames(gameEntities, gameLinkEntities, categoryEntities, levelEntities, variableEntities, variableValueEntities, gamePlatformEntities, gameModeratorEntities);
-                var changedGameEntities = gameEntities.Where(i => i.IsChanged).ToList();
+                var changedGameEntities = gameEntities.Where(i => i.IsChanged == true).ToList();
                 var totalGames = gameEntities.Count();
                 gameEntities = newGameEntities.Concat(changedGameEntities).ToList();
                 var saveGameSpeedRunComIDs = gameEntities.Select(i => i.SpeedRunComID).ToList();
@@ -433,13 +467,24 @@ namespace SpeedRunAppImport.Service
                     var platformIDs = gamePlatforms.Where(i => i.GameSpeedRunComID == game.SpeedRunComID).Select(h => h.PlatformSpeedRunComID).ToList();
                     var moderatorUserIDs = gameModerators.Where(i => i.GameSpeedRunComID == game.SpeedRunComID).Select(h => h.UserSpeedRunComID).ToList();
 
-                    isChanged = (game.Name != gameSpeedRunComView.Name
-                                 || game.IsRomHack != gameSpeedRunComView.IsRomHack
-                                 || game.YearOfRelease != gameSpeedRunComView.YearOfRelease);
-
-                    if (isChanged)
+                    if (gameSpeedRunComView.IsChanged.HasValue && gameSpeedRunComView.IsChanged.Value)
                     {
-                        changeReasons.Add("Name, IsRomHack or YearOfRelease changed");
+                        isChanged = true;
+                        isVariablesOrderChanged = true;
+                        GameIDsToUpdateSpeedRuns.Add(game.ID);
+                        changeReasons.Add("Changed from DB");
+                    }
+
+                    if (!isChanged)
+                    {
+                        isChanged = (game.Name != gameSpeedRunComView.Name
+                                     || game.IsRomHack != gameSpeedRunComView.IsRomHack
+                                     || game.YearOfRelease != gameSpeedRunComView.YearOfRelease);
+
+                        if (isChanged)
+                        {
+                            changeReasons.Add("Name, IsRomHack or YearOfRelease changed");
+                        }
                     }
 
                     if (!isChanged)
@@ -545,7 +590,7 @@ namespace SpeedRunAppImport.Service
                     game.IsChanged = isChanged;
                     game.IsVariablesOrderChanged = isVariablesOrderChanged;
 
-                    if (game.IsChanged)
+                    if (game.IsChanged.Value)
                     {
                         _logger.Information("GameID: {@GameID}, ChangeReason: {@ChangeReason}", game.ID, string.Join("; ", changeReasons));
                     }

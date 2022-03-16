@@ -58,7 +58,6 @@ namespace SpeedRunAppImport.Repository
             {
                 i.Column(g => g.ImportedDate).Ignore();
                 i.Column(g => g.SpeedRunComID).Ignore();
-                i.Column(g => g.IsChanged).Ignore();
                 i.Column(g => g.IsVariablesOrderChanged).Ignore();
             });
             For<GameSpeedRunComIDEntity>().PrimaryKey("GameID", false).TableName("dbo.tbl_Game_SpeedRunComID" + tblEnd);

@@ -98,7 +98,7 @@ namespace SpeedRunAppImport.Service
             return result;
         }
 
-        public void ProcessChangedGames(GameEmbeds gameEmbeds)
+        public void ProcessChangedGames(GameEmbeds gameEmbeds, int retryCount = 0)
         {
             _logger.Information("Started ProcessChangedGames");
 
@@ -110,10 +110,20 @@ namespace SpeedRunAppImport.Service
                 var clientContainer = new ClientContainer();
                 foreach (var gameSpeedRunComView in gameSpeedRunComViews)
                 {
-                    var game = clientContainer.Games.GetGame(gameSpeedRunComView.SpeedRunComID, gameEmbeds);
-                    if (game != null && !results.Any(i => i.ID == game.ID))
+                    try
                     {
-                        results.Add(game);
+                        var game = clientContainer.Games.GetGame(gameSpeedRunComView.SpeedRunComID, gameEmbeds);
+                        if (game != null)
+                        {
+                            results.Add(game);
+                        }
+                        _logger.Information("Pulled games: {@New}, total games: {@Total}", 1, results.Count);
+                        Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
+                    }
+                    catch (Exception ex)
+                    {
+                        Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.ErrorPullDelayMS));
+                        _logger.Error(ex, "ProcessChangedGames");
                     }
                 }
             }

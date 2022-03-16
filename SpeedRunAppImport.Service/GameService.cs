@@ -116,8 +116,8 @@ namespace SpeedRunAppImport.Service
                         if (game != null)
                         {
                             results.Add(game);
+                            _logger.Information("Pulled games: {@New}, total games: {@Total}", 1, results.Count);
                         }
-                        _logger.Information("Pulled games: {@New}, total games: {@Total}", 1, results.Count);
                         Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
                     }
                     catch (Exception ex)

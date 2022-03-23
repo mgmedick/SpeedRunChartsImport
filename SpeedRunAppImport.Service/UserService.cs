@@ -122,7 +122,7 @@ namespace SpeedRunAppImport.Service
             {
                 ID = guestSpeedRunComIDs.Where(g => g.Name == i.Name).Select(g => g.ID).FirstOrDefault(),
                 Name = i.Name,
-                Abbr = i.WebLink?.Segments.LastOrDefault()
+                Abbr = WebUtility.UrlEncode(i.Name)
             })
             .ToList();
 

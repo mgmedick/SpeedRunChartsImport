@@ -244,14 +244,21 @@ namespace SpeedRunAppImport.Repository
 
                     using (var tran = db.GetTransaction())
                     {
-                        db.Save<GuestEntity>(guest);
-
-                        if (guestLink != null)
+                        try
                         {
-                            guestLink.GuestID = guest.ID;
-                            db.Save<GuestLinkEntity>(guestLink);
+                            db.Save<GuestEntity>(guest);
+
+                            if (guestLink != null)
+                            {
+                                guestLink.GuestID = guest.ID;
+                                db.Save<GuestLinkEntity>(guestLink);
+                            }
+                            tran.Complete();
                         }
-                        tran.Complete();
+                        catch (Exception ex)
+                        {
+                            _logger.Error(ex, "SaveGuests GuestID: {@GuestID}, GameSpeedRunComID: {@GuestSpeedRunComID}", guest.ID, guest.Name);
+                        }
                     }
 
                     _logger.Information("Saved guests {@Count} / {@Total}", count, guestList.Count);
@@ -306,7 +313,7 @@ namespace SpeedRunAppImport.Repository
                         }
                         catch (Exception ex)
                         {
-                            _logger.Error(ex, "SaveUsers GameID: {@GameID}, GameSpeedRunComID: {@GameSpeedRunComID}", user.ID, user.SpeedRunComID);
+                            _logger.Error(ex, "SaveUsers UserID: {@UserID}, UserSpeedRunComID: {@UserSpeedRunComID}", user.ID, user.SpeedRunComID);
                         }
                     }
 

@@ -449,18 +449,8 @@ namespace SpeedRunAppImport.Service
             runs = runs.GroupBy(i => i.ID).Select(i => i.FirstOrDefault()).OrderBy(i => i.Status.VerifyDate).ToList();
 
             var runIDs = runs.Select(i => i.ID).ToList();
-            //var speedRunSpeedRunComIDs = _speedRunRepo.GetSpeedRunSpeedRunComIDs();
-            var speedRunSpeedRunComIDs = new List<SpeedRunSpeedRunComIDEntity>();
-            var maxBatchCount = 500;
-            var batchCount = 0;
-            while (batchCount < runs.Count())
-            {
-                var speedRunSpeedRunComIDsBatch = runs.Skip(batchCount).Take(maxBatchCount).Select(i => i.ID).ToList();
-                var speedRunSpeedRunComIDsPulled = _speedRunRepo.GetSpeedRunSpeedRunComIDs(i => speedRunSpeedRunComIDsBatch.Contains(i.SpeedRunComID));
-                speedRunSpeedRunComIDs.AddRange(speedRunSpeedRunComIDsPulled);
-                batchCount += maxBatchCount;
-            }
-            //speedRunSpeedRunComIDs = speedRunSpeedRunComIDs.Join(runIDs, o => o.SpeedRunComID, id => id, (o, id) => o).ToList();
+            var speedRunSpeedRunComIDs = _speedRunRepo.GetSpeedRunSpeedRunComIDs();
+            speedRunSpeedRunComIDs = speedRunSpeedRunComIDs.Join(runIDs, o => o.SpeedRunComID, id => id, (o, id) => o).ToList();
 
             var gameIDs = runs.Select(i => i.GameID).Distinct().ToList();
             var gameSpeedRunComIDs = _gameRepo.GetGameSpeedRunComIDs();

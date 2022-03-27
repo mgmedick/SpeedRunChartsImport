@@ -20,6 +20,7 @@ namespace SpeedRunAppImport.Interfaces.Repositories
         IEnumerable<VariableValueSpeedRunComIDEntity> GetVariableValueSpeedRunComIDs(Expression<Func<VariableValueSpeedRunComIDEntity, bool>> predicate = null);
         IEnumerable<RegionSpeedRunComIDEntity> GetRegionSpeedRunComIDs(Expression<Func<RegionSpeedRunComIDEntity, bool>> predicate = null);
         void RemoveObsoleteGameSpeedRunComIDs();
+        IEnumerable<SitemapEntity> GetGamesForSitemap();
     }
 }
 

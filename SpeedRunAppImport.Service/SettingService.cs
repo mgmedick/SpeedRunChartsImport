@@ -145,12 +145,12 @@ namespace SpeedRunAppImport.Service
                     xml.WriteElementString("changefreq", "monthly");
                     xml.WriteEndElement();
 
-                    var games = _gameRepo.GetGames();
+                    var games = _gameRepo.GetGamesForSitemap();
                     foreach (var game in games)
                     {
                         xml.WriteStartElement("url");
                         xml.WriteElementString("loc", string.Format("https://speedruncharts.com/Game/GameDetails/{0}", game.Abbr));
-                        xml.WriteElementString("lastmod", (game.ModifiedDate ?? game.ImportedDate).ToString("yyyy-MM-dd"));
+                        xml.WriteElementString("lastmod", game.LastModifiedDate.ToString("yyyy-MM-dd"));
                         xml.WriteElementString("changefreq", "monthly");
                         xml.WriteEndElement();
                     }

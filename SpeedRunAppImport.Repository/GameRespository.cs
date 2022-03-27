@@ -1083,6 +1083,15 @@ namespace SpeedRunAppImport.Repository
             }
         }
 
+        public IEnumerable<SitemapEntity> GetGamesForSitemap()
+        {
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                db.OneTimeCommandTimeout = 32767;
+                return db.Query<SitemapEntity>("EXEC dbo.ImportGetGamesForSitemap").ToList();
+            }
+        }
+
         public IEnumerable<GameSpeedRunComView> GetGameSpeedRunComViews(Expression<Func<GameSpeedRunComView, bool>> predicate = null)
         {
             using (IDatabase db = DBFactory.GetDatabase())

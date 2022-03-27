@@ -10,17 +10,21 @@ using SpeedRunAppImport.Interfaces.Repositories;
 using System.Threading;
 using SpeedRunCommon;
 using Serilog;
+using System.Xml;
+using System.IO;
 
 namespace SpeedRunAppImport.Service
 {
     public class SettingService : BaseService, ISettingService
     {
         private readonly ISettingRepository _settingRepo = null;
+        private readonly IGameRepository _gameRepo = null;
         private readonly ILogger _logger = null;
 
-        public SettingService(ISettingRepository settingRepo, ILogger logger)
+        public SettingService(ISettingRepository settingRepo, IGameRepository gameRepo, ILogger logger)
         {
             _settingRepo = settingRepo;
+            _gameRepo = gameRepo;
             _logger = logger;
         }
 
@@ -101,6 +105,82 @@ namespace SpeedRunAppImport.Service
             {
                 result = false;
                 _logger.Error(ex, "GetTwitchToken");
+            }
+
+            return result;
+        }
+
+        public bool GenerateAndMoveSitemapXml()
+        {
+            bool result = false;
+            var tempFilePath = GenerateSitemapXml();
+
+            if (!string.IsNullOrWhiteSpace(tempFilePath))
+            {
+                result = MoveSitemapXml(tempFilePath);
+            }
+
+            return result;
+        }
+
+        private string GenerateSitemapXml()
+        {
+            var tempFilePath = Path.Combine(TempImportPath, "sitemap.xml");
+
+            try
+            {
+                using (var xml = XmlWriter.Create(tempFilePath, new XmlWriterSettings { Indent = true }))
+                {
+                    xml.WriteStartDocument();
+                    xml.WriteStartElement("urlset", "http://www.sitemaps.org/schemas/sitemap/0.9");
+
+                    xml.WriteStartElement("url");
+                    xml.WriteElementString("loc", "https://speedruncharts.com/");
+                    xml.WriteElementString("lastmod", DateTime.UtcNow.ToString("yyyy-MM-dd"));
+                    xml.WriteElementString("changefreq", "monthly");
+                    xml.WriteEndElement();
+
+                    xml.WriteStartElement("url");
+                    xml.WriteElementString("loc", "https://speedruncharts.com/Menu/About");
+                    xml.WriteElementString("changefreq", "monthly");
+                    xml.WriteEndElement();
+
+                    var games = _gameRepo.GetGames();
+                    foreach (var game in games)
+                    {
+                        xml.WriteStartElement("url");
+                        xml.WriteElementString("loc", string.Format("https://speedruncharts.com/Game/GameDetails/{0}", game.Abbr));
+                        xml.WriteElementString("lastmod", (game.ModifiedDate ?? game.ImportedDate).ToString("yyyy-MM-dd"));
+                        xml.WriteElementString("changefreq", "monthly");
+                        xml.WriteEndElement();
+                    }
+
+                    xml.WriteEndElement();
+                }
+            }
+            catch (Exception ex)
+            {
+                tempFilePath = null;
+                _logger.Error(ex, "GenerateSitemapXml");
+            }
+
+            return tempFilePath;
+        }
+
+        private bool MoveSitemapXml(string tempFilePath)
+        {
+            bool result = false;
+            try
+            {
+                var fileName = Path.GetFileName(tempFilePath);
+                var destFilePath = Path.Combine(BaseWebPath, fileName);
+                File.Move(tempFilePath, destFilePath, true);
+                result = true;
+            }
+            catch (Exception ex)
+            {
+                result = false;
+                _logger.Error(ex, "MoveSitemapXml");
             }
 
             return result;

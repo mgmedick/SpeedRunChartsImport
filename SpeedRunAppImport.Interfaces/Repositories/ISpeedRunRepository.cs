@@ -18,6 +18,7 @@ namespace SpeedRunAppImport.Interfaces.Repositories
         void DeleteSpeedRunsByID(IEnumerable<int> speedRunIDsToDelete);
         IEnumerable<SpeedRunSpeedRunComIDEntity> GetSpeedRunSpeedRunComIDs(Expression<Func<SpeedRunSpeedRunComIDEntity, bool>> predicate = null);
         bool CreateFullTables();
+        bool ReorderSpeedRuns();
         bool RenameFullTables();
         bool UpdateSpeedRunRanks(DateTime lastImportDateUtc);
         bool RebuildIndexes();

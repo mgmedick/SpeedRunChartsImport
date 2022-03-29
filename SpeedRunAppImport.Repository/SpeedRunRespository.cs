@@ -625,6 +625,33 @@ namespace SpeedRunAppImport.Repository
             return result;
         }
 
+        public bool ReorderSpeedRuns()
+        {
+            bool result = true;
+
+            try
+            {
+                _logger.Information("Started ReorderSpeedRuns");
+                using (IDatabase db = DBFactory.GetDatabase())
+                {
+                    using (var tran = db.GetTransaction())
+                    {
+                        db.OneTimeCommandTimeout = 32767;
+                        db.Execute("EXEC dbo.ImportReorderSpeedRuns");
+                        tran.Complete();
+                    }
+                }
+                _logger.Information("Completed ReorderSpeedRuns");
+            }
+            catch (Exception ex)
+            {
+                result = false;
+                _logger.Error(ex, "ReorderSpeedRuns");
+            }
+
+            return result;
+        }
+
         public bool RenameFullTables()
         {
             bool result = true;

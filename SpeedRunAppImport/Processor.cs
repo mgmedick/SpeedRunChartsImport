@@ -184,7 +184,12 @@ namespace SpeedRunAppImport
 
             if (result && IsBulkReload)
             {
-                result = _speedRunRepo.RenameFullTables();
+                result = _speedRunRepo.ReorderSpeedRuns();
+
+                if (result)
+                {
+                    result = _speedRunRepo.RenameFullTables();
+                }
             }
 
             if (result && (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.SpeedRun)))

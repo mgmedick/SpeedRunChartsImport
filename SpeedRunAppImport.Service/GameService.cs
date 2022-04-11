@@ -348,21 +348,25 @@ namespace SpeedRunAppImport.Service
 
                 _gameRepo.SaveGames(gameEntities, gameLinkEntities, levelEntities, levelRuleEntities, categoryEntities, categoryRuleEntities, variableEntities, variableValueEntities, gamePlatformEntities, gameRegionEntities, gameModeratorEntities, gameRulesetEntities, gameTimingMethodEntities);
             }
-            ProcessGameCoverImages(gameLinkEntities, gameEntities, isBulkReload);
+
+            if (!isBulkReload)
+            {
+                ProcessGameCoverImages(gameLinkEntities, gameEntities);
+            }
 
             _logger.Information("Completed SaveGames");
         }
 
-        public void ProcessGameCoverImages(List<GameLinkEntity> gameLinks, List<GameEntity> games, bool isBulkReload)
+        public void ProcessGameCoverImages(List<GameLinkEntity> gameLinks, List<GameEntity> games)
         {
             gameLinks = gameLinks.Where(i => !string.IsNullOrWhiteSpace(i.CoverImageUrl)).ToList();
-            var tempGameCoverPaths = GetGameCoverImages(gameLinks, games, isBulkReload);
+            var tempGameCoverPaths = GetGameCoverImages(gameLinks, games);
             var gameCoverPaths = MoveGameCoverImages(tempGameCoverPaths);
             ClearTempFolder();
             SaveGameCoverImages(gameLinks, gameCoverPaths);
         }
 
-        public Dictionary<int, string> GetGameCoverImages(List<GameLinkEntity> gameLinks, List<GameEntity> games, bool isBulkReload)
+        public Dictionary<int, string> GetGameCoverImages(List<GameLinkEntity> gameLinks, List<GameEntity> games)
         {
             _logger.Information("Started GetGameCoverImages: {@Count}", gameLinks.Count);
             var tempGameCoverPaths = new Dictionary<int, string>();
@@ -372,7 +376,8 @@ namespace SpeedRunAppImport.Service
             {
                 var gameAbbr = games.Where(i => i.ID == gameLink.GameID).Select(i => i.Abbr).FirstOrDefault();
                 var fileName = string.Format("GameCover_{0}.{1}", gameAbbr, ImageFileExt);
-                if (isBulkReload || !File.Exists(fileName))
+                var filePath = Path.Combine("/" + GameImageWebPath, fileName);
+                if (!File.Exists(filePath))
                 {
                     var tempFilePath = Path.Combine(TempImportPath, fileName);
                     try

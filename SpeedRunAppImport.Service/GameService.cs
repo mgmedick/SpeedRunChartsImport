@@ -374,8 +374,8 @@ namespace SpeedRunAppImport.Service
             int count = 1;
             foreach (var gameLink in gameLinks)
             {
-                var gameAbbr = games.Where(i => i.ID == gameLink.GameID).Select(i => i.Abbr).FirstOrDefault();
-                var fileName = string.Format("GameCover_{0}.{1}", gameAbbr, ImageFileExt);
+                var gameSpeedRunComID = games.Where(i => i.ID == gameLink.GameID).Select(i => i.SpeedRunComID).FirstOrDefault();
+                var fileName = string.Format("GameCover_{0}.{1}", gameSpeedRunComID, ImageFileExt);
                 var filePath = Path.Combine("/" + GameImageWebPath, fileName);
                 if (!File.Exists(filePath))
                 {

@@ -206,21 +206,29 @@ namespace SpeedRunAppImport.Repository
                 {
                     var guestsBatch = guestList.Skip(batchCount).Take(MaxBulkRows).ToList();
                     var guestSpeedRunComIDs = guestsBatch.Select(i => i.Name).Distinct().ToList();
+                    var guestAbbrs = guestsBatch.Select(i => i.Abbr).Distinct().ToList();
                     var guestLinksBatch = guestLinks.Where(i => guestSpeedRunComIDs.Contains(i.GuestSpeedRunComID)).ToList();
 
                     using (var tran = db.GetTransaction())
                     {
-                        db.InsertBulk<GuestEntity>(guestsBatch);
-                        var guestIDs = db.Query<int>("SELECT TOP (@0) ID FROM dbo.tbl_Guest_Full ORDER BY ID DESC", guestsBatch.Count).Reverse().ToArray();
-                        for (int i = 0; i < guestsBatch.Count; i++)
-                        {
-                            guestsBatch[i].ID = guestIDs[i];
+                        try
+                        { 
+                            db.InsertBulk<GuestEntity>(guestsBatch);
+                            var guestIDs = db.Query<int>("SELECT TOP (@0) ID FROM dbo.tbl_Guest_Full ORDER BY ID DESC", guestsBatch.Count).Reverse().ToArray();
+                            for (int i = 0; i < guestsBatch.Count; i++)
+                            {
+                                guestsBatch[i].ID = guestIDs[i];
+                            }
+
+                            guestLinksBatch.ForEach(i => i.GuestID = guestsBatch.Find(g => g.Name == i.GuestSpeedRunComID).ID);
+                            db.InsertBulk<GuestLinkEntity>(guestLinksBatch);
+
+                            tran.Complete();
                         }
-
-                        guestLinksBatch.ForEach(i => i.GuestID = guestsBatch.Find(g => g.Name == i.GuestSpeedRunComID).ID);
-                        db.InsertBulk<GuestLinkEntity>(guestLinksBatch);
-
-                        tran.Complete();
+                        catch (Exception ex)
+                        {
+                            _logger.Error(ex, "InsertGuests GuestNames: {@GuestSpeedRunComID}, GuestAbbrs: {@GuestAbbrs}", string.Join(",", guestSpeedRunComIDs), string.Join(",", guestAbbrs));
+                        }
                     }
 
                     _logger.Information("Saved guests {@Count} / {@Total}", guestsBatch.Count, guestList.Count);

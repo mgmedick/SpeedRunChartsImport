@@ -52,7 +52,7 @@ namespace SpeedRunAppImport
             try
             {
                 Init();
-                if (IsMaintenance)
+                if (IsMaintenance & !IsMySQL)
                 {
                     RunMaintenance();
                 }
@@ -80,8 +80,9 @@ namespace SpeedRunAppImport
                 IsSpeedRunFullPull = _config.GetValue<bool>("IsSpeedRunFullPull");
                 IsMaintenance = _config.GetValue<bool>("IsMaintenance");
                 IsUpdateSpeedRuns = _config.GetValue<bool>("IsUpdateSpeedRuns");
+                IsMySQL = _config.GetValue<bool>("IsMySQL");
                 Processes = _config.GetValue<string>("ProcessIDs").Split(",").Select(i => (ImportProcess)Convert.ToInt32(i)).ToList();
-                NPocoBootstrapper.Configure(connString, maxBulkRows, IsBulkReload);
+                NPocoBootstrapper.Configure(connString, maxBulkRows, IsBulkReload, IsMySQL);
 
                 if (IsBulkReload)
                 {
@@ -203,7 +204,7 @@ namespace SpeedRunAppImport
                 {
                     result = _settingService.GenerateAndMoveSitemapXml();
 
-                    if (result)
+                    if (result && !IsMySQL)
                     {
                         RunMaintenance();
                     }
@@ -235,6 +236,7 @@ namespace SpeedRunAppImport
         public bool IsBulkReload { get; set; }
         public bool IsMaintenance { get; set; }
         public bool IsUpdateSpeedRuns { get; set; }
+        public bool IsMySQL { get; set; }
         public List<ImportProcess> Processes { get; set; }
     }
 }

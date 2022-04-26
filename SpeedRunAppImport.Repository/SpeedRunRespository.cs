@@ -21,275 +21,6 @@ namespace SpeedRunAppImport.Repository
             _logger = logger;
         }
 
-        /*
-        public void CopySpeedRunTables()
-        {
-            using (IDatabase db = DBFactory.GetDatabase())
-            {
-                using (var tran = db.GetTransaction())
-                {
-                    db.Execute(@"--tbl_SpeedRun_Full
-                                IF OBJECT_ID('dbo.tbl_SpeedRun_Full') IS NOT NULL 
-                                BEGIN
-                                    DROP TABLE dbo.tbl_SpeedRun_Full
-                                END 
-
-                                CREATE TABLE [dbo].[tbl_SpeedRun_Full] 
-                                ( 
-                                    [ID] [int] NOT NULL IDENTITY(1,1), 
-	                                [GameID] [int] NOT NULL,
-	                                [CategoryID] [int] NOT NULL,
-	                                [LevelID] [int] NULL,
-	                                [Rank] [int] NULL,
-	                                [PrimaryTime] [bigint] NOT NULL,
-	                                [RunDate] [datetime] NULL,
-	                                [DateSubmitted] [datetime] NULL,
-	                                [ImportedDate] [datetime] NOT NULL CONSTRAINT [DF_tbl_SpeedRun_Full_ImportedDate] DEFAULT(GETDATE()),
-	                                [ModifiedDate] [datetime] NULL
-                                ) ON [PRIMARY]
-                                ALTER TABLE [dbo].[tbl_SpeedRun_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-
-                                --tbl_SpeedRun_SpeedRunComID_Full
-                                IF OBJECT_ID('dbo.tbl_SpeedRun_SpeedRunComID_Full') IS NOT NULL 
-                                BEGIN
-                                    DROP TABLE dbo.tbl_SpeedRun_SpeedRunComID_Full
-                                END 
-
-                                CREATE TABLE [dbo].[tbl_SpeedRun_SpeedRunComID_Full] 
-                                (
-	                                [SpeedRunID] [int] NOT NULL,
-                                    [SpeedRunComID] [varchar] (10) NOT NULL
-                                )
-                                ALTER TABLE [dbo].[tbl_SpeedRun_SpeedRunComID_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_SpeedRunComID_Full] PRIMARY KEY CLUSTERED ([SpeedRunID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-
-                                --tbl_SpeedRun_Status_Full
-                                IF OBJECT_ID('dbo.tbl_SpeedRun_Status_Full') IS NOT NULL 
-                                BEGIN
-                                    DROP TABLE dbo.tbl_SpeedRun_Status_Full
-                                END 
-
-                                CREATE TABLE [dbo].[tbl_SpeedRun_Status_Full] 
-                                ( 
-                                    [SpeedRunID] [int] NOT NULL,
-	                                [StatusTypeID] [int] NOT NULL,
-	                                [ExaminerUserID] [int] NULL,
-	                                [VerifyDate] [datetime] NULL
-                                ) ON [PRIMARY] 
-                                ALTER TABLE [dbo].[tbl_SpeedRun_Status_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_Status_Full] PRIMARY KEY CLUSTERED ([SpeedRunID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-
-                                --tbl_SpeedRun_System_Full
-                                IF OBJECT_ID('dbo.tbl_SpeedRun_System_Full') IS NOT NULL 
-                                BEGIN
-                                    DROP TABLE dbo.tbl_SpeedRun_System_Full
-                                END 
-
-                                CREATE TABLE [dbo].[tbl_SpeedRun_System_Full] 
-                                ( 
-                                    [SpeedRunID] [int] NOT NULL,
-	                                [PlatformID] [int] NULL,
-	                                [RegionID] [int] NULL,
- 	                                [IsEmulated] [bit] NOT NULL
-                                ) ON [PRIMARY] 
-                                ALTER TABLE [dbo].[tbl_SpeedRun_System_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_System_Full] PRIMARY KEY CLUSTERED ([SpeedRunID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-
-                                --tbl_SpeedRun_Time_Full
-                                IF OBJECT_ID('dbo.tbl_SpeedRun_Time_Full') IS NOT NULL 
-                                BEGIN
-                                    DROP TABLE dbo.tbl_SpeedRun_Time_Full
-                                END 
-
-                                CREATE TABLE [dbo].[tbl_SpeedRun_Time_Full] 
-                                ( 
-                                    [SpeedRunID] [int] NOT NULL,
-	                                [PrimaryTime] [bigint] NOT NULL,
-	                                [RealTime] [bigint] NULL,
-	                                [RealTimeWithoutLoads] [bigint] NULL,
-	                                [GameTime] [bigint] NULL
-                                ) ON [PRIMARY] 
-                                ALTER TABLE [dbo].[tbl_SpeedRun_Time_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_Time_Full] PRIMARY KEY CLUSTERED ([SpeedRunID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-
-                                --tbl_SpeedRun_Link_Full
-                                IF OBJECT_ID('dbo.tbl_SpeedRun_Link_Full') IS NOT NULL 
-                                BEGIN
-                                    DROP TABLE dbo.tbl_SpeedRun_Link_Full
-                                END 
-
-                                CREATE TABLE [dbo].[tbl_SpeedRun_Link_Full] 
-                                ( 
-                                    [SpeedRunID] [int] NOT NULL,
-	                                [SpeedRunComUrl] [varchar](1000) NOT NULL,
-	                                [SplitsUrl] [varchar](1000) NULL
-                                ) ON [PRIMARY] 
-                                ALTER TABLE [dbo].[tbl_SpeedRun_Link_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_Link_Full] PRIMARY KEY CLUSTERED ([SpeedRunID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-
-                                --tbl_SpeedRun_Comment_Full
-                                IF OBJECT_ID('dbo.tbl_SpeedRun_Comment_Full') IS NOT NULL 
-                                BEGIN
-                                    DROP TABLE dbo.tbl_SpeedRun_Comment_Full
-                                END 
-
-                                CREATE TABLE [dbo].[tbl_SpeedRun_Comment_Full] 
-                                ( 
-                                    [SpeedRunID] [int] NOT NULL,
-	                                [Comment] [varchar](MAX) NULL
-                                ) ON [PRIMARY] 
-                                ALTER TABLE [dbo].[tbl_SpeedRun_Comment_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_Comment_Full] PRIMARY KEY CLUSTERED ([SpeedRunID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-
-                                --tbl_SpeedRun_Player_Full
-                                IF OBJECT_ID('dbo.tbl_SpeedRun_Player_Full') IS NOT NULL 
-                                BEGIN 
-                                    DROP TABLE dbo.tbl_SpeedRun_Player_Full
-                                END
-                                CREATE TABLE [dbo].[tbl_SpeedRun_Player_Full] 
-                                ( 
-                                    [ID] [int] NOT NULL IDENTITY(1,1),
-                                    [SpeedRunID] [int] NOT NULL,
-                                    [IsUser] [bit] NOT NULL,
-                                    [UserID] [int] NULL,
-                                    [GuestName] [varchar] (255) NULL
-                                ) ON [PRIMARY] 
-                                ALTER TABLE [dbo].[tbl_SpeedRun_Player_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_Player_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-
-                                --tbl_SpeedRun_VariableValue_Full
-                                IF OBJECT_ID('dbo.tbl_SpeedRun_VariableValue_Full') IS NOT NULL 
-                                BEGIN 
-                                    DROP TABLE dbo.tbl_SpeedRun_VariableValue_Full
-                                END
-
-                                CREATE TABLE [dbo].[tbl_SpeedRun_VariableValue_Full] 
-                                ( 
-                                    [ID] [int] NOT NULL IDENTITY(1,1),
-                                    [SpeedRunID] [int] NOT NULL,
-                                    [VariableID] [int] NOT NULL,
-                                    [VariableValueID] [int] NOT NULL 
-                                ) ON [PRIMARY] 
-                                ALTER TABLE [dbo].[tbl_SpeedRun_VariableValue_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_VariableValue_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-
-                                --tbl_SpeedRun_Video_Full
-                                IF OBJECT_ID('dbo.tbl_SpeedRun_Video_Full') IS NOT NULL 
-                                BEGIN 
-                                    DROP TABLE dbo.tbl_SpeedRun_Video_Full
-                                END
-
-                                CREATE TABLE [dbo].[tbl_SpeedRun_Video_Full] 
-                                ( 
-                                    [ID] [int] NOT NULL IDENTITY(1,1),
-                                    [SpeedRunID] [int] NOT NULL,
-                                    [VideoLinkUrl] [varchar] (1000) NOT NULL
-                                ) ON [PRIMARY] 
-                                ALTER TABLE [dbo].[tbl_SpeedRun_Video_Full] ADD CONSTRAINT [PK_tbl_SpeedRun_Video_Full] PRIMARY KEY CLUSTERED ([ID]) WITH (FILLFACTOR=90) ON [PRIMARY]");
-                    tran.Complete();
-                }
-            }
-        }
-
-        public void RenameAndDropSpeedRunTables()
-        {
-            using (IDatabase db = DBFactory.GetDatabase())
-            {
-                using (var tran = db.GetTransaction())
-                {
-                    db.OneTimeCommandTimeout = 32767;
-                    db.Execute(@"--tbl_SpeedRun
-                                ALTER TABLE [dbo].[tbl_SpeedRun_Player] DROP CONSTRAINT [FK_tbl_SpeedRun_Player_tbl_SpeedRun]
-                                ALTER TABLE [dbo].[tbl_SpeedRun_VariableValue] DROP CONSTRAINT [FK_tbl_SpeedRun_VariableValue_tbl_SpeedRun]
-                                ALTER TABLE [dbo].[tbl_SpeedRun_Video] DROP CONSTRAINT [FK_tbl_SpeedRun_Video_tbl_SpeedRun]
-
-                                DROP TABLE dbo.tbl_SpeedRun
-
-                                EXEC sp_rename 'dbo.PK_tbl_SpeedRun_Full', 'PK_tbl_SpeedRun'                                
-                                EXEC sp_rename 'dbo.DF_tbl_SpeedRun_Full_ImportedDate', 'DF_tbl_SpeedRun_ImportedDate'
-                                EXEC sp_rename 'dbo.tbl_SpeedRun_Full', 'tbl_SpeedRun'
-
-                                ALTER TABLE [dbo].[tbl_SpeedRun] ADD CONSTRAINT [FK_tbl_SpeedRun_tbl_Game] FOREIGN KEY ([GameID]) REFERENCES [dbo].[tbl_Game] ([ID])
-                                CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_tbl_Game] ON [dbo].[tbl_SpeedRun] ([GameID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-                                ALTER TABLE [dbo].[tbl_SpeedRun] ADD CONSTRAINT [FK_tbl_SpeedRun_tbl_Category] FOREIGN KEY ([CategoryID]) REFERENCES [dbo].[tbl_Category] ([ID])
-                                CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_tbl_Category] ON [dbo].[tbl_SpeedRun] ([CategoryID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-                                ALTER TABLE [dbo].[tbl_SpeedRun] ADD CONSTRAINT [FK_tbl_SpeedRun_tbl_Level] FOREIGN KEY ([LevelID]) REFERENCES [dbo].[tbl_Level] ([ID])
-                                CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_tbl_Level] ON [dbo].[tbl_SpeedRun] ([LevelID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-                                CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_GameID_Rank_CategoryID_LevelID_PrimaryTime_DateSubmitted_VerifyDate] ON [dbo].[tbl_SpeedRun] ([GameID],[Rank]) INCLUDE ([CategoryID],[LevelID],[PrimaryTime],[DateSubmitted]) WITH (FILLFACTOR=90) ON [PRIMARY]
-
-                                DELETE FROM dbo.[tbl_SpeedRun_Player] WHERE NOT EXISTS (SELECT 1 FROM dbo.tbl_SpeedRun rn WHERE rn.ID = SpeedRunID)                           
-                                ALTER TABLE [dbo].[tbl_SpeedRun_Player] ADD CONSTRAINT [FK_tbl_SpeedRun_Player_tbl_SpeedRun] FOREIGN KEY ([SpeedRunID]) REFERENCES [dbo].[tbl_SpeedRun] ([ID])                           
-
-                                DELETE FROM dbo.[tbl_SpeedRun_VariableValue] WHERE NOT EXISTS (SELECT 1 FROM dbo.tbl_SpeedRun rn WHERE rn.ID = SpeedRunID)                           
-                                ALTER TABLE [dbo].[tbl_SpeedRun_VariableValue] ADD CONSTRAINT [FK_tbl_SpeedRun_VariableValue_tbl_SpeedRun] FOREIGN KEY ([SpeedRunID]) REFERENCES [dbo].[tbl_SpeedRun] ([ID])
-
-                                DELETE FROM dbo.[tbl_SpeedRun_Video] WHERE NOT EXISTS (SELECT 1 FROM dbo.tbl_SpeedRun rn WHERE rn.ID = SpeedRunID)                           
-                                ALTER TABLE [dbo].[tbl_SpeedRun_Video] ADD CONSTRAINT [FK_tbl_SpeedRun_Video_tbl_SpeedRun] FOREIGN KEY ([SpeedRunID]) REFERENCES [dbo].[tbl_SpeedRun] ([ID])
-
-                                --tbl_SpeedRun_SpeedRunComID
-                                DROP TABLE dbo.tbl_SpeedRun_SpeedRunComID
-                                
-                                EXEC sp_rename 'dbo.PK_tbl_SpeedRun_SpeedRunComID_Full', 'PK_tbl_SpeedRun_SpeedRunComID'                                
-                                EXEC sp_rename 'dbo.tbl_SpeedRun_SpeedRunComID_Full', 'tbl_SpeedRun_SpeedRunComID'
-
-                                CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_SpeedRunComID_SpeedRunComID] ON [dbo].[tbl_SpeedRun_SpeedRunComID] ([SpeedRunComID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-
-                                --tbl_SpeedRun_Status
-                                DROP TABLE dbo.tbl_SpeedRun_Status
-                                
-                                EXEC sp_rename 'dbo.PK_tbl_SpeedRun_Status_Full', 'PK_tbl_SpeedRun_Status'                                
-                                EXEC sp_rename 'dbo.tbl_SpeedRun_Status_Full', 'tbl_SpeedRun_Status'
-
-                                CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_Status_StatusTypeID] ON [dbo].[tbl_SpeedRun_Status] ([StatusTypeID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-                                ALTER TABLE [dbo].[tbl_SpeedRun_Status] ADD CONSTRAINT [FK_tbl_SpeedRun_Status_tbl_User] FOREIGN KEY ([ExaminerUserID]) REFERENCES [dbo].[tbl_User] ([ID])
-                                CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_Status_ExaminerUserID] ON [dbo].[tbl_SpeedRun_Status] ([ExaminerUserID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-
-                                --tbl_SpeedRun_System
-                                DROP TABLE dbo.tbl_SpeedRun_System
-                                
-                                EXEC sp_rename 'dbo.PK_tbl_SpeedRun_System_Full', 'PK_tbl_SpeedRun_System'                                
-                                EXEC sp_rename 'dbo.tbl_SpeedRun_System_Full', 'tbl_SpeedRun_System'
-
-                                ALTER TABLE [dbo].[tbl_SpeedRun_System] ADD CONSTRAINT [FK_tbl_SpeedRun_System_tbl_Platform] FOREIGN KEY ([PlatformID]) REFERENCES [dbo].[tbl_Platform] ([ID])
-                                CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_System_tbl_Platform] ON [dbo].[tbl_SpeedRun_System] ([PlatformID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-                                ALTER TABLE [dbo].[tbl_SpeedRun_System] ADD CONSTRAINT [FK_tbl_SpeedRun_System_tbl_Region] FOREIGN KEY ([RegionID]) REFERENCES [dbo].[tbl_Region] ([ID])
-                                CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_System_tbl_Region] ON [dbo].[tbl_SpeedRun_System] ([RegionID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-
-                                --tbl_SpeedRun_Time
-                                DROP TABLE dbo.tbl_SpeedRun_Time
-                                
-                                EXEC sp_rename 'dbo.PK_tbl_SpeedRun_Time_Full', 'PK_tbl_SpeedRun_Time'                                
-                                EXEC sp_rename 'dbo.tbl_SpeedRun_Time_Full', 'tbl_SpeedRun_Time'
-
-                                --tbl_SpeedRun_Link
-                                DROP TABLE dbo.tbl_SpeedRun_Link
-                                
-                                EXEC sp_rename 'dbo.PK_tbl_SpeedRun_Link_Full', 'PK_tbl_SpeedRun_Link'                                
-                                EXEC sp_rename 'dbo.tbl_SpeedRun_Link_Full', 'tbl_SpeedRun_Link'
-
-                                --tbl_SpeedRun_Comment
-                                DROP TABLE dbo.tbl_SpeedRun_Comment
-                                
-                                EXEC sp_rename 'dbo.PK_tbl_SpeedRun_Comment_Full', 'PK_tbl_SpeedRun_Comment'                                
-                                EXEC sp_rename 'dbo.tbl_SpeedRun_Comment_Full', 'tbl_SpeedRun_Comment'
-
-                                --tbl_SpeedRun_Player
-                                DROP TABLE dbo.tbl_SpeedRun_Player
-                                
-                                EXEC sp_rename 'dbo.PK_tbl_SpeedRun_Player_Full', 'PK_tbl_SpeedRun_Player'                                
-                                EXEC sp_rename 'dbo.tbl_SpeedRun_Player_Full', 'tbl_SpeedRun_Player'
-
-                                ALTER TABLE [dbo].[tbl_SpeedRun_Player] ADD CONSTRAINT [FK_tbl_SpeedRun_Player_tbl_SpeedRun] FOREIGN KEY ([SpeedRunID]) REFERENCES [dbo].[tbl_SpeedRun] ([ID])
-                                CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_Player_tbl_SpeedRun] ON [dbo].[tbl_SpeedRun_Player] ([SpeedRunID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-                                ALTER TABLE [dbo].[tbl_SpeedRun_Player] ADD CONSTRAINT [FK_tbl_SpeedRun_Player_tbl_User] FOREIGN KEY ([UserID]) REFERENCES [dbo].[tbl_User] ([ID])
-                                CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_Player_tbl_User] ON [dbo].[tbl_SpeedRun_Player] ([UserID]) WITH (FILLFACTOR=90) ON [PRIMARY] 
-
-                                --tbl_SpeedRun_Video
-                                DROP TABLE dbo.tbl_SpeedRun_Video
-                                
-                                EXEC sp_rename 'dbo.PK_tbl_SpeedRun_Video_Full', 'PK_tbl_SpeedRun_Video'                                
-                                EXEC sp_rename 'dbo.tbl_SpeedRun_Video_Full', 'tbl_SpeedRun_Video'
-
-                                ALTER TABLE [dbo].[tbl_SpeedRun_Video] ADD CONSTRAINT [FK_tbl_SpeedRun_Video_tbl_SpeedRun] FOREIGN KEY ([SpeedRunID]) REFERENCES [dbo].[tbl_SpeedRun] ([ID])
-                                CREATE NONCLUSTERED INDEX [IDX_tbl_SpeedRun_Video_tbl_SpeedRun] ON [dbo].[tbl_SpeedRun_Video] ([SpeedRunID]) WITH (FILLFACTOR=90) ON [PRIMARY]");
-                    tran.Complete();
-                }
-            }
-        }
-        */
-
         public void InsertSpeedRuns(IEnumerable<SpeedRunEntity> speedRuns, IEnumerable<SpeedRunLinkEntity> speedRunLinks, IEnumerable<SpeedRunSystemEntity> speedRunSystems, IEnumerable<SpeedRunTimeEntity> speedRunTimes, IEnumerable<SpeedRunCommentEntity> speedRunComments, IEnumerable<SpeedRunVariableValueEntity> variableValues, IEnumerable<SpeedRunPlayerEntity> players, IEnumerable<SpeedRunGuestEntity> guests, IEnumerable<SpeedRunVideoEntity> videos)
         {
             _logger.Information("Started InsertSpeedRuns");
@@ -313,41 +44,43 @@ namespace SpeedRunAppImport.Repository
 
                     using (var tran = db.GetTransaction())
                     {
-                        db.InsertBulk<SpeedRunEntity>(runsBatch);
-                        var runIDs = db.Query<int>("SELECT TOP (@0) ID FROM dbo.tbl_SpeedRun_Full ORDER BY ID DESC", runsBatch.Count).Reverse().ToArray();
+                        db.InsertBatch<SpeedRunEntity>(runsBatch);
+                        var runIDs = IsMySQL ? db.Query<int>("SELECT ID FROM tbl_SpeedRun_Full ORDER BY ID DESC LIMIT @0;", runsBatch.Count).Reverse().ToArray() :
+                                               db.Query<int>("SELECT TOP (@0) ID FROM dbo.tbl_SpeedRun_Full ORDER BY ID DESC", runsBatch.Count).Reverse().ToArray();
                         for (int i = 0; i < runsBatch.Count; i++)
                         {
                             runsBatch[i].ID = runIDs[i];
                         }
 
                         var speedRunSpeedRunComIDsBatch = runsBatch.Select(i => new SpeedRunSpeedRunComIDEntity { SpeedRunID = i.ID, SpeedRunComID = i.SpeedRunComID }).ToList();
-                        db.InsertBulk<SpeedRunSpeedRunComIDEntity>(speedRunSpeedRunComIDsBatch);
+                        db.InsertBatch<SpeedRunSpeedRunComIDEntity>(speedRunSpeedRunComIDsBatch);
 
                         speedRunLinksBatch.ForEach(i => i.SpeedRunID = runsBatch.Find(g => g.SpeedRunComID == i.SpeedRunSpeedRunComID).ID);
-                        db.InsertBulk<SpeedRunLinkEntity>(speedRunLinksBatch);
+                        db.InsertBatch<SpeedRunLinkEntity>(speedRunLinksBatch);
 
                         speedRunSystemsBatch.ForEach(i => i.SpeedRunID = runsBatch.Find(g => g.SpeedRunComID == i.SpeedRunSpeedRunComID).ID);
-                        db.InsertBulk<SpeedRunSystemEntity>(speedRunSystemsBatch);
+                        db.InsertBatch<SpeedRunSystemEntity>(speedRunSystemsBatch);
 
                         speedRunTimesBatch.ForEach(i => i.SpeedRunID = runsBatch.Find(g => g.SpeedRunComID == i.SpeedRunSpeedRunComID).ID);
-                        db.InsertBulk<SpeedRunTimeEntity>(speedRunTimesBatch);
+                        db.InsertBatch<SpeedRunTimeEntity>(speedRunTimesBatch);
 
                         speedRunCommentsBatch.ForEach(i => i.SpeedRunID = runsBatch.Find(g => g.SpeedRunComID == i.SpeedRunSpeedRunComID).ID);
-                        db.InsertBulk<SpeedRunCommentEntity>(speedRunCommentsBatch);
+                        db.InsertBatch<SpeedRunCommentEntity>(speedRunCommentsBatch);
 
                         variableValuesBatch.ForEach(i => i.SpeedRunID = runsBatch.Find(g => g.SpeedRunComID == i.SpeedRunSpeedRunComID).ID);
-                        db.InsertBulk<SpeedRunVariableValueEntity>(variableValuesBatch);
+                        db.InsertBatch<SpeedRunVariableValueEntity>(variableValuesBatch);
 
                         playersBatch.ForEach(i => i.SpeedRunID = runsBatch.Find(g => g.SpeedRunComID == i.SpeedRunSpeedRunComID).ID);
-                        db.InsertBulk<SpeedRunPlayerEntity>(playersBatch);
+                        db.InsertBatch<SpeedRunPlayerEntity>(playersBatch);
 
                         guestsBatch.ForEach(i => i.SpeedRunID = runsBatch.Find(g => g.SpeedRunComID == i.SpeedRunSpeedRunComID).ID);
-                        db.InsertBulk<SpeedRunGuestEntity>(guestsBatch);
+                        db.InsertBatch<SpeedRunGuestEntity>(guestsBatch);
 
                         videosBatch.ForEach(i => i.SpeedRunID = runsBatch.Find(g => g.SpeedRunComID == i.SpeedRunSpeedRunComID).ID);
-                        db.InsertBulk<SpeedRunVideoEntity>(videosBatch);
+                        db.InsertBatch<SpeedRunVideoEntity>(videosBatch);
 
-                        var videoIDs = db.Query<int>("SELECT TOP (@0) ID FROM dbo.tbl_SpeedRun_Video_Full ORDER BY ID DESC", videosBatch.Count).Reverse().ToArray();
+                        var videoIDs = IsMySQL ? db.Query<int>("SELECT ID FROM tbl_SpeedRun_Video_Full ORDER BY ID DESC LIMIT @0;", videosBatch.Count).Reverse().ToArray() :
+                                                 db.Query<int>("SELECT TOP (@0) ID FROM dbo.tbl_SpeedRun_Video_Full ORDER BY ID DESC", videosBatch.Count).Reverse().ToArray();
                         var videoDetailsBatch = videosBatch.Select((i, index) => new SpeedRunVideoDetailEntity()
                                                            {
                                                                SpeedRunVideoID = videoIDs[index],
@@ -610,7 +343,14 @@ namespace SpeedRunAppImport.Repository
                 {
                     using (var tran = db.GetTransaction())
                     {
-                        db.Execute("EXEC dbo.ImportCreateFullTables");
+                        if (IsMySQL)
+                        {
+                            db.Execute("CALL ImportCreateFullTables;");
+                        }
+                        else
+                        {
+                            db.Execute("EXEC dbo.ImportCreateFullTables");
+                        }
                         tran.Complete();
                     }
                 }
@@ -637,7 +377,14 @@ namespace SpeedRunAppImport.Repository
                     using (var tran = db.GetTransaction())
                     {
                         db.OneTimeCommandTimeout = 32767;
-                        db.Execute("EXEC dbo.ImportReorderSpeedRuns");
+                        if (IsMySQL)
+                        {
+                            db.Execute("CALL ImportReorderSpeedRuns;");
+                        }
+                        else
+                        {
+                            db.Execute("EXEC dbo.ImportReorderSpeedRuns");
+                        }
                         tran.Complete();
                     }
                 }
@@ -664,7 +411,14 @@ namespace SpeedRunAppImport.Repository
                     using (var tran = db.GetTransaction())
                     {
                         db.OneTimeCommandTimeout = 32767;
-                        db.Execute("EXEC dbo.ImportRenameFullTables");
+                        if (IsMySQL)
+                        {
+                            db.Execute("CALL ImportRenameFullTables;");
+                        }
+                        else
+                        {
+                            db.Execute("EXEC dbo.ImportRenameFullTables");
+                        }
                         tran.Complete();
                     }
                 }
@@ -689,7 +443,14 @@ namespace SpeedRunAppImport.Repository
                 using (IDatabase db = DBFactory.GetDatabase())
                 {
                     db.OneTimeCommandTimeout = 32767;
-                    db.Execute("EXEC dbo.ImportUpdateSpeedRunRanks @0", lastImportDateUtc);
+                    if (IsMySQL)
+                    {
+                        db.Execute("CALL ImportUpdateSpeedRunRanks (@0);", lastImportDateUtc);
+                    }
+                    else
+                    {
+                        db.Execute("EXEC dbo.ImportUpdateSpeedRunRanks @0", lastImportDateUtc);
+                    }
                 }
                 _logger.Information("Completed UpdateSpeedRunRanks");
             }
@@ -712,7 +473,10 @@ namespace SpeedRunAppImport.Repository
                 using (IDatabase db = DBFactory.GetDatabase())
                 {
                     db.OneTimeCommandTimeout = 32767;
-                    db.Execute("EXEC ImportRebuildIndexes");
+                    if (!IsMySQL)
+                    {
+                        db.Execute("EXEC dbo.ImportRebuildIndexes");
+                    }
                 }
                 _logger.Information("Completed RebuildIndexes");
             }
@@ -735,7 +499,11 @@ namespace SpeedRunAppImport.Repository
                 using (IDatabase db = DBFactory.GetDatabase())
                 {
                     db.OneTimeCommandTimeout = 32767;
-                    db.Execute("EXEC sp_updatestats");
+                    if (!IsMySQL)
+                    {
+                        db.Execute("EXEC sp_updatestats");
+
+                    }
                 }
                 _logger.Information("Completed UpdateStats");
             }

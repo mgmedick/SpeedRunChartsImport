@@ -5,11 +5,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NPoco" Version="4.0.3" />
+    <PackageReference Include="NPoco" Version="5.3.2" />
+    <PackageReference Include="MySql.Data" Version="8.0.28" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\SpeedRunAppImport.Interfaces\SpeedRunAppImport.Interfaces.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="MySql.Data" />
+    <None Remove="MySqlConnector" />
+    <None Remove="System.Data.SqlClient" />
+  </ItemGroup>
 </Project>

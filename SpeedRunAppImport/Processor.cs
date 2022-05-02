@@ -74,13 +74,13 @@ namespace SpeedRunAppImport
                 _logger.Information("Started Init");
                 var connString = _config.GetSection("ConnectionStrings").GetSection("DBConnectionString").Value;
                 var maxBulkRows = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxBulkRows").Value);
+                IsMySQL = Convert.ToBoolean(_config.GetSection("AppSettings").GetSection("IsMySQL").Value);
                 IsBulkReload = _config.GetValue<bool>("IsBulkReload");
                 IsPlatformFullPull = _config.GetValue<bool>("IsPlatformFullPull");
                 IsGameFullPull = _config.GetValue<bool>("IsGameFullPull");
                 IsSpeedRunFullPull = _config.GetValue<bool>("IsSpeedRunFullPull");
                 IsMaintenance = _config.GetValue<bool>("IsMaintenance");
                 IsUpdateSpeedRuns = _config.GetValue<bool>("IsUpdateSpeedRuns");
-                IsMySQL = _config.GetValue<bool>("IsMySQL");
                 Processes = _config.GetValue<string>("ProcessIDs").Split(",").Select(i => (ImportProcess)Convert.ToInt32(i)).ToList();
                 NPocoBootstrapper.Configure(connString, maxBulkRows, IsBulkReload, IsMySQL);
 

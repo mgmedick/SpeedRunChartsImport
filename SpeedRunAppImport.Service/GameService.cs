@@ -349,10 +349,7 @@ namespace SpeedRunAppImport.Service
                 _gameRepo.SaveGames(gameEntities, gameLinkEntities, levelEntities, levelRuleEntities, categoryEntities, categoryRuleEntities, variableEntities, variableValueEntities, gamePlatformEntities, gameRegionEntities, gameModeratorEntities, gameRulesetEntities, gameTimingMethodEntities);
             }
 
-            if (!isBulkReload)
-            {
-                ProcessGameCoverImages(gameLinkEntities, gameEntities);
-            }
+            ProcessGameCoverImages(gameLinkEntities, gameEntities);
 
             _logger.Information("Completed SaveGames");
         }

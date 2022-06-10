@@ -191,7 +191,7 @@ namespace SpeedRunAppImport.Repository
             {
                 foreach (var game in gamesList)
                 {
-                    //_logger.Information("Saving GameID: {@GameID}, GameSpeedRunComID: {@GameSpeedRunComID}", game.ID, game.SpeedRunComID);
+                    _logger.Information("Saving GameID: {@GameID}, GameSpeedRunComID: {@GameSpeedRunComID}", game.ID, game.SpeedRunComID);
                     var gameLink = gameLinks.FirstOrDefault(i => i.GameSpeedRunComID == game.SpeedRunComID);
                     var levelsBatch = levels.Where(i => i.GameSpeedRunComID == game.SpeedRunComID).ToList();
                     var levelSpeedRunComIDsBatch = levelsBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
@@ -220,7 +220,7 @@ namespace SpeedRunAppImport.Repository
                             if (game.ID != 0)
                             {
                                 gameExists = true;
-                                //_logger.Information("Deleting secondary game entities");
+                                _logger.Information("Deleting secondary game entities");
                                 game.ModifiedDate = DateTime.UtcNow;
                                 game.IsChanged = null;
                                 //db.DeleteWhere<GameLinkEntity>("GameID = @gameID", new { gameID = game.ID });
@@ -231,12 +231,12 @@ namespace SpeedRunAppImport.Repository
                                 db.DeleteWhere<GameTimingMethodEntity>("GameID = @gameID", new { gameID = game.ID });
                             }
 
-                            //_logger.Information("Saving game");
+                            _logger.Information("Saving game");
                             db.Save<GameEntity>(game);
                             db.Save<GameSpeedRunComIDEntity>(new GameSpeedRunComIDEntity { GameID = game.ID, SpeedRunComID = game.SpeedRunComID });
 
                             //levels
-                            //_logger.Information("Saving levels");
+                            _logger.Information("Saving levels");
                             foreach (var level in levelsBatch)
                             {
                                 level.GameID = game.ID;
@@ -248,14 +248,14 @@ namespace SpeedRunAppImport.Repository
                                 db.Save<LevelRuleEntity>(levelRule);
                             }
 
-                            //_logger.Information("Pulling levelsToDelete");
+                            _logger.Information("Pulling levelsToDelete");
                             var levelIDs = levelsBatch.Select(i => i.ID).ToList();
                             var levelIDsToDelete = db.Query<LevelEntity>().Where(i => i.GameID == game.ID && !levelIDs.Contains(i.ID)).ToList().Select(i => i.ID);
                             var levelRunIDsToDelete = db.Query<SpeedRunEntity>().Where(i => i.GameID == game.ID && levelIDsToDelete.Contains(i.LevelID.Value)).ToList().Select(i => i.ID);
                             var levelVariableIDsToDelete = db.Query<VariableEntity>().Where(i => i.GameID == game.ID && levelIDsToDelete.Contains(i.LevelID.Value)).ToList().Select(i => i.ID);
                             var levelVariableValueIDsToDelete = db.Query<VariableValueEntity>().Where(i => levelVariableIDsToDelete.Contains(i.VariableID)).ToList().Select(i => i.ID);
 
-                            //_logger.Information("Deleting levelsToDelete related speedruns");
+                            _logger.Information("Deleting levelsToDelete related speedruns");
                             batchCount = 0;
                             while (batchCount < levelRunIDsToDelete.Count())
                             {
@@ -269,7 +269,7 @@ namespace SpeedRunAppImport.Repository
                                 batchCount += maxBatchCount;
                             }
 
-                            //_logger.Information("Deleting levelsToDelete related variablevalues");
+                            _logger.Information("Deleting levelsToDelete related variablevalues");
                             batchCount = 0;
                             while (batchCount < levelVariableValueIDsToDelete.Count())
                             {
@@ -279,14 +279,14 @@ namespace SpeedRunAppImport.Repository
                                 batchCount += maxBatchCount;
                             }
 
-                            //_logger.Information("Deleting levelsToDelete related variables");
+                            _logger.Information("Deleting levelsToDelete related variables");
                             if (levelVariableIDsToDelete.Any())
                             {
                                 db.DeleteMany<VariableSpeedRunComIDEntity>().Where(i => levelVariableIDsToDelete.Contains(i.VariableID)).Execute();
                                 db.DeleteMany<VariableEntity>().Where(i => levelVariableIDsToDelete.Contains(i.ID)).Execute();
                             }
 
-                            //_logger.Information("Deleting levelsToDelete related levels");
+                            _logger.Information("Deleting levelsToDelete related levels");
                             if (levelIDsToDelete.Any())
                             {
                                 db.OneTimeCommandTimeout = 32767;
@@ -298,7 +298,7 @@ namespace SpeedRunAppImport.Repository
                             }
 
                             //categories
-                            //_logger.Information("Saving categories");
+                            _logger.Information("Saving categories");
                             foreach (var category in categoriesBatch)
                             {
                                 category.GameID = game.ID;
@@ -310,14 +310,14 @@ namespace SpeedRunAppImport.Repository
                                 db.Save<CategoryRuleEntity>(categoryRule);
                             }
 
-                            //_logger.Information("Pulling categoriesToDelete");
+                            _logger.Information("Pulling categoriesToDelete");
                             var categoryIDs = categoriesBatch.Select(i => i.ID).ToList();
                             var categoryIDsToDelete = db.Query<CategoryEntity>().Where(i => i.GameID == game.ID && !categoryIDs.Contains(i.ID)).ToList().Select(i => i.ID).ToList();
                             var categoryRunIDsToDelete = db.Query<SpeedRunEntity>().Where(i => i.GameID == game.ID && categoryIDsToDelete.Contains(i.CategoryID)).ToList().Select(i => i.ID).ToList();
                             var categoryVariableIDsToDelete = db.Query<VariableEntity>().Where(i => i.GameID == game.ID && categoryIDsToDelete.Contains(i.CategoryID.Value)).ToList().Select(i => i.ID).ToList();
                             var categoryVariableValueIDsToDelete = db.Query<VariableValueEntity>().Where(i => categoryVariableIDsToDelete.Contains(i.VariableID)).ToList().Select(i => i.ID).ToList();
 
-                            //_logger.Information("Deleting categoriesToDelete related speedruns");
+                            _logger.Information("Deleting categoriesToDelete related speedruns");
                             batchCount = 0;
                             while (batchCount < categoryRunIDsToDelete.Count())
                             {
@@ -331,7 +331,7 @@ namespace SpeedRunAppImport.Repository
                                 batchCount += maxBatchCount;
                             }
 
-                            //_logger.Information("Deleting categoriesToDelete related variablevalues");
+                            _logger.Information("Deleting categoriesToDelete related variablevalues");
                             batchCount = 0;
                             while (batchCount < categoryVariableValueIDsToDelete.Count())
                             {
@@ -341,14 +341,14 @@ namespace SpeedRunAppImport.Repository
                                 batchCount += maxBatchCount;
                             }
 
-                            //_logger.Information("Deleting categoriesToDelete related variables");
+                            _logger.Information("Deleting categoriesToDelete related variables");
                             if (categoryVariableIDsToDelete.Any())
                             {
                                 db.DeleteMany<VariableSpeedRunComIDEntity>().Where(i => categoryVariableIDsToDelete.Contains(i.VariableID)).Execute();
                                 db.DeleteMany<VariableEntity>().Where(i => categoryVariableIDsToDelete.Contains(i.ID)).Execute();
                             }
 
-                            //_logger.Information("Deleting categoriesToDelete related categories");
+                            _logger.Information("Deleting categoriesToDelete related categories");
                             if (categoryIDsToDelete.Any())
                             {
                                 db.DeleteMany<CategoryRuleEntity>().Where(i => categoryIDsToDelete.Contains(i.CategoryID)).Execute();
@@ -357,13 +357,13 @@ namespace SpeedRunAppImport.Repository
                             }
 
                             //variables
-                            //_logger.Information("Pulling variablesToDelete");
+                            _logger.Information("Pulling variablesToDelete");
                             var variableIDs = variablesBatch.Select(i => i.ID).ToList();
                             var variableIDsToDelete = db.Query<VariableEntity>().Where(i => i.GameID == game.ID && (game.IsVariablesOrderChanged || !variableIDs.Contains(i.ID))).ToList().Select(i => i.ID).ToList();
                             var variableRunIDsToDelete = db.Query<SpeedRunVariableValueEntity>().Where(i => variableIDsToDelete.Contains(i.VariableID)).ToList().Select(i => i.SpeedRunID).Distinct().ToList();
                             var variableVariableValueIDsToDelete = db.Query<VariableValueEntity>().Where(i => variableIDsToDelete.Contains(i.VariableID)).ToList().Select(i => i.ID).ToList();
 
-                            //_logger.Information("Deleting variablesToDelete related speedruns");
+                            _logger.Information("Deleting variablesToDelete related speedruns");
                             batchCount = 0;
                             while (batchCount < variableRunIDsToDelete.Count())
                             {
@@ -377,7 +377,7 @@ namespace SpeedRunAppImport.Repository
                                 batchCount += maxBatchCount;
                             }
 
-                            //_logger.Information("Deleting variablesToDelete related variablevalues");
+                            _logger.Information("Deleting variablesToDelete related variablevalues");
                             batchCount = 0;
                             while (batchCount < variableVariableValueIDsToDelete.Count())
                             {
@@ -387,14 +387,14 @@ namespace SpeedRunAppImport.Repository
                                 batchCount += maxBatchCount;
                             }
 
-                            //_logger.Information("Deleting variablesToDelete related variables");
+                            _logger.Information("Deleting variablesToDelete related variables");
                             if (variableIDsToDelete.Any())
                             {
                                 db.DeleteMany<VariableSpeedRunComIDEntity>().Where(i => variableIDsToDelete.Contains(i.VariableID)).Execute();
                                 db.DeleteMany<VariableEntity>().Where(i => variableIDsToDelete.Contains(i.ID)).Execute();
                             }
 
-                            //_logger.Information("Saving variables");
+                            _logger.Information("Saving variables");
                             foreach (var variable in variablesBatch)
                             {
                                 if (game.IsVariablesOrderChanged)
@@ -410,7 +410,7 @@ namespace SpeedRunAppImport.Repository
                             }
 
                             //variableValues
-                            //_logger.Information("Saving variableValues");
+                            _logger.Information("Saving variableValues");
                             foreach (var variableValue in variablesValuesBatch)
                             {
                                 if (game.IsVariablesOrderChanged)
@@ -424,13 +424,13 @@ namespace SpeedRunAppImport.Repository
                                 db.Save<VariableValueSpeedRunComIDEntity>(new VariableValueSpeedRunComIDEntity { VariableValueID = variableValue.ID, SpeedRunComID = variableValue.SpeedRunComID });
                             }
 
-                            //_logger.Information("Pulling variableValuesToDelete");
+                            _logger.Information("Pulling variableValuesToDelete");
                             var variableValueIDs = variablesValuesBatch.Select(i => i.ID).ToList();
                             var variableValuesForGame = db.Query<VariableValueEntity>().Where(i => i.GameID == game.ID).ToList();
                             var variableValueIDsToDelete = variableValuesForGame.Where(i => !variableValueIDs.Contains(i.ID)).Select(i => i.ID).ToList();
                             var variableValueRunIDsToDelete = db.Query<SpeedRunVariableValueEntity>().Where(i => variableValueIDsToDelete.Contains(i.VariableValueID)).ToList().Select(i => i.SpeedRunID).Distinct().ToList();
 
-                            //_logger.Information("Deleting variableValuesToDelete related speedruns");
+                            _logger.Information("Deleting variableValuesToDelete related speedruns");
                             batchCount = 0;
                             while (batchCount < variableValueRunIDsToDelete.Count())
                             {
@@ -444,7 +444,7 @@ namespace SpeedRunAppImport.Repository
                                 batchCount += maxBatchCount;
                             }
 
-                            //_logger.Information("Deleting variableValuesToDelete related variableValues");
+                            _logger.Information("Deleting variableValuesToDelete related variableValues");
                             batchCount = 0;
                             while (batchCount < variableValueIDsToDelete.Count())
                             {
@@ -454,10 +454,7 @@ namespace SpeedRunAppImport.Repository
                                 batchCount += maxBatchCount;
                             }
 
-                            //_logger.Information("Saving gameImage");
-
-
-                            //_logger.Information("Saving gameLink");
+                            _logger.Information("Saving gameLink");
                             if (gameLink != null)
                             {
                                 gameLink.GameID = game.ID;
@@ -471,30 +468,30 @@ namespace SpeedRunAppImport.Repository
                                 }
                             }
 
-                            //_logger.Information("Saving gameRuleset");
+                            _logger.Information("Saving gameRuleset");
                             if (gameRuleset != null)
                             {
                                 gameRuleset.GameID = game.ID;
                                 db.Save<GameRulesetEntity>(gameRuleset);
                             }
 
-                            //_logger.Information("Saving gamePlatforms");
+                            _logger.Information("Saving gamePlatforms");
                             gamePlatformsBatch.ForEach(i => i.GameID = game.ID);
                             db.InsertBatch<GamePlatformEntity>(gamePlatformsBatch);
 
-                            //_logger.Information("Saving gameRegions");
+                            _logger.Information("Saving gameRegions");
                             gameRegionsBatch.ForEach(i => i.GameID = game.ID);
                             db.InsertBatch<GameRegionEntity>(gameRegionsBatch);
 
-                            //_logger.Information("Saving gameModerators");
+                            _logger.Information("Saving gameModerators");
                             gameModeratorsBatch.ForEach(i => i.GameID = game.ID);
                             db.InsertBatch<GameModeratorEntity>(gameModeratorsBatch);
 
-                            //_logger.Information("Saving gameTimingMethods");
+                            _logger.Information("Saving gameTimingMethods");
                             gameTimingMethodsBatch.ForEach(i => i.GameID = game.ID);
                             db.InsertBatch<GameTimingMethodEntity>(gameTimingMethodsBatch);
 
-                            //_logger.Information("Completed Saving GameID: {@GameID}, GameSpeedRunComID: {@GameSpeedRunComID}", game.ID, game.SpeedRunComID);
+                            _logger.Information("Completed Saving GameID: {@GameID}, GameSpeedRunComID: {@GameSpeedRunComID}", game.ID, game.SpeedRunComID);
                             tran.Complete();
                         }
                         catch (Exception ex)

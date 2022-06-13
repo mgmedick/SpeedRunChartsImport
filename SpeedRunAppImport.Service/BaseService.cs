@@ -33,6 +33,7 @@ namespace SpeedRunAppImport.Service
         public static string BaseWebPath { get; set; }
         public static string GameImageWebPath { get; set; }
         public static string ImageFileExt { get; set; }
+        public static bool IsProcessGameCoverImages { get; set; }
     }
 }
 

@@ -147,6 +147,7 @@ namespace SpeedRunAppImport
                 BaseService.GameImageWebPath = _config.GetSection("AppSettings").GetSection("GameImageWebPath").Value;
                 BaseService.ImageFileExt = _config.GetSection("AppSettings").GetSection("ImageFileExt").Value;
                 BaseService.TempImportPath = _config.GetSection("AppSettings").GetSection("TempImportPath").Value;
+                BaseService.IsProcessGameCoverImages = _settingService.GetSetting("IsProcessGameCoverImages")?.Num == 1;
 
                 if (!Directory.Exists(BaseService.TempImportPath))
                 {

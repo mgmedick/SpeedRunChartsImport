@@ -224,10 +224,15 @@ namespace SpeedRunAppImport.Repository
                                 game.ModifiedDate = DateTime.UtcNow;
                                 game.IsChanged = null;
                                 //db.DeleteWhere<GameLinkEntity>("GameID = @gameID", new { gameID = game.ID });
+                                db.OneTimeCommandTimeout = 32767;
                                 db.DeleteWhere<GameRulesetEntity>("GameID = @gameID", new { gameID = game.ID });
+                                db.OneTimeCommandTimeout = 32767;
                                 db.DeleteWhere<GamePlatformEntity>("GameID = @gameID", new { gameID = game.ID });
+                                db.OneTimeCommandTimeout = 32767;
                                 db.DeleteWhere<GameRegionEntity>("GameID = @gameID", new { gameID = game.ID });
+                                db.OneTimeCommandTimeout = 32767;
                                 db.DeleteWhere<GameModeratorEntity>("GameID = @gameID", new { gameID = game.ID });
+                                db.OneTimeCommandTimeout = 32767;
                                 db.DeleteWhere<GameTimingMethodEntity>("GameID = @gameID", new { gameID = game.ID });
                             }
 
@@ -359,8 +364,11 @@ namespace SpeedRunAppImport.Repository
                             //variables
                             _logger.Information("Pulling variablesToDelete");
                             var variableIDs = variablesBatch.Select(i => i.ID).ToList();
+                            db.OneTimeCommandTimeout = 32767;
                             var variableIDsToDelete = db.Query<VariableEntity>().Where(i => i.GameID == game.ID && (game.IsVariablesOrderChanged || !variableIDs.Contains(i.ID))).ToList().Select(i => i.ID).ToList();
+                            db.OneTimeCommandTimeout = 32767;
                             var variableRunIDsToDelete = db.Query<SpeedRunVariableValueEntity>().Where(i => variableIDsToDelete.Contains(i.VariableID)).ToList().Select(i => i.SpeedRunID).Distinct().ToList();
+                            db.OneTimeCommandTimeout = 32767;
                             var variableVariableValueIDsToDelete = db.Query<VariableValueEntity>().Where(i => variableIDsToDelete.Contains(i.VariableID)).ToList().Select(i => i.ID).ToList();
 
                             _logger.Information("Deleting variablesToDelete related speedruns");

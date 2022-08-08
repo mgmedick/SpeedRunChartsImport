@@ -88,7 +88,13 @@ namespace SpeedRunAppImport.Repository
                             videosBatch[i].ID = videoIDs[i];
                         }
 
-                        videoDetailsBatch.ForEach(i => i.SpeedRunVideoID = videosBatch.Find(g => g.LocalID == i.SpeedRunVideoLocalID).ID);
+                        foreach (var videoDetail in videoDetailsBatch)
+                        {
+                            var video = videosBatch.Find(g => g.LocalID == videoDetail.SpeedRunVideoLocalID);
+                            videoDetail.SpeedRunVideoID = video.ID;
+                            videoDetail.SpeedRunID = video.SpeedRunID;
+                        }
+
                         db.InsertBatch<SpeedRunVideoDetailEntity>(videoDetailsBatch);
 
                         tran.Complete();
@@ -192,7 +198,13 @@ namespace SpeedRunAppImport.Repository
                                 db.Save<SpeedRunVideoEntity>(video);
                             }
 
-                            videoDetailsBatch.ForEach(i => i.SpeedRunVideoID = videosBatch.Find(g => g.LocalID == i.SpeedRunVideoLocalID).ID);
+                            foreach (var videoDetail in videoDetailsBatch)
+                            {
+                                var video = videosBatch.Find(g => g.LocalID == videoDetail.SpeedRunVideoLocalID);
+                                videoDetail.SpeedRunVideoID = video.ID;
+                                videoDetail.SpeedRunID = video.SpeedRunID;
+                            }
+
                             db.InsertBatch<SpeedRunVideoDetailEntity>(videoDetailsBatch);
 
                             tran.Complete();

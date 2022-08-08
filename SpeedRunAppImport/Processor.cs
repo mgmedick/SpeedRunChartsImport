@@ -105,7 +105,6 @@ namespace SpeedRunAppImport
                 ImportLastRunDateUtc = IsBulkReload ? sqlMinDateTime : (_settingService.GetSetting("ImportLastRunDate")?.Dte ?? currDateUtc);
                 IsBulkReloadRunning = _settingService.GetSetting("IsBulkReloadRunning")?.Num == 1;
                 IsBulkReloadPostProcessRunning = _settingService.GetSetting("IsBulkReloadPostProcessRunning")?.Num == 1;
-                IsReprocessSpeedRunVideos = _settingService.GetSetting("IsReprocessSpeedRunVideos")?.Num == 1;
 
                 var updateSpeedRunsTimeString = _settingService.GetSetting("UpdateSpeedRunsTime")?.Str;
 
@@ -169,6 +168,7 @@ namespace SpeedRunAppImport
                             var youTubeLastEnabledDate = DateTime.UtcNow;
                             _settingService.UpdateSetting("YouTubeAPILastEnabledDate", youTubeLastEnabledDate);
                             _logger.Information("Enabled YouTubeAPI YouTubeAPILastEnabledDate: {@YouTubeAPILastEnabledDate}", youTubeLastEnabledDate);
+                            IsReprocessSpeedRunVideos = true;
                         }
                     }
                 }
@@ -226,7 +226,7 @@ namespace SpeedRunAppImport
                 result = _speedRunRepo.UpdateSpeedRunRanks(ImportLastRunDateUtc);
             }
 
-            if (result)
+            if (result && IsReprocessSpeedRunVideos)
             {
                 result = _speedRunService.ReprocessSpeedRunVideos();
             }

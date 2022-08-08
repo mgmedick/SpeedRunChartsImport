@@ -154,6 +154,25 @@ namespace SpeedRunAppImport
                     Directory.CreateDirectory(BaseService.TempImportPath);
                 }
 
+                if (!BaseService.YouTubeAPIEnabled)
+                {
+                    TimeSpan autoRenableYouTubeAPITime;
+                    var autoRenableYouTubeAPITimeString = _settingService.GetSetting("AutoRenableYouTubeAPITime")?.Str;
+                    var youTubeAPILastDisabledDate = _settingService.GetSetting("YouTubeAPILastDisabledDate")?.Dte;
+                    if (youTubeAPILastDisabledDate.HasValue && TimeSpan.TryParse(autoRenableYouTubeAPITimeString, out autoRenableYouTubeAPITime))
+                    {
+                        if (youTubeAPILastDisabledDate.Value.Add(autoRenableYouTubeAPITime) <= currDateUtc)
+                        {
+                            IsReprocessSpeedRunVideos = true;
+                            BaseService.YouTubeAPIEnabled = true;
+                            _settingService.UpdateSetting("YouTubeAPIEnabled", 1);
+                            var youTubeLastEnabledDate = DateTime.UtcNow;
+                            _settingService.UpdateSetting("YouTubeAPILastEnabledDate", youTubeLastEnabledDate);
+                            _logger.Information("Enabled YouTubeAPI YouTubeAPILastEnabledDate: {@YouTubeAPILastEnabledDate}", youTubeLastEnabledDate);
+                        }
+                    }
+                }
+
                 _logger.Information("Completed Init");
             }
             catch (Exception ex)
@@ -207,13 +226,18 @@ namespace SpeedRunAppImport
                 result = _speedRunRepo.UpdateSpeedRunRanks(ImportLastRunDateUtc);
             }
 
+            if (result && IsReprocessSpeedRunVideos)
+            {
+                result = _speedRunService.ReprocessSpeedRunVideos();
+            }
+
             if (result)
             {
                 if (IsBulkReload || IsUpdateSpeedRuns)
                 {
                     result = _settingService.GenerateAndMoveSitemapXml();
 
-                    if (result && !IsMySQL)
+                    if (result)
                     {
                         RunMaintenance();
                     }
@@ -234,7 +258,7 @@ namespace SpeedRunAppImport
             bool result = true;
             result = _speedRunRepo.RebuildIndexes();
 
-            if (result)
+            if (result && !IsMySQL)
             {
                 _speedRunRepo.UpdateStats();
             }
@@ -254,6 +278,7 @@ namespace SpeedRunAppImport
         public bool IsMaintenance { get; set; }
         public bool IsUpdateSpeedRuns { get; set; }
         public bool IsMySQL { get; set; }
+        public bool IsReprocessSpeedRunVideos { get; set; }
         public List<ImportProcess> Processes { get; set; }
     }
 }

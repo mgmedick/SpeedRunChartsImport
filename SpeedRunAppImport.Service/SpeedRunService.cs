@@ -431,17 +431,6 @@ namespace SpeedRunAppImport.Service
             return run;
         }
 
-        public void UpdateSpeedRunVideos()
-        {
-            var speedRunVideos = _speedRunRepo.GetSpeedRunVideos(i => i.EmbeddedVideoLinkUrl == null);
-            foreach (var speedRunVideo in speedRunVideos)
-            {
-                speedRunVideo.EmbeddedVideoLinkUrl = new Uri(speedRunVideo.VideoLinkUrl).ToEmbeddedURIString();
-            }
-
-            _speedRunRepo.UpdateSpeedRunVideos(speedRunVideos);
-        }
-
         public void SaveSpeedRuns(IEnumerable<SpeedRun> runs, bool isBulkReload, bool isUpdateSpeedRuns)
         {
             _logger.Information("Started SaveSpeedRuns: {@IsBulkReload}, {@IsUpdateSpeedRuns}", isBulkReload, isUpdateSpeedRuns);
@@ -572,6 +561,7 @@ namespace SpeedRunAppImport.Service
             var videoEntities = runs.Where(i => i.Videos?.Links != null && i.Videos.Links.Any(g => g != null))
             .SelectMany(i => i.Videos?.Links?.Select((g, n) => new SpeedRunVideoEntity()
             {
+                LocalID = n + 1,
                 SpeedRunSpeedRunComID = i.ID,
                 VideoLinkUri = g,
                 VideoLinkUrl = g?.ToString(),
@@ -581,7 +571,7 @@ namespace SpeedRunAppImport.Service
             .GroupBy(h => new { h.SpeedRunSpeedRunComID, h.VideoLinkUrl })
             .Select(n => n.First())
             .ToList();
-            SetSpeedRunVideoApiFields(videoEntities);
+            var videoDetailEntities = GetAndSetSpeedRunVideoDetails(videoEntities);
             var guestPlayerEntities = runs.Where(i => i.PlayerGuests != null).SelectMany(i => i.PlayerGuests.Select(g => new SpeedRunGuestEntity()
             {
                 SpeedRunSpeedRunComID = i.ID,
@@ -591,27 +581,57 @@ namespace SpeedRunAppImport.Service
 
             if (isBulkReload)
             {
-                _speedRunRepo.InsertSpeedRuns(runEntities, runLinkEntities, runSystemEntities, runTimeEntities, runCommentEntities, variableValueEntities, playerEntities, guestPlayerEntities, videoEntities);
+                _speedRunRepo.InsertSpeedRuns(runEntities, runLinkEntities, runSystemEntities, runTimeEntities, runCommentEntities, variableValueEntities, playerEntities, guestPlayerEntities, videoEntities, videoDetailEntities);
             }
             else
             {
-                _speedRunRepo.SaveSpeedRuns(runEntities, runLinkEntities, runSystemEntities, runTimeEntities, runCommentEntities, variableValueEntities, playerEntities, guestPlayerEntities, videoEntities);
+                _speedRunRepo.SaveSpeedRuns(runEntities, runLinkEntities, runSystemEntities, runTimeEntities, runCommentEntities, variableValueEntities, playerEntities, guestPlayerEntities, videoEntities, videoDetailEntities);
             }
 
             _logger.Information("Completed SaveSpeedRuns");
         }
 
-        public void SetSpeedRunVideoApiFields(List<SpeedRunVideoEntity> videos)
-        {           
+        public bool ReprocessSpeedRunVideos()
+        {
+            bool result = true;
+
+            try
+            {
+                _logger.Information("Started ReprocessSpeedRunVideos");
+
+                var videos = _speedRunRepo.GetSpeedRunVideos(i => !i.IsProcessed).ToList();
+                for (int i = 0; i < videos.Count; i++)
+                {
+                    videos[i].LocalID = i + 1;
+                }
+
+                var videoDetails = GetAndSetSpeedRunVideoDetails(videos);
+                _speedRunRepo.SaveSpeedRunVideos(videos, videoDetails);
+
+                _logger.Information("Completed ReprocessSpeedRunVideos");
+            }
+            catch (Exception ex)
+            {
+                result = false;
+                _logger.Error(ex, "ReprocessSpeedRunVideos");
+            }
+
+            return result;
+        }
+
+        public List<SpeedRunVideoDetailEntity> GetAndSetSpeedRunVideoDetails(List<SpeedRunVideoEntity> videos)
+        {
+            var details = new List<SpeedRunVideoDetailEntity>();
             var batchCount = 0;
+
+            var twitchIdentifiers = new List<string> { "twitch.tv" };
+            var twitchVideos = videos.Where(i => i.VideoLinkUri != null && twitchIdentifiers.Any(g => i.VideoLinkUri.GetLeftPart(UriPartial.Authority).Contains(g)) && i.VideoLinkUri.AbsolutePath.StartsWith(@"/videos/")).ToList();
 
             if (TwitchAPIEnabled)
             {
                 var maxBatchCountTwitch = 100;
                 var twitchToken = _settingService.GetTwitchToken();
-                var twitchIdentifiers = new List<string> { "twitch.tv" };
-                var twitchVideos = videos.Where(i => i.VideoLinkUri != null && twitchIdentifiers.Any(g => i.VideoLinkUri.GetLeftPart(UriPartial.Authority).Contains(g)) && i.VideoLinkUri.AbsolutePath.StartsWith(@"/videos/"))
-                                         .ToList();
+
                 foreach (var twitchVideo in twitchVideos)
                 {
                     twitchVideo.VideoID = twitchVideo.VideoLinkUri.Segments.Last();
@@ -652,11 +672,12 @@ namespace SpeedRunAppImport.Service
 
                         if (result != null)
                         {
-                            video.ChannelID = (string)result.user_id;
-                            video.ViewCount = (int?)result.view_count;
                             var thumnailUriString = (string)result.thumbnail_url;
                             video.ThumbnailLinkUrl = thumnailUriString?.Replace("%{width}", "320").Replace("%{height}", "190");
+                            details.Add(new SpeedRunVideoDetailEntity() { SpeedRunVideoLocalID = video.LocalID, SpeedRunID = video.SpeedRunID, ChannelID = (string)result.user_id, ViewCount = (int?)result.view_count });
                         }
+
+                        video.IsProcessed = true;
                     }
 
                     batchCount += maxBatchCountTwitch;
@@ -664,13 +685,15 @@ namespace SpeedRunAppImport.Service
                 }
             }
 
+            var youtubeIdentifiers = new List<string> { "youtube.com", "youtu.be" };
+            var youtubeVideos = videos.Where(i => i.VideoLinkUri != null && youtubeIdentifiers.Any(g => i.VideoLinkUri.GetLeftPart(UriPartial.Authority).Contains(g))).ToList();
+
             if (YouTubeAPIEnabled)
             {
                 batchCount = 0;
                 var maxBatchCountYoutube = 50;
-                var youtubeIdentifiers = new List<string> { "youtube.com", "youtu.be" };
-                var youtubeVideos = videos.Where(i => i.VideoLinkUri != null && youtubeIdentifiers.Any(g => i.VideoLinkUri.GetLeftPart(UriPartial.Authority).Contains(g)))
-                                            .ToList();
+                var exceededError = false;
+
                 foreach (var youtubeVideo in youtubeVideos)
                 {
                     var queryDictionary = QueryHelpers.ParseQuery(youtubeVideo.VideoLinkUri.Query);
@@ -694,6 +717,7 @@ namespace SpeedRunAppImport.Service
                         _logger.Information(ex, "SetSpeedRunVideoApiFields");
                         if (ex.Message.Contains("exceeded"))
                         {
+                            exceededError = true;
                             break;
                         }
                     }
@@ -715,103 +739,38 @@ namespace SpeedRunAppImport.Service
 
                         if (result != null)
                         {
-                            video.ChannelID = (string)result.snippet?.channelId;
-                            video.ViewCount = (int?)result.statistics?.viewCount;
+                            details.Add(new SpeedRunVideoDetailEntity() { SpeedRunVideoLocalID = video.LocalID, SpeedRunID = video.SpeedRunID, ChannelID = (string)result.snippet?.channelId, ViewCount = (int?)result.statistics?.viewCount });
                         }
+
+                        video.IsProcessed = true;
+                        break;
                     }
 
                     batchCount += maxBatchCountYoutube;
                     YouTubeAPIRequestCount += 1;
                     _logger.Information("Set Youtube Video Details {@Count} / {@Total}", (batchCount > youtubeVideos.Count ? youtubeVideos.Count : batchCount), youtubeVideos.Count);
                 }
+
+                if (YouTubeAPIRequestCount >= YouTubeAPIDailyRequestLimit || exceededError)
+                {
+                    YouTubeAPIEnabled = false;
+                    _settingService.UpdateSetting("YouTubeAPIEnabled", 0);
+                    var youTubeLastDisabledDate = DateTime.UtcNow;
+                    _settingService.UpdateSetting("YouTubeAPILastDisabledDate", youTubeLastDisabledDate);
+                    _logger.Information("Disabled YouTubeAPI YouTubeAPILastDisabledDate: {@YouTubeAPILastDisabledDate}", youTubeLastDisabledDate);
+                }
             }
-        }
 
-        /*
-        public void SetSpeedRunApiFields(List<SpeedRunEntity> runs, List<SpeedRunVideoEntity> videos, bool isBulkReload, bool isUpdateSpeedRuns)
-        {
-            _logger.Information("Started SetSpeedRunVideoApiFields RunCount: {@RunCount}, VideoCount: {@VideoCount}", runs.Count, videos.Count);
-
-            var twitchToken = _settingService.GetTwitchToken();
-            int count = 1;
-            foreach (var run in runs)
+            var localVideoIDs = twitchVideos.Select(i => i.LocalID).ToList();
+            localVideoIDs.AddRange(youtubeVideos.Select(i => i.LocalID).ToList());
+            var remainingVideos = videos.Where(i => !localVideoIDs.Contains(i.LocalID)).ToList();
+            foreach (var remainingVideo in remainingVideos)
             {
-                int? totalViewCount = null;
-                var videosBatch = videos.Where(i => i.SpeedRunSpeedRunComID == run.SpeedRunComID).ToList();
-                foreach (var video in videosBatch)
-                {
-                    try
-                    {
-                        var uri = new Uri(video.VideoLinkUrl);
-
-                        if (uri != null)
-                        {
-                            string domain = uri.GetLeftPart(UriPartial.Authority);
-                            string path = uri.AbsolutePath;
-                            string query = uri.Query;
-                            string videoIDString = null;
-                            string thumnailUriString = null;
-                            int? viewCount = null;
-
-                            if (domain.Contains("twitch.tv"))
-                            {
-                                if (path.StartsWith(@"/videos/"))
-                                {
-                                    videoIDString = uri.Segments.Last();
-                                    var requestString = string.Format(@"https://api.twitch.tv/helix/videos?id={0}", videoIDString);
-                                    var parameters = new Dictionary<string, string>() { { "Client-Id", TwitchClientID }, { "Authorization", "Bearer " + twitchToken } };
-                                    var result = JsonHelper.FromUri(new Uri(requestString), parameters);
-
-                                    thumnailUriString = result?.data?.First.thumbnail_url;
-                                    thumnailUriString = thumnailUriString.Replace("%{width}", "320").Replace("%{height}", "190");
-                                    viewCount = result?.data?.First?.view_count;
-                                }
-                            }
-                            else if (domain.Contains("youtube.com") || domain.Contains("youtu.be"))
-                            {
-                                var queryDictionary = QueryHelpers.ParseQuery(query);
-                                videoIDString = queryDictionary.ContainsKey("v") ? queryDictionary["v"].ToString() : uri.Segments.Last();
-                                thumnailUriString = string.Format(@"https://img.youtube.com/vi/{0}/1.jpg", videoIDString);
-                                //viewCount = _scrapeService.GetYouTubeViewCount(video.VideoLinkUrl);
-
-                                if (!isBulkReload && !isUpdateSpeedRuns)
-                                {
-                                    var requestString = string.Format(@"https://www.googleapis.com/youtube/v3/videos?part=statistics&id={0}&key={1}", videoIDString, YouTubeAPIKey);
-                                    var result = JsonHelper.FromUri(new Uri(requestString));
-                                    viewCount = result?.items?.First.statistics?.viewCount;
-                                }
-                            }
-
-                            if (!string.IsNullOrWhiteSpace(thumnailUriString))
-                            {
-                                video.ThumbnailLinkUrl = thumnailUriString;
-                            }
-
-                            if (viewCount.HasValue)
-                            {
-                                video.ViewCount = viewCount;
-                                totalViewCount += viewCount;
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.Information(ex, "SetSpeedRunVideoApiFields");
-                    }
-                }
-
-                if (totalViewCount.HasValue)
-                {
-                    run.TotalViewCount = totalViewCount;
-                }
-
-                _logger.Information("Pulled Details {@Count} / {@Total}", count, runs.Count);
-                count++;
+                remainingVideo.IsProcessed = true;
             }
 
-            _logger.Information("Completed SetSpeedRunVideoApiFields");
+            return details;
         }
-        */
     }
 }
 

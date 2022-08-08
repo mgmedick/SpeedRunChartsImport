@@ -172,10 +172,12 @@ namespace SpeedRunAppImport.Repository
                 i.Column(g => g.SpeedRunSpeedRunComID).Ignore();
                 i.Column(g => g.VideoLinkUri).Ignore();
                 i.Column(g => g.VideoID).Ignore();
-                i.Column(g => g.ViewCount).Ignore();
-                i.Column(g => g.ChannelID).Ignore();
+                i.Column(g => g.LocalID).Ignore();
             });
-            For<SpeedRunVideoDetailEntity>().PrimaryKey("ID").TableName("tbl_SpeedRun_Video_Detail" + tblEnd);
+            For<SpeedRunVideoDetailEntity>().PrimaryKey("ID").TableName("tbl_SpeedRun_Video_Detail" + tblEnd).Columns(i =>
+            {
+                i.Column(g => g.SpeedRunVideoLocalID).Ignore();
+            });
         }
     }
 }

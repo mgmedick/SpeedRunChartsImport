@@ -561,7 +561,6 @@ namespace SpeedRunAppImport.Service
             var videoEntities = runs.Where(i => i.Videos?.Links != null && i.Videos.Links.Any(g => g != null))
             .SelectMany(i => i.Videos?.Links?.Select((g, n) => new SpeedRunVideoEntity()
             {
-                LocalID = n + 1,
                 SpeedRunSpeedRunComID = i.ID,
                 VideoLinkUri = g,
                 VideoLinkUrl = g?.ToString(),
@@ -571,6 +570,10 @@ namespace SpeedRunAppImport.Service
             .GroupBy(h => new { h.SpeedRunSpeedRunComID, h.VideoLinkUrl })
             .Select(n => n.First())
             .ToList();
+            for (int i = 0; i < videoEntities.Count; i++)
+            {
+                videoEntities[i].LocalID = i + 1;
+            }
             var videoDetailEntities = GetAndSetSpeedRunVideoDetails(videoEntities);
             var guestPlayerEntities = runs.Where(i => i.PlayerGuests != null).SelectMany(i => i.PlayerGuests.Select(g => new SpeedRunGuestEntity()
             {

@@ -105,6 +105,7 @@ namespace SpeedRunAppImport
                 ImportLastRunDateUtc = IsBulkReload ? sqlMinDateTime : (_settingService.GetSetting("ImportLastRunDate")?.Dte ?? currDateUtc);
                 IsBulkReloadRunning = _settingService.GetSetting("IsBulkReloadRunning")?.Num == 1;
                 IsBulkReloadPostProcessRunning = _settingService.GetSetting("IsBulkReloadPostProcessRunning")?.Num == 1;
+                IsReprocessSpeedRunVideos = _settingService.GetSetting("IsReprocessSpeedRunVideos")?.Num == 1;
 
                 var updateSpeedRunsTimeString = _settingService.GetSetting("UpdateSpeedRunsTime")?.Str;
 
@@ -244,13 +245,20 @@ namespace SpeedRunAppImport
                 }
             }
 
+            var currDateUtc = DateTime.UtcNow;
             if (IsBulkReload)
             {
                 _settingService.UpdateSetting("IsBulkReloadRunning", 0);
                 _settingService.UpdateSetting("IsBulkReloadPostProcessRunning", 0);
+                _settingService.UpdateSetting("ImportLastBulkReloadDate", currDateUtc);
             }
 
-            _settingService.UpdateSetting("ImportLastRunDate", DateTime.UtcNow);
+            if (IsUpdateSpeedRuns)
+            {
+                _settingService.UpdateSetting("ImportLastUpdateSpeedRunsDate", currDateUtc);
+            }
+
+            _settingService.UpdateSetting("ImportLastRunDate", currDateUtc);
         }
 
         public void RunMaintenance()

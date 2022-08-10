@@ -203,9 +203,8 @@ namespace SpeedRunAppImport.Repository
                                 var video = videosBatch.Find(g => g.LocalID == videoDetail.SpeedRunVideoLocalID);
                                 videoDetail.SpeedRunVideoID = video.ID;
                                 videoDetail.SpeedRunID = video.SpeedRunID;
+                                db.Save<SpeedRunVideoDetailEntity>(videoDetail);
                             }
-
-                            db.InsertBatch<SpeedRunVideoDetailEntity>(videoDetailsBatch);
 
                             tran.Complete();
                         }
@@ -248,6 +247,7 @@ namespace SpeedRunAppImport.Repository
                             if (speedRunVideoDetail != null)
                             {
                                 speedRunVideoDetail.SpeedRunVideoID = speedRunVideo.ID;
+                                speedRunVideoDetail.SpeedRunID = speedRunVideo.SpeedRunID;
                                 db.Save<SpeedRunVideoDetailEntity>(speedRunVideoDetail);
                             }
 

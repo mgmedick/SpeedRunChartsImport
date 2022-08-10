@@ -606,6 +606,7 @@ namespace SpeedRunAppImport.Service
                 for (int i = 0; i < videos.Count; i++)
                 {
                     videos[i].LocalID = i + 1;
+                    videos[i].VideoLinkUri = new Uri(videos[i].VideoLinkUrl);
                 }
 
                 var videoDetails = GetAndSetSpeedRunVideoDetails(videos);
@@ -627,20 +628,17 @@ namespace SpeedRunAppImport.Service
             var details = new List<SpeedRunVideoDetailEntity>();
             var batchCount = 0;
 
-            videos.ForEach(i => i.IsProcessed = true);
+            var twitchIdentifiers = new List<string> { "twitch.tv" };
+            var twitchVideos = videos.Where(i => i.VideoLinkUri != null && twitchIdentifiers.Any(g => i.VideoLinkUri.GetLeftPart(UriPartial.Authority).Contains(g)) && i.VideoLinkUri.AbsolutePath.StartsWith(@"/videos/")).ToList();
 
             if (TwitchAPIEnabled)
             {
                 var maxBatchCountTwitch = 100;
                 var twitchToken = _settingService.GetTwitchToken();
 
-                var twitchIdentifiers = new List<string> { "twitch.tv" };
-                var twitchVideos = videos.Where(i => i.VideoLinkUri != null && twitchIdentifiers.Any(g => i.VideoLinkUri.GetLeftPart(UriPartial.Authority).Contains(g)) && i.VideoLinkUri.AbsolutePath.StartsWith(@"/videos/")).ToList();
-
                 foreach (var twitchVideo in twitchVideos)
                 {
                     twitchVideo.VideoID = twitchVideo.VideoLinkUri.Segments.Last();
-                    twitchVideo.IsProcessed = false;
                 }
                 twitchVideos = twitchVideos.Where(i => !string.IsNullOrWhiteSpace(i.VideoID)).ToList();
 
@@ -691,20 +689,19 @@ namespace SpeedRunAppImport.Service
                 }
             }
 
+            var youtubeIdentifiers = new List<string> { "youtube.com", "youtu.be" };
+            var youtubeVideos = videos.Where(i => i.VideoLinkUri != null && youtubeIdentifiers.Any(g => i.VideoLinkUri.GetLeftPart(UriPartial.Authority).Contains(g))).ToList();
+
             if (YouTubeAPIEnabled)
             {
                 batchCount = 0;
                 var maxBatchCountYoutube = 50;
                 var exceededError = false;
 
-                var youtubeIdentifiers = new List<string> { "youtube.com", "youtu.be" };
-                var youtubeVideos = videos.Where(i => i.VideoLinkUri != null && youtubeIdentifiers.Any(g => i.VideoLinkUri.GetLeftPart(UriPartial.Authority).Contains(g))).ToList();
-
                 foreach (var youtubeVideo in youtubeVideos)
                 {
                     var queryDictionary = QueryHelpers.ParseQuery(youtubeVideo.VideoLinkUri.Query);
                     youtubeVideo.VideoID = queryDictionary.ContainsKey("v") ? queryDictionary["v"].ToString() : youtubeVideo.VideoLinkUri.Segments.Last();
-                    youtubeVideo.IsProcessed = false;
                 }
                 youtubeVideos = youtubeVideos.Where(i => !string.IsNullOrWhiteSpace(i.VideoID)).ToList();
 
@@ -766,6 +763,14 @@ namespace SpeedRunAppImport.Service
                     _settingService.UpdateSetting("YouTubeAPILastDisabledDate", youTubeLastDisabledDate);
                     _logger.Information("Disabled YouTubeAPI YouTubeAPILastDisabledDate: {@YouTubeAPILastDisabledDate}", youTubeLastDisabledDate);
                 }
+            }
+
+            var localVideoIDs = twitchVideos.Select(i => i.LocalID).ToList();
+            localVideoIDs.AddRange(youtubeVideos.Select(i => i.LocalID).ToList());
+            var remainingVideos = videos.Where(i => !localVideoIDs.Contains(i.LocalID)).ToList();
+            foreach (var remainingVideo in remainingVideos)
+            {
+                remainingVideo.IsProcessed = true;
             }
 
             return details;

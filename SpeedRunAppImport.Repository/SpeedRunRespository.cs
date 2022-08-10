@@ -263,6 +263,7 @@ namespace SpeedRunAppImport.Repository
                     count++;
                 }
             }
+            _logger.Information("Completed SaveSpeedRunVideos");
         }
 
         public void DeleteSpeedRuns(string predicate)

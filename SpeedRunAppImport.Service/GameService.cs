@@ -244,7 +244,8 @@ namespace SpeedRunAppImport.Service
             {
                 LevelSpeedRunComID = g.ID,
                 Rules = g.Rules
-            })).ToList();
+            })).Where(i => !string.IsNullOrWhiteSpace(i.Rules))
+            .ToList();
             var categoryEntities = games.SelectMany(i => i.Categories.Select(g => new CategoryEntity
             {
                 ID = categorySpeedRunComIDs.Where(h => h.SpeedRunComID == g.ID).Select(o => o.CategoryID).FirstOrDefault(),
@@ -257,7 +258,8 @@ namespace SpeedRunAppImport.Service
             {
                 CategorySpeedRunComID = g.ID,
                 Rules = g.Rules
-            })).ToList();
+            })).Where(i => !string.IsNullOrWhiteSpace(i.Rules))
+            .ToList();
             var variableEntities = games.SelectMany(i => i.Variables.Select(g => new VariableEntity
             {
                 ID = variableSpeedRunComIDs.Where(h => h.SpeedRunComID == g.ID).Select(o => o.VariableID).FirstOrDefault(),

@@ -174,7 +174,7 @@ namespace SpeedRunAppImport.Repository
                 i.Column(g => g.VideoID).Ignore();
                 i.Column(g => g.LocalID).Ignore();
             });
-            For<SpeedRunVideoDetailEntity>().PrimaryKey("SpeedRunVideoID").TableName("tbl_SpeedRun_Video_Detail" + tblEnd).Columns(i =>
+            For<SpeedRunVideoDetailEntity>().PrimaryKey("SpeedRunVideoID", false).TableName("tbl_SpeedRun_Video_Detail" + tblEnd).Columns(i =>
             {
                 i.Column(g => g.SpeedRunVideoLocalID).Ignore();
             });

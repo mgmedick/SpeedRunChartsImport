@@ -105,7 +105,6 @@ namespace SpeedRunAppImport
                 ImportLastRunDateUtc = IsBulkReload ? sqlMinDateTime : (_settingService.GetSetting("ImportLastRunDate")?.Dte ?? currDateUtc);
                 IsBulkReloadRunning = _settingService.GetSetting("IsBulkReloadRunning")?.Num == 1;
                 IsBulkReloadPostProcessRunning = _settingService.GetSetting("IsBulkReloadPostProcessRunning")?.Num == 1;
-                IsReprocessSpeedRunVideos = _settingService.GetSetting("IsReprocessSpeedRunVideos")?.Num == 1;
 
                 var updateSpeedRunsTimeString = _settingService.GetSetting("UpdateSpeedRunsTime")?.Str;
 
@@ -139,8 +138,10 @@ namespace SpeedRunAppImport
                 BaseService.TwitchClientID = _config.GetSection("ApiSettings").GetSection("TwitchClientID").Value;
                 BaseService.TwitchClientKey = _config.GetSection("ApiSettings").GetSection("TwitchClientKey").Value;
                 BaseService.TwitchAPIEnabled = _settingService.GetSetting("TwitchAPIEnabled")?.Num == 1;
+                BaseService.TwitchAPIMaxBatchCount = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("TwitchAPIMaxBatchCount").Value);
                 BaseService.YouTubeAPIKey = _config.GetSection("ApiSettings").GetSection("YouTubeAPIKey").Value;
                 BaseService.YouTubeAPIDailyRequestLimit = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("YouTubeAPIDailyRequestLimit").Value);
+                BaseService.YouTubeAPIMaxBatchCount = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("YouTubeAPIMaxBatchCount").Value);
                 BaseService.YouTubeAPIRequestCount = 0;
                 BaseService.YouTubeAPIEnabled = _settingService.GetSetting("YouTubeAPIEnabled")?.Num == 1;
                 BaseService.GameIDsToUpdateSpeedRuns = new List<int>();
@@ -153,25 +154,6 @@ namespace SpeedRunAppImport
                 if (!Directory.Exists(BaseService.TempImportPath))
                 {
                     Directory.CreateDirectory(BaseService.TempImportPath);
-                }
-
-                if (!BaseService.YouTubeAPIEnabled)
-                {
-                    TimeSpan autoRenableYouTubeAPITime;
-                    var autoRenableYouTubeAPITimeString = _settingService.GetSetting("AutoRenableYouTubeAPITime")?.Str;
-                    var youTubeAPILastDisabledDate = _settingService.GetSetting("YouTubeAPILastDisabledDate")?.Dte;
-                    if (youTubeAPILastDisabledDate.HasValue && TimeSpan.TryParse(autoRenableYouTubeAPITimeString, out autoRenableYouTubeAPITime))
-                    {
-                        if (youTubeAPILastDisabledDate.Value.Add(autoRenableYouTubeAPITime) <= currDateUtc)
-                        {
-                            BaseService.YouTubeAPIEnabled = true;
-                            _settingService.UpdateSetting("YouTubeAPIEnabled", 1);
-                            var youTubeLastEnabledDate = DateTime.UtcNow;
-                            _settingService.UpdateSetting("YouTubeAPILastEnabledDate", youTubeLastEnabledDate);
-                            _logger.Information("Enabled YouTubeAPI YouTubeAPILastEnabledDate: {@YouTubeAPILastEnabledDate}", youTubeLastEnabledDate);
-                            IsReprocessSpeedRunVideos = true;
-                        }
-                    }
                 }
 
                 _logger.Information("Completed Init");
@@ -227,9 +209,9 @@ namespace SpeedRunAppImport
                 result = _speedRunRepo.UpdateSpeedRunRanks(ImportLastRunDateUtc);
             }
 
-            if (result && IsReprocessSpeedRunVideos)
+            if (result && IsBulkReload)
             {
-                result = _speedRunService.ReprocessSpeedRunVideos();
+                result = _speedRunService.ReprocessYouTubeSpeedRunVideos();
             }
 
             if (result)
@@ -286,7 +268,6 @@ namespace SpeedRunAppImport
         public bool IsMaintenance { get; set; }
         public bool IsUpdateSpeedRuns { get; set; }
         public bool IsMySQL { get; set; }
-        public bool IsReprocessSpeedRunVideos { get; set; }
         public List<ImportProcess> Processes { get; set; }
     }
 }

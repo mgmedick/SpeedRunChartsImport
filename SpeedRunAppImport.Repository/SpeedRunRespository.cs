@@ -223,48 +223,31 @@ namespace SpeedRunAppImport.Repository
             _logger.Information("Completed SaveSpeedRuns");
         }
 
-        public void SaveSpeedRunVideos(IEnumerable<SpeedRunVideoEntity> speedRunVideos, IEnumerable<SpeedRunVideoDetailEntity> speedRunVideoDetails)
+        public void InsertSpeedRunVideoDetails(IEnumerable<SpeedRunVideoDetailEntity> videoDetails)
         {
-            _logger.Information("Started SaveSpeedRunVideos");
-            int count = 1;
-            var speedRunVideosList = speedRunVideos.ToList();
+            _logger.Information("Started InsertSpeedRunVideoDetails");
+            int batchCount = 0;
+            var videoDetailsList = videoDetails.ToList();
 
             using (IDatabase db = DBFactory.GetDatabase())
             {
-                foreach (var speedRunVideo in speedRunVideos)
+                while (batchCount < videoDetailsList.Count)
                 {
+                    var videoDetailsBatch = videoDetailsList.Skip(batchCount).Take(MaxBulkRows).ToList();
+
                     using (var tran = db.GetTransaction())
                     {
-                        try
-                        {
-                            if (speedRunVideo.ID != 0)
-                            {
-                                db.DeleteWhere<SpeedRunVideoDetailEntity>("SpeedRunVideoID = @speedRunVideoID", new { speedRunVideoID = speedRunVideo.ID });
-                            }
+                        db.InsertBatch<SpeedRunVideoDetailEntity>(videoDetailsBatch);
 
-                            db.Save<SpeedRunVideoEntity>(speedRunVideo);
-
-                            var speedRunVideoDetail = speedRunVideoDetails.FirstOrDefault(i => i.SpeedRunVideoLocalID == speedRunVideo.LocalID);
-                            if (speedRunVideoDetail != null)
-                            {
-                                speedRunVideoDetail.SpeedRunVideoID = speedRunVideo.ID;
-                                speedRunVideoDetail.SpeedRunID = speedRunVideo.SpeedRunID;
-                                db.Save<SpeedRunVideoDetailEntity>(speedRunVideoDetail);
-                            }
-
-                            tran.Complete();
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.Error(ex, "SaveSpeedRunVideos SpeedRunVideoID: {@SpeedRunVideoID}", speedRunVideo.ID);
-                        }
+                        tran.Complete();
                     }
 
-                    _logger.Information("Saved SpeedRunVideos {@Count} / {@Total}", count, speedRunVideosList.Count);
-                    count++;
+                    _logger.Information("Saved videoDetails {@Count} / {@Total}", videoDetailsBatch.Count, videoDetailsList.Count);
+                    batchCount += MaxBulkRows;
                 }
             }
-            _logger.Information("Completed SaveSpeedRunVideos");
+
+            _logger.Information("Completed InsertSpeedRunVideoDetails");
         }
 
         public void DeleteSpeedRuns(string predicate)

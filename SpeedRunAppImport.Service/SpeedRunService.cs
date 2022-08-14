@@ -574,7 +574,7 @@ namespace SpeedRunAppImport.Service
             {
                 videoEntities[i].LocalID = i + 1;
             }
-            var videoDetailEntities = GetAndSetSpeedRunVideoDetails(videoEntities);
+            var videoDetailEntities = GetAndSetSpeedRunVideoDetails(videoEntities, isBulkReload);
             var guestPlayerEntities = runs.Where(i => i.PlayerGuests != null).SelectMany(i => i.PlayerGuests.Select(g => new SpeedRunGuestEntity()
             {
                 SpeedRunSpeedRunComID = i.ID,
@@ -594,47 +594,56 @@ namespace SpeedRunAppImport.Service
             _logger.Information("Completed SaveSpeedRuns");
         }
 
-        public bool ReprocessSpeedRunVideos()
+        public bool ReprocessYouTubeSpeedRunVideos()
         {
             bool result = true;
 
             try
             {
-                _logger.Information("Started ReprocessSpeedRunVideos");
+                _logger.Information("Started ReprocessYouTubeSpeedRunVideos");
 
-                var videos = _speedRunRepo.GetSpeedRunVideos(i => !i.IsProcessed).ToList();
+                var videos = _speedRunRepo.GetSpeedRunVideos(i => i.VideoLinkUrl != null && (i.VideoLinkUrl.Contains("youtube.com") || i.VideoLinkUrl.Contains("youtu.be"))).ToList();
+
+                var maxYouTubeVideoCount = YouTubeAPIDailyRequestLimit * YouTubeAPIMaxBatchCount;
+                videos = videos.OrderByDescending(i => i.ID).Take(maxYouTubeVideoCount).ToList();
+
                 for (int i = 0; i < videos.Count; i++)
                 {
                     videos[i].LocalID = i + 1;
                     videos[i].VideoLinkUri = new Uri(videos[i].VideoLinkUrl);
                 }
 
-                var videoDetails = GetAndSetSpeedRunVideoDetails(videos);
-                _speedRunRepo.SaveSpeedRunVideos(videos, videoDetails);
+                var videoDetails = GetAndSetSpeedRunVideoDetails(videos, true);
+                foreach (var videoDetail in videoDetails)
+                {
+                    var video = videos.Find(g => g.LocalID == videoDetail.SpeedRunVideoLocalID);
+                    videoDetail.SpeedRunVideoID = video.ID;
+                    videoDetail.SpeedRunID = video.SpeedRunID;
+                }
 
-                _logger.Information("Completed ReprocessSpeedRunVideos");
+                _speedRunRepo.InsertSpeedRunVideoDetails(videoDetails);
+
+                _logger.Information("Completed ReprocessYouTubeSpeedRunVideos");
             }
             catch (Exception ex)
             {
                 result = false;
-                _logger.Error(ex, "ReprocessSpeedRunVideos");
+                _logger.Error(ex, "ReprocessYouTubeSpeedRunVideos");
             }
 
             return result;
         }
 
-        public List<SpeedRunVideoDetailEntity> GetAndSetSpeedRunVideoDetails(List<SpeedRunVideoEntity> videos)
+        public List<SpeedRunVideoDetailEntity> GetAndSetSpeedRunVideoDetails(List<SpeedRunVideoEntity> videos, bool isBulkReload)
         {
             var details = new List<SpeedRunVideoDetailEntity>();
             var batchCount = 0;
 
-            var twitchIdentifiers = new List<string> { "twitch.tv" };
-            var twitchVideos = videos.Where(i => i.VideoLinkUri != null && twitchIdentifiers.Any(g => i.VideoLinkUri.GetLeftPart(UriPartial.Authority).Contains(g)) && i.VideoLinkUri.AbsolutePath.StartsWith(@"/videos/")).ToList();
-
             if (TwitchAPIEnabled)
             {
-                var maxBatchCountTwitch = 100;
                 var twitchToken = _settingService.GetTwitchToken();
+                var twitchIdentifiers = new List<string> { "twitch.tv" };
+                var twitchVideos = videos.Where(i => i.VideoLinkUri != null && twitchIdentifiers.Any(g => i.VideoLinkUri.GetLeftPart(UriPartial.Authority).Contains(g)) && i.VideoLinkUri.AbsolutePath.StartsWith(@"/videos/")).ToList();
 
                 foreach (var twitchVideo in twitchVideos)
                 {
@@ -644,7 +653,7 @@ namespace SpeedRunAppImport.Service
 
                 while (batchCount < twitchVideos.Count)
                 {
-                    var videosBatch = twitchVideos.Skip(batchCount).Take(maxBatchCountTwitch).ToList();
+                    var videosBatch = twitchVideos.Skip(batchCount).Take(TwitchAPIMaxBatchCount).ToList();
                     var videoIDsBatch = videosBatch.Select(i => i.VideoID).ToList();
                     var videoIDsString = string.Join(",", videoIDsBatch);
                     var requestString = string.Format(@"https://api.twitch.tv/helix/videos?id={0}", videoIDsString);
@@ -680,23 +689,18 @@ namespace SpeedRunAppImport.Service
                             video.ThumbnailLinkUrl = thumnailUriString?.Replace("%{width}", "320").Replace("%{height}", "190");
                             details.Add(new SpeedRunVideoDetailEntity() { SpeedRunVideoLocalID = video.LocalID, ChannelID = (string)result.user_id, ViewCount = (int?)result.view_count });
                         }
-
-                        video.IsProcessed = true;
                     }
 
-                    batchCount += maxBatchCountTwitch;
+                    batchCount += TwitchAPIMaxBatchCount;
                     _logger.Information("Set Twitch Video Details {@Count} / {@Total}", (batchCount > twitchVideos.Count ? twitchVideos.Count : batchCount), twitchVideos.Count);
                 }
             }
 
-            var youtubeIdentifiers = new List<string> { "youtube.com", "youtu.be" };
-            var youtubeVideos = videos.Where(i => i.VideoLinkUri != null && youtubeIdentifiers.Any(g => i.VideoLinkUri.GetLeftPart(UriPartial.Authority).Contains(g))).ToList();
-
-            if (YouTubeAPIEnabled)
+            if (YouTubeAPIEnabled && !isBulkReload)
             {
                 batchCount = 0;
-                var maxBatchCountYoutube = 50;
-                var exceededError = false;
+                var youtubeIdentifiers = new List<string> { "youtube.com", "youtu.be" };
+                var youtubeVideos = videos.Where(i => i.VideoLinkUri != null && youtubeIdentifiers.Any(g => i.VideoLinkUri.GetLeftPart(UriPartial.Authority).Contains(g))).ToList();
 
                 foreach (var youtubeVideo in youtubeVideos)
                 {
@@ -707,7 +711,7 @@ namespace SpeedRunAppImport.Service
 
                 while (batchCount < youtubeVideos.Count && YouTubeAPIRequestCount < YouTubeAPIDailyRequestLimit)
                 {
-                    var videosBatch = youtubeVideos.Skip(batchCount).Take(maxBatchCountYoutube).ToList();
+                    var videosBatch = youtubeVideos.Skip(batchCount).Take(YouTubeAPIMaxBatchCount).ToList();
                     var videoIDsBatch = videosBatch.Select(i => i.VideoID).ToList();
                     var videoIDsString = string.Join(",", videoIDsBatch);
                     var requestString = string.Format(@"https://www.googleapis.com/youtube/v3/videos?part=statistics,snippet&id={0}&key={1}", videoIDsString, YouTubeAPIKey);
@@ -721,7 +725,6 @@ namespace SpeedRunAppImport.Service
                         _logger.Information(ex, "SetSpeedRunVideoApiFields");
                         if (ex.Message.Contains("exceeded"))
                         {
-                            exceededError = true;
                             break;
                         }
                     }
@@ -746,31 +749,13 @@ namespace SpeedRunAppImport.Service
                             details.Add(new SpeedRunVideoDetailEntity() { SpeedRunVideoLocalID = video.LocalID, ChannelID = (string)result.snippet?.channelId, ViewCount = (int?)result.statistics?.viewCount });
                         }
 
-                        video.IsProcessed = true;
                         break;
                     }
 
-                    batchCount += maxBatchCountYoutube;
+                    batchCount += YouTubeAPIMaxBatchCount;
                     YouTubeAPIRequestCount += 1;
                     _logger.Information("Set Youtube Video Details {@Count} / {@Total}", (batchCount > youtubeVideos.Count ? youtubeVideos.Count : batchCount), youtubeVideos.Count);
                 }
-
-                if (YouTubeAPIRequestCount >= YouTubeAPIDailyRequestLimit || exceededError)
-                {
-                    YouTubeAPIEnabled = false;
-                    _settingService.UpdateSetting("YouTubeAPIEnabled", 0);
-                    var youTubeLastDisabledDate = DateTime.UtcNow;
-                    _settingService.UpdateSetting("YouTubeAPILastDisabledDate", youTubeLastDisabledDate);
-                    _logger.Information("Disabled YouTubeAPI YouTubeAPILastDisabledDate: {@YouTubeAPILastDisabledDate}", youTubeLastDisabledDate);
-                }
-            }
-
-            var localVideoIDs = twitchVideos.Select(i => i.LocalID).ToList();
-            localVideoIDs.AddRange(youtubeVideos.Select(i => i.LocalID).ToList());
-            var remainingVideos = videos.Where(i => !localVideoIDs.Contains(i.LocalID)).ToList();
-            foreach (var remainingVideo in remainingVideos)
-            {
-                remainingVideo.IsProcessed = true;
             }
 
             return details;

@@ -613,7 +613,7 @@ namespace SpeedRunAppImport.Service
                     videos[i].VideoLinkUri = new Uri(videos[i].VideoLinkUrl);
                 }
 
-                var videoDetails = GetAndSetSpeedRunVideoDetails(videos, true);
+                var videoDetails = GetAndSetSpeedRunVideoDetails(videos, false);
                 foreach (var videoDetail in videoDetails)
                 {
                     var video = videos.Find(g => g.LocalID == videoDetail.SpeedRunVideoLocalID);

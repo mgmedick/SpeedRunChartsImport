@@ -200,6 +200,11 @@ namespace SpeedRunAppImport
 
                 if (result)
                 {
+                    result = _speedRunService.ReprocessYouTubeSpeedRunVideos();
+                }
+
+                if (result)
+                {
                     result = _speedRunRepo.RenameFullTables();
                 }
             }
@@ -207,11 +212,6 @@ namespace SpeedRunAppImport
             if (result && (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.SpeedRun)))
             {
                 result = _speedRunRepo.UpdateSpeedRunRanks(ImportLastRunDateUtc);
-            }
-
-            if (result && IsBulkReload)
-            {
-                result = _speedRunService.ReprocessYouTubeSpeedRunVideos();
             }
 
             if (result)

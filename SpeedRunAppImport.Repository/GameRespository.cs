@@ -248,9 +248,12 @@ namespace SpeedRunAppImport.Repository
                                 db.Save<LevelEntity>(level);
                                 db.Save<LevelSpeedRunComIDEntity>(new LevelSpeedRunComIDEntity { LevelID = level.ID, SpeedRunComID = level.SpeedRunComID });
 
-                                var levelRule = levelRulesBatch.Find(i => i.LevelSpeedRunComID == level.SpeedRunComID);
-                                levelRule.LevelID = level.ID;
-                                db.Save<LevelRuleEntity>(levelRule);
+                                var levelRule = levelRulesBatch.FirstOrDefault(i => i.LevelSpeedRunComID == level.SpeedRunComID);
+                                if (levelRule != null)
+                                {
+                                    levelRule.LevelID = level.ID;
+                                    db.Save<LevelRuleEntity>(levelRule);
+                                }
                             }
 
                             _logger.Information("Pulling levelsToDelete");
@@ -310,9 +313,12 @@ namespace SpeedRunAppImport.Repository
                                 db.Save<CategoryEntity>(category);
                                 db.Save<CategorySpeedRunComIDEntity>(new CategorySpeedRunComIDEntity { CategoryID = category.ID, SpeedRunComID = category.SpeedRunComID });
 
-                                var categoryRule = categoryRulesBatch.Find(i => i.CategorySpeedRunComID == category.SpeedRunComID);
-                                categoryRule.CategoryID = category.ID;
-                                db.Save<CategoryRuleEntity>(categoryRule);
+                                var categoryRule = categoryRulesBatch.FirstOrDefault(i => i.CategorySpeedRunComID == category.SpeedRunComID);
+                                if (categoryRule != null)
+                                {
+                                    categoryRule.CategoryID = category.ID;
+                                    db.Save<CategoryRuleEntity>(categoryRule);
+                                }
                             }
 
                             _logger.Information("Pulling categoriesToDelete");

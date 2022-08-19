@@ -574,7 +574,15 @@ namespace SpeedRunAppImport.Service
             {
                 videoEntities[i].LocalID = i + 1;
             }
-            var videoDetailEntities = GetAndSetSpeedRunVideoDetails(videoEntities, isBulkReload);
+            var videoDetailEntities = GetSpeedRunVideoDetails(videoEntities, isBulkReload);
+            foreach (var videoDetail in videoDetailEntities)
+            {
+                if (!string.IsNullOrWhiteSpace(videoDetail.ThumbnailLinkUrl))
+                {
+                    var video = videoEntities.Find(g => g.LocalID == videoDetail.SpeedRunVideoLocalID);
+                    video.ThumbnailLinkUrl = videoDetail.ThumbnailLinkUrl;
+                }
+            }
             var guestPlayerEntities = runs.Where(i => i.PlayerGuests != null).SelectMany(i => i.PlayerGuests.Select(g => new SpeedRunGuestEntity()
             {
                 SpeedRunSpeedRunComID = i.ID,
@@ -594,13 +602,13 @@ namespace SpeedRunAppImport.Service
             _logger.Information("Completed SaveSpeedRuns");
         }
 
-        public bool ReprocessSpeedRunVideoDetails()
+        public bool UpdateSpeedRunVideoDetails()
         {
             bool result = true;
 
             try
             {
-                _logger.Information("Started ReprocessSpeedRunVideoDetails");
+                _logger.Information("Started UpdateSpeedRunVideoDetails");
                 var maxVideoCount = YouTubeAPIDailyRequestLimit * YouTubeAPIMaxBatchCount;
 
                 var videos = _speedRunRepo.GetSpeedRunVideos(i => i.VideoLinkUrl != null && (i.VideoLinkUrl.Contains("youtube.com") || i.VideoLinkUrl.Contains("youtu.be")))
@@ -621,7 +629,7 @@ namespace SpeedRunAppImport.Service
                     videos[i].VideoLinkUri = new Uri(videos[i].VideoLinkUrl);
                 }
 
-                var videoDetails = GetAndSetSpeedRunVideoDetails(videos, false);
+                var videoDetails = GetSpeedRunVideoDetails(videos, false);
                 foreach (var videoDetail in videoDetails)
                 {
                     var video = videos.Find(g => g.LocalID == videoDetail.SpeedRunVideoLocalID);
@@ -631,12 +639,12 @@ namespace SpeedRunAppImport.Service
 
                 _speedRunRepo.SaveSpeedRunVideDetails(videoDetails);
 
-                _logger.Information("Completed ReprocessSpeedRunVideoDetails");
+                _logger.Information("Completed UpdateSpeedRunVideoDetails");
             }
             catch (Exception ex)
             {
                 result = false;
-                _logger.Error(ex, "ReprocessSpeedRunVideoDetails");
+                _logger.Error(ex, "UpdateSpeedRunVideoDetails");
             }
 
             return result;
@@ -661,7 +669,7 @@ namespace SpeedRunAppImport.Service
                     videos[i].VideoLinkUri = new Uri(videos[i].VideoLinkUrl);
                 }
 
-                var videoDetails = GetAndSetSpeedRunVideoDetails(videos, false);
+                var videoDetails = GetSpeedRunVideoDetails(videos, false);
                 foreach (var videoDetail in videoDetails)
                 {
                     var video = videos.Find(g => g.LocalID == videoDetail.SpeedRunVideoLocalID);
@@ -682,10 +690,11 @@ namespace SpeedRunAppImport.Service
             return result;
         }
 
-        public List<SpeedRunVideoDetailEntity> GetAndSetSpeedRunVideoDetails(List<SpeedRunVideoEntity> videos, bool isBulkReload)
+        private List<SpeedRunVideoDetailEntity> GetSpeedRunVideoDetails(List<SpeedRunVideoEntity> videos, bool isBulkReload)
         {
             var details = new List<SpeedRunVideoDetailEntity>();
             var batchCount = 0;
+            _logger.Information("Started GetSpeedRunVideoDetails");
 
             if (TwitchAPIEnabled)
             {
@@ -713,7 +722,7 @@ namespace SpeedRunAppImport.Service
                     }
                     catch (Exception ex)
                     {
-                        _logger.Information(ex, "SetSpeedRunVideoApiFields");
+                        _logger.Information(ex, "GetSpeedRunVideoDetails");
                     }
 
                     foreach (var video in videosBatch)
@@ -733,9 +742,9 @@ namespace SpeedRunAppImport.Service
 
                         if (result != null)
                         {
-                            var thumnailUriString = (string)result.thumbnail_url;
-                            video.ThumbnailLinkUrl = thumnailUriString?.Replace("%{width}", "320").Replace("%{height}", "190");
-                            details.Add(new SpeedRunVideoDetailEntity() { SpeedRunVideoLocalID = video.LocalID, ChannelID = (string)result.user_id, ViewCount = (int?)result.view_count });
+                            var thumbnailUriString = (string)result.thumbnail_url;
+                            var thumbnailLinkUrl = thumbnailUriString?.Replace("%{width}", "320").Replace("%{height}", "190");
+                            details.Add(new SpeedRunVideoDetailEntity() { SpeedRunVideoLocalID = video.LocalID, ChannelID = (string)result.user_id, ViewCount = (int?)result.view_count, ThumbnailLinkUrl = thumbnailLinkUrl });
                         }
                     }
 
@@ -770,7 +779,7 @@ namespace SpeedRunAppImport.Service
                     }
                     catch (Exception ex)
                     {
-                        _logger.Information(ex, "SetSpeedRunVideoApiFields");
+                        _logger.Information(ex, "GetSpeedRunVideoDetails");
                         if (ex.Message.Contains("exceeded"))
                         {
                             break;
@@ -794,7 +803,7 @@ namespace SpeedRunAppImport.Service
 
                         if (result != null)
                         {
-                            details.Add(new SpeedRunVideoDetailEntity() { SpeedRunVideoLocalID = video.LocalID, ChannelID = (string)result.snippet?.channelId, ViewCount = (int?)result.statistics?.viewCount });
+                            details.Add(new SpeedRunVideoDetailEntity() { SpeedRunVideoLocalID = video.LocalID, ChannelID = (string)result.snippet?.channelId, ViewCount = (int?)result.statistics?.viewCount, ThumbnailLinkUrl = null });
                         }
 
                         break;
@@ -806,6 +815,7 @@ namespace SpeedRunAppImport.Service
                 }
             }
 
+            _logger.Information("Completed GetSpeedRunVideoDetails");
             return details;
         }
     }

@@ -103,7 +103,7 @@ namespace SpeedRunAppImport
                 GameLastImportDateUtc = IsGameFullPull ? sqlMinDateTime : (_settingService.GetSetting("GameLastImportDate")?.Dte ?? currDateUtc);
                 SpeedRunLastImportDateUtc = IsSpeedRunFullPull ? sqlMinDateTime : (_settingService.GetSetting("SpeedRunLastImportDate")?.Dte ?? currDateUtc);
                 ImportLastRunDateUtc = IsBulkReload ? sqlMinDateTime : (_settingService.GetSetting("ImportLastRunDate")?.Dte ?? currDateUtc);
-                ImportLastUpdateSpeedRunsDateUtc = _settingService.GetSetting("ImportLastUpdateSpeedRunsDate")?.Dte ?? currDateUtc;
+                ImportLastUpdateSpeedRunVideoDetailsDateUtc = _settingService.GetSetting("ImportLastUpdateSpeedRunVideoDetailsDate")?.Dte ?? currDateUtc;
                 IsBulkReloadRunning = _settingService.GetSetting("IsBulkReloadRunning")?.Num == 1;
                 IsBulkReloadPostProcessRunning = _settingService.GetSetting("IsBulkReloadPostProcessRunning")?.Num == 1;
 
@@ -128,9 +128,9 @@ namespace SpeedRunAppImport
                     }
                 }
 
-                if (IsUpdateSpeedRuns && !IsBulkReload && ImportLastUpdateSpeedRunsDateUtc.AddDays(3) <= currDateUtc)
+                if (IsUpdateSpeedRuns && !IsBulkReload && ImportLastUpdateSpeedRunVideoDetailsDateUtc.AddDays(2) <= currDateUtc)
                 {
-                    IsReprocessSpeedRunVideoDetails = true;
+                    IsUpdateSpeedRunVideoDetails = true;
                 }
 
                 BaseService.SqlMinDateTime = sqlMinDateTime;
@@ -199,9 +199,9 @@ namespace SpeedRunAppImport
                 result = _speedRunService.ProcessSpeedRuns(SpeedRunLastImportDateUtc, ImportLastRunDateUtc, IsSpeedRunFullPull, IsBulkReload, IsUpdateSpeedRuns);
             }
 
-            if (result && IsReprocessSpeedRunVideoDetails)
+            if (result && IsUpdateSpeedRunVideoDetails)
             {
-                result = _speedRunService.ReprocessSpeedRunVideoDetails();
+                result = _speedRunService.UpdateSpeedRunVideoDetails();
             }
 
             if (result && IsBulkReload)
@@ -251,6 +251,11 @@ namespace SpeedRunAppImport
                 _settingService.UpdateSetting("ImportLastUpdateSpeedRunsDate", currDateUtc);
             }
 
+            if (IsUpdateSpeedRunVideoDetails)
+            {
+                _settingService.UpdateSetting("ImportLastUpdateSpeedRunVideoDetailsDate", currDateUtc);
+            }
+
             _settingService.UpdateSetting("ImportLastRunDate", currDateUtc);
         }
 
@@ -270,7 +275,7 @@ namespace SpeedRunAppImport
         public DateTime UserLastImportDateUtc { get; set; }
         public DateTime SpeedRunLastImportDateUtc { get; set; }
         public DateTime ImportLastRunDateUtc { get; set; }
-        public DateTime ImportLastUpdateSpeedRunsDateUtc { get; set; }        
+        public DateTime ImportLastUpdateSpeedRunVideoDetailsDateUtc { get; set; }        
         public bool IsPlatformFullPull { get; set; }
         public bool IsGameFullPull { get; set; }
         public bool IsSpeedRunFullPull { get; set; }
@@ -280,7 +285,7 @@ namespace SpeedRunAppImport
         public bool IsMaintenance { get; set; }
         public bool IsUpdateSpeedRuns { get; set; }
         public bool IsMySQL { get; set; }
-        public bool IsReprocessSpeedRunVideoDetails { get; set; }
+        public bool IsUpdateSpeedRunVideoDetails { get; set; }
         public List<ImportProcess> Processes { get; set; }
     }
 }

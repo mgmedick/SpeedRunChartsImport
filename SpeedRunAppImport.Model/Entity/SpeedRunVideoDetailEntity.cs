@@ -11,5 +11,6 @@ namespace SpeedRunAppImport.Model.Entity
         public int SpeedRunID { get; set; }
         public string ChannelID { get; set; }
         public int? ViewCount { get; set; }
+        public string ThumbnailLinkUrl { get; set; }
     }
 } 

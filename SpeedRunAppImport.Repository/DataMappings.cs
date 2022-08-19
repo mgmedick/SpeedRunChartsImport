@@ -177,6 +177,7 @@ namespace SpeedRunAppImport.Repository
             For<SpeedRunVideoDetailEntity>().PrimaryKey("SpeedRunVideoID", false).TableName("tbl_SpeedRun_Video_Detail" + tblEnd).Columns(i =>
             {
                 i.Column(g => g.SpeedRunVideoLocalID).Ignore();
+                i.Column(g => g.ThumbnailLinkUrl).Ignore();
             });
         }
     }

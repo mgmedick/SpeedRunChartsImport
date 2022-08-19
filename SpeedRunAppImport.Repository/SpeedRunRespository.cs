@@ -250,6 +250,33 @@ namespace SpeedRunAppImport.Repository
             _logger.Information("Completed InsertSpeedRunVideoDetails");
         }
 
+        public void SaveSpeedRunVideDetails(IEnumerable<SpeedRunVideoDetailEntity> videoDetails)
+        {
+            _logger.Information("Started SaveSpeedRunVideDetails");
+            int count = 1;
+            var videoDetailsList = videoDetails.ToList();
+
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                foreach (var videoDetail in videoDetails)
+                {
+                    try
+                    {
+                        db.Save<SpeedRunVideoDetailEntity>(videoDetail);
+                        _logger.Information("Saved videoDetail {@Count} / {@Total}", count, videoDetailsList.Count);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Error(ex, "SaveSpeedRunVideDetails SpeedRunVideoID: {@SpeedRunVideoID}, SpeedRunID: {@SpeedRunID}", videoDetail.SpeedRunVideoID, videoDetail.SpeedRunID);
+                    }
+
+                    count++;
+                }
+            }
+
+            _logger.Information("Completed SaveSpeedRunVideDetails");
+        }
+
         public void DeleteSpeedRuns(string predicate)
         {
             _logger.Information("Started DeleteSpeedRuns");

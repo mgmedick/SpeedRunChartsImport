@@ -14,6 +14,7 @@ namespace SpeedRunAppImport.Interfaces.Repositories
         void InsertSpeedRuns(IEnumerable<SpeedRunEntity> speedRuns, IEnumerable<SpeedRunLinkEntity> speedRunLinks, IEnumerable<SpeedRunSystemEntity> speedRunSystems, IEnumerable<SpeedRunTimeEntity> speedRunTimes, IEnumerable<SpeedRunCommentEntity> speedRunComments, IEnumerable<SpeedRunVariableValueEntity> variableValues, IEnumerable<SpeedRunPlayerEntity> players, IEnumerable<SpeedRunGuestEntity> guests, IEnumerable<SpeedRunVideoEntity> videos, IEnumerable<SpeedRunVideoDetailEntity> videoDetails);
         void SaveSpeedRuns(IEnumerable<SpeedRunEntity> speedRuns, IEnumerable<SpeedRunLinkEntity> speedRunLinks, IEnumerable<SpeedRunSystemEntity> speedRunSystems, IEnumerable<SpeedRunTimeEntity> speedRunTimes, IEnumerable<SpeedRunCommentEntity> speedRunComments, IEnumerable<SpeedRunVariableValueEntity> variableValues, IEnumerable<SpeedRunPlayerEntity> players, IEnumerable<SpeedRunGuestEntity> guests, IEnumerable<SpeedRunVideoEntity> videos, IEnumerable<SpeedRunVideoDetailEntity> videoDetails);
         void InsertSpeedRunVideoDetails(IEnumerable<SpeedRunVideoDetailEntity> videoDetails);
+        void SaveSpeedRunVideDetails(IEnumerable<SpeedRunVideoDetailEntity> videoDetails);
         void DeleteSpeedRuns(string predicate);
         void DeleteSpeedRuns(Expression<Func<SpeedRunEntity, bool>> predicate);
         void DeleteSpeedRunsByID(IEnumerable<int> speedRunIDsToDelete);

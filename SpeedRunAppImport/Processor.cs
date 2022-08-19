@@ -103,6 +103,7 @@ namespace SpeedRunAppImport
                 GameLastImportDateUtc = IsGameFullPull ? sqlMinDateTime : (_settingService.GetSetting("GameLastImportDate")?.Dte ?? currDateUtc);
                 SpeedRunLastImportDateUtc = IsSpeedRunFullPull ? sqlMinDateTime : (_settingService.GetSetting("SpeedRunLastImportDate")?.Dte ?? currDateUtc);
                 ImportLastRunDateUtc = IsBulkReload ? sqlMinDateTime : (_settingService.GetSetting("ImportLastRunDate")?.Dte ?? currDateUtc);
+                ImportLastUpdateSpeedRunsDateUtc = _settingService.GetSetting("ImportLastUpdateSpeedRunsDate")?.Dte ?? currDateUtc;
                 IsBulkReloadRunning = _settingService.GetSetting("IsBulkReloadRunning")?.Num == 1;
                 IsBulkReloadPostProcessRunning = _settingService.GetSetting("IsBulkReloadPostProcessRunning")?.Num == 1;
 
@@ -125,6 +126,11 @@ namespace SpeedRunAppImport
                         IsGameFullPull = true;
                         IsUpdateSpeedRuns = true;
                     }
+                }
+
+                if (IsUpdateSpeedRuns && !IsBulkReload && ImportLastUpdateSpeedRunsDateUtc.AddDays(2) <= currDateUtc)
+                {
+                    IsReprocessSpeedRunVideoDetails = true;
                 }
 
                 BaseService.SqlMinDateTime = sqlMinDateTime;
@@ -193,6 +199,11 @@ namespace SpeedRunAppImport
                 result = _speedRunService.ProcessSpeedRuns(SpeedRunLastImportDateUtc, ImportLastRunDateUtc, IsSpeedRunFullPull, IsBulkReload, IsUpdateSpeedRuns);
             }
 
+            if (result && IsReprocessSpeedRunVideoDetails)
+            {
+                result = _speedRunService.ReprocessSpeedRunVideoDetails();
+            }
+
             if (result && IsBulkReload)
             {
                 _settingService.UpdateSetting("IsBulkReloadPostProcessRunning", 1);
@@ -200,7 +211,7 @@ namespace SpeedRunAppImport
 
                 if (result)
                 {
-                    result = _speedRunService.ReprocessYouTubeSpeedRunVideos();
+                    result = _speedRunService.ProcessYouTubeSpeedRunVideoDetails();
                 }
 
                 if (result)
@@ -259,6 +270,7 @@ namespace SpeedRunAppImport
         public DateTime UserLastImportDateUtc { get; set; }
         public DateTime SpeedRunLastImportDateUtc { get; set; }
         public DateTime ImportLastRunDateUtc { get; set; }
+        public DateTime ImportLastUpdateSpeedRunsDateUtc { get; set; }        
         public bool IsPlatformFullPull { get; set; }
         public bool IsGameFullPull { get; set; }
         public bool IsSpeedRunFullPull { get; set; }
@@ -268,6 +280,7 @@ namespace SpeedRunAppImport
         public bool IsMaintenance { get; set; }
         public bool IsUpdateSpeedRuns { get; set; }
         public bool IsMySQL { get; set; }
+        public bool IsReprocessSpeedRunVideoDetails { get; set; }
         public List<ImportProcess> Processes { get; set; }
     }
 }

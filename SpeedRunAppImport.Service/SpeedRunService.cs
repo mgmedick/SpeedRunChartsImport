@@ -594,13 +594,61 @@ namespace SpeedRunAppImport.Service
             _logger.Information("Completed SaveSpeedRuns");
         }
 
-        public bool ReprocessYouTubeSpeedRunVideos()
+        public bool ReprocessSpeedRunVideoDetails()
         {
             bool result = true;
 
             try
             {
-                _logger.Information("Started ReprocessYouTubeSpeedRunVideos");
+                _logger.Information("Started ReprocessSpeedRunVideoDetails");
+                var maxVideoCount = YouTubeAPIDailyRequestLimit * YouTubeAPIMaxBatchCount;
+
+                var videos = _speedRunRepo.GetSpeedRunVideos(i => i.VideoLinkUrl != null && (i.VideoLinkUrl.Contains("youtube.com") || i.VideoLinkUrl.Contains("youtu.be")))
+                                        .OrderByDescending(i => i.ID)
+                                        .Take(maxVideoCount)
+                                        .ToList();
+
+                var twitchVideos = _speedRunRepo.GetSpeedRunVideos(i => i.VideoLinkUrl != null && i.VideoLinkUrl.Contains("twitch.tv"))
+                                            .OrderByDescending(i => i.ID)
+                                            .Take(maxVideoCount)
+                                            .ToList();
+
+                videos.AddRange(twitchVideos);
+
+                for (int i = 0; i < videos.Count; i++)
+                {
+                    videos[i].LocalID = i + 1;
+                    videos[i].VideoLinkUri = new Uri(videos[i].VideoLinkUrl);
+                }
+
+                var videoDetails = GetAndSetSpeedRunVideoDetails(videos, false);
+                foreach (var videoDetail in videoDetails)
+                {
+                    var video = videos.Find(g => g.LocalID == videoDetail.SpeedRunVideoLocalID);
+                    videoDetail.SpeedRunVideoID = video.ID;
+                    videoDetail.SpeedRunID = video.SpeedRunID;
+                }
+
+                _speedRunRepo.SaveSpeedRunVideDetails(videoDetails);
+
+                _logger.Information("Completed ReprocessSpeedRunVideoDetails");
+            }
+            catch (Exception ex)
+            {
+                result = false;
+                _logger.Error(ex, "ReprocessSpeedRunVideoDetails");
+            }
+
+            return result;
+        }
+
+        public bool ProcessYouTubeSpeedRunVideoDetails()
+        {
+            bool result = true;
+
+            try
+            {
+                _logger.Information("Started ProcessYouTubeSpeedRunVideoDetails");
 
                 var videos = _speedRunRepo.GetSpeedRunVideos(i => i.VideoLinkUrl != null && (i.VideoLinkUrl.Contains("youtube.com") || i.VideoLinkUrl.Contains("youtu.be"))).ToList();
 
@@ -623,12 +671,12 @@ namespace SpeedRunAppImport.Service
 
                 _speedRunRepo.InsertSpeedRunVideoDetails(videoDetails);
 
-                _logger.Information("Completed ReprocessYouTubeSpeedRunVideos");
+                _logger.Information("Completed ProcessYouTubeSpeedRunVideoDetails");
             }
             catch (Exception ex)
             {
                 result = false;
-                _logger.Error(ex, "ReprocessYouTubeSpeedRunVideos");
+                _logger.Error(ex, "ProcessYouTubeSpeedRunVideoDetails");
             }
 
             return result;

@@ -128,7 +128,7 @@ namespace SpeedRunAppImport
                     }
                 }
 
-                if (IsUpdateSpeedRuns && !IsBulkReload && ImportLastUpdateSpeedRunVideoDetailsDateUtc.AddDays(2) <= currDateUtc)
+                if (IsUpdateSpeedRuns && !IsBulkReload && ImportLastUpdateSpeedRunVideoDetailsDateUtc.AddDays(1) <= currDateUtc)
                 {
                     IsUpdateSpeedRunVideoDetails = true;
                 }

@@ -9,7 +9,7 @@ namespace SpeedRunAppImport.Model.Entity
         public int SpeedRunVideoID { get; set; }
         public int SpeedRunVideoLocalID { get; set; }
         public int SpeedRunID { get; set; }
-        public string ChannelID { get; set; }
+        public string ChannelCode { get; set; }
         public int? ViewCount { get; set; }
         public string ThumbnailLinkUrl { get; set; }
     }

@@ -250,9 +250,9 @@ namespace SpeedRunAppImport.Repository
             _logger.Information("Completed InsertSpeedRunVideoDetails");
         }
 
-        public void SaveSpeedRunVideDetails(IEnumerable<SpeedRunVideoDetailEntity> videoDetails)
+        public void SaveSpeedRunVideoDetails(IEnumerable<SpeedRunVideoDetailEntity> videoDetails)
         {
-            _logger.Information("Started SaveSpeedRunVideDetails");
+            _logger.Information("Started SaveSpeedRunVideoDetails");
             int count = 1;
             var videoDetailsList = videoDetails.ToList();
 
@@ -267,14 +267,14 @@ namespace SpeedRunAppImport.Repository
                     }
                     catch (Exception ex)
                     {
-                        _logger.Error(ex, "SaveSpeedRunVideDetails SpeedRunVideoID: {@SpeedRunVideoID}, SpeedRunID: {@SpeedRunID}", videoDetail.SpeedRunVideoID, videoDetail.SpeedRunID);
+                        _logger.Error(ex, "SaveSpeedRunVideoDetails SpeedRunVideoID: {@SpeedRunVideoID}, SpeedRunID: {@SpeedRunID}", videoDetail.SpeedRunVideoID, videoDetail.SpeedRunID);
                     }
 
                     count++;
                 }
             }
 
-            _logger.Information("Completed SaveSpeedRunVideDetails");
+            _logger.Information("Completed SaveSpeedRunVideoDetails");
         }
 
         public void DeleteSpeedRuns(string predicate)

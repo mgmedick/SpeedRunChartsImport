@@ -630,14 +630,14 @@ namespace SpeedRunAppImport.Service
                 }
 
                 var videoDetails = GetSpeedRunVideoDetails(videos, false);
-                foreach (var videoDetail in videoDetails)
+                for (int i = 0; i < videoDetails.Count; i++)
                 {
-                    var video = videos.Find(g => g.LocalID == videoDetail.SpeedRunVideoLocalID);
-                    videoDetail.SpeedRunVideoID = video.ID;
-                    videoDetail.SpeedRunID = video.SpeedRunID;
+                    var video = videos.Find(g => g.LocalID == videoDetails[i].SpeedRunVideoLocalID);
+                    videoDetails[i].SpeedRunVideoID = video.ID;
+                    videoDetails[i].SpeedRunID = video.SpeedRunID;
                 }
 
-                _speedRunRepo.SaveSpeedRunVideDetails(videoDetails);
+                _speedRunRepo.SaveSpeedRunVideoDetails(videoDetails);
 
                 _logger.Information("Completed UpdateSpeedRunVideoDetails");
             }
@@ -670,11 +670,11 @@ namespace SpeedRunAppImport.Service
                 }
 
                 var videoDetails = GetSpeedRunVideoDetails(videos, false);
-                foreach (var videoDetail in videoDetails)
+                for (int i = 0; i < videoDetails.Count; i++)
                 {
-                    var video = videos.Find(g => g.LocalID == videoDetail.SpeedRunVideoLocalID);
-                    videoDetail.SpeedRunVideoID = video.ID;
-                    videoDetail.SpeedRunID = video.SpeedRunID;
+                    var video = videos.Find(g => g.LocalID == videoDetails[i].SpeedRunVideoLocalID);
+                    videoDetails[i].SpeedRunVideoID = video.ID;
+                    videoDetails[i].SpeedRunID = video.SpeedRunID;
                 }
 
                 _speedRunRepo.InsertSpeedRunVideoDetails(videoDetails);

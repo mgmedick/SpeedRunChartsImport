@@ -629,8 +629,8 @@ namespace SpeedRunAppImport.Service
                     videos[i].VideoLinkUri = new Uri(videos[i].VideoLinkUrl);
                 }
 
-                var videoDetails = GetSpeedRunVideoDetails(videos, false);
-                for (int i = 0; i < videoDetails.Count; i++)
+                var videoDetails = GetSpeedRunVideoDetails(videos, false).ToArray();
+                for (int i = 0; i < videoDetails.Count(); i++)
                 {
                     var video = videos.Find(g => g.LocalID == videoDetails[i].SpeedRunVideoLocalID);
                     videoDetails[i].SpeedRunVideoID = video.ID;
@@ -669,8 +669,8 @@ namespace SpeedRunAppImport.Service
                     videos[i].VideoLinkUri = new Uri(videos[i].VideoLinkUrl);
                 }
 
-                var videoDetails = GetSpeedRunVideoDetails(videos, false);
-                for (int i = 0; i < videoDetails.Count; i++)
+                var videoDetails = GetSpeedRunVideoDetails(videos, false).ToArray();
+                for (int i = 0; i < videoDetails.Count(); i++)
                 {
                     var video = videos.Find(g => g.LocalID == videoDetails[i].SpeedRunVideoLocalID);
                     videoDetails[i].SpeedRunVideoID = video.ID;

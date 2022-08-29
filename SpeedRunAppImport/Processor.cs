@@ -113,6 +113,7 @@ namespace SpeedRunAppImport
                 {
                     IsGameFullPull = true;
                     IsUpdateSpeedRuns = true;
+                    IsUpdateSpeedRunVideoDetails = true;
                 }
                 else if (!string.IsNullOrWhiteSpace(updateSpeedRunsTimeString) && !IsBulkReloadRunning)
                 {
@@ -125,13 +126,14 @@ namespace SpeedRunAppImport
                     {
                         IsGameFullPull = true;
                         IsUpdateSpeedRuns = true;
+                        IsUpdateSpeedRunVideoDetails = true;
                     }
                 }
 
-                if (IsUpdateSpeedRuns && !IsBulkReload && ImportLastUpdateSpeedRunVideoDetailsDateUtc.AddDays(1) <= currDateUtc)
-                {
-                    IsUpdateSpeedRunVideoDetails = true;
-                }
+                //if (IsUpdateSpeedRuns && !IsBulkReload && ImportLastUpdateSpeedRunVideoDetailsDateUtc.AddDays(1) <= currDateUtc)
+                //{
+                //    IsUpdateSpeedRunVideoDetails = true;
+                //}
 
                 BaseService.SqlMinDateTime = sqlMinDateTime;
                 BaseService.MaxElementsPerPage = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxElementsPerPage").Value);

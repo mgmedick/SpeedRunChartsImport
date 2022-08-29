@@ -29,6 +29,7 @@ namespace SpeedRunAppImport.Model.Entity
         //public string PrimaryVideoLinkUrl { get; set; }
         //public string SpeedRunComUrl { get; set; }
         //public string SplitsUrl { get; set; }
+        public bool IsExcludeFromSpeedRunList { get; set; }
         public DateTime? RunDate { get; set; }
         public DateTime? DateSubmitted { get; set; }
         public DateTime? VerifyDate { get; set; }

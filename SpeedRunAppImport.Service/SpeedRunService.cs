@@ -518,6 +518,16 @@ namespace SpeedRunAppImport.Service
                 VerifyDate = i.Status.VerifyDate
             }).Where(i => i.GameID != 0 && i.CategoryID != 0 && i.LevelID != 0)
             .ToList();
+            if (!isBulkReload && isUpdateSpeedRuns)
+            {
+                foreach(var runEntity in runEntities)
+                {
+                    if (runEntity.ID == 0)
+                    {
+                        runEntity.IsExcludeFromSpeedRunList = true;
+                    }
+                }
+            }
             var runLinkEntities = runs.Select(i => new SpeedRunLinkEntity()
             {
                 SpeedRunSpeedRunComID = i.ID,

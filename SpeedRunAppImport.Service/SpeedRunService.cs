@@ -512,7 +512,7 @@ namespace SpeedRunAppImport.Service
                 CategoryID = categorySpeedRunComIDs.Where(g => g.SpeedRunComID == i.CategoryID).Select(g => g.CategoryID).FirstOrDefault(),
                 LevelID = !string.IsNullOrWhiteSpace(i.LevelID) ? levelSpeedRunComIDs.Where(g => g.SpeedRunComID == i.LevelID).Select(g => g.LevelID).FirstOrDefault() : (int?)null,
                 PrimaryTime = i.Times.Primary?.Ticks,
-                //ExaminerUserID = userSpeedRunComIDs.Where(g => g.SpeedRunComID == i.Status.ExaminerUserID).Select(g => (int?)g.UserID).FirstOrDefault(),
+                IsExcludeFromSpeedRunList = !(i.Status.VerifyDate ?? i.DateSubmitted).HasValue,
                 RunDate = i.Date,
                 DateSubmitted = i.DateSubmitted,
                 VerifyDate = i.Status.VerifyDate

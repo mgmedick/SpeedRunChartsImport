@@ -103,7 +103,6 @@ namespace SpeedRunAppImport
                 GameLastImportDateUtc = IsGameFullPull ? sqlMinDateTime : (_settingService.GetSetting("GameLastImportDate")?.Dte ?? currDateUtc);
                 SpeedRunLastImportDateUtc = IsSpeedRunFullPull ? sqlMinDateTime : (_settingService.GetSetting("SpeedRunLastImportDate")?.Dte ?? currDateUtc);
                 ImportLastRunDateUtc = IsBulkReload ? sqlMinDateTime : (_settingService.GetSetting("ImportLastRunDate")?.Dte ?? currDateUtc);
-                ImportLastUpdateSpeedRunVideoDetailsDateUtc = _settingService.GetSetting("ImportLastUpdateSpeedRunVideoDetailsDate")?.Dte ?? currDateUtc;
                 IsBulkReloadRunning = _settingService.GetSetting("IsBulkReloadRunning")?.Num == 1;
                 IsBulkReloadPostProcessRunning = _settingService.GetSetting("IsBulkReloadPostProcessRunning")?.Num == 1;
 
@@ -129,11 +128,6 @@ namespace SpeedRunAppImport
                         IsUpdateSpeedRunVideoDetails = true;
                     }
                 }
-
-                //if (IsUpdateSpeedRuns && !IsBulkReload && ImportLastUpdateSpeedRunVideoDetailsDateUtc.AddDays(1) <= currDateUtc)
-                //{
-                //    IsUpdateSpeedRunVideoDetails = true;
-                //}
 
                 BaseService.SqlMinDateTime = sqlMinDateTime;
                 BaseService.MaxElementsPerPage = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxElementsPerPage").Value);
@@ -253,11 +247,6 @@ namespace SpeedRunAppImport
                 _settingService.UpdateSetting("ImportLastUpdateSpeedRunsDate", currDateUtc);
             }
 
-            if (IsUpdateSpeedRunVideoDetails)
-            {
-                _settingService.UpdateSetting("ImportLastUpdateSpeedRunVideoDetailsDate", currDateUtc);
-            }
-
             _settingService.UpdateSetting("ImportLastRunDate", currDateUtc);
         }
 
@@ -276,8 +265,7 @@ namespace SpeedRunAppImport
         public DateTime GameLastImportDateUtc { get; set; }
         public DateTime UserLastImportDateUtc { get; set; }
         public DateTime SpeedRunLastImportDateUtc { get; set; }
-        public DateTime ImportLastRunDateUtc { get; set; }
-        public DateTime ImportLastUpdateSpeedRunVideoDetailsDateUtc { get; set; }        
+        public DateTime ImportLastRunDateUtc { get; set; }     
         public bool IsPlatformFullPull { get; set; }
         public bool IsGameFullPull { get; set; }
         public bool IsSpeedRunFullPull { get; set; }

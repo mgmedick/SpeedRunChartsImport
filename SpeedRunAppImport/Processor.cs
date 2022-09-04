@@ -195,30 +195,37 @@ namespace SpeedRunAppImport
                 result = _speedRunService.ProcessSpeedRuns(SpeedRunLastImportDateUtc, ImportLastRunDateUtc, IsSpeedRunFullPull, IsBulkReload, IsUpdateSpeedRuns);
             }
 
-            if (result && IsUpdateSpeedRunVideoDetails)
+            if (result && !IsBulkReload && IsUpdateSpeedRunVideoDetails)
             {
                 result = _speedRunService.UpdateSpeedRunVideoDetails();
             }
 
-            if (result && IsBulkReload)
+            if (result)
             {
-                _settingService.UpdateSetting("IsBulkReloadPostProcessRunning", 1);
-                result = _speedRunRepo.ReorderSpeedRuns();
-
-                if (result)
+                if (IsBulkReload)
                 {
-                    result = _speedRunService.ProcessYouTubeSpeedRunVideoDetails();
-                }
+                    result = _speedRunRepo.ReorderSpeedRuns();
 
-                if (result)
+                    if (result)
+                    {
+                        result = _speedRunService.ProcessYouTubeSpeedRunVideoDetails();
+                    }
+
+                    _settingService.UpdateSetting("IsBulkReloadPostProcessRunning", 1);
+                    if (result)
+                    {
+                        result = _speedRunRepo.UpdateSpeedRunRanksFull();
+                    }
+
+                    if (result)
+                    {
+                        result = _speedRunRepo.RenameFullTables();
+                    }
+                }
+                else if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.SpeedRun))
                 {
-                    result = _speedRunRepo.RenameFullTables();
+                    result = _speedRunRepo.UpdateSpeedRunRanks(ImportLastRunDateUtc);
                 }
-            }
-
-            if (result && (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.SpeedRun)))
-            {
-                result = _speedRunRepo.UpdateSpeedRunRanks(ImportLastRunDateUtc);
             }
 
             if (result)

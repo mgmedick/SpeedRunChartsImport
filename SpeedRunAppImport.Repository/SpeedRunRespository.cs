@@ -467,6 +467,36 @@ namespace SpeedRunAppImport.Repository
             return result;
         }
 
+        public bool UpdateSpeedRunRanksFull()
+        {
+            bool result = true;
+
+            try
+            {
+                _logger.Information("Started UpdateSpeedRunRanksFull");
+                using (IDatabase db = DBFactory.GetDatabase())
+                {
+                    db.OneTimeCommandTimeout = 32767;
+                    if (IsMySQL)
+                    {
+                        db.Execute("CALL ImportUpdateSpeedRunRanksFull;");
+                    }
+                    else
+                    {
+                        db.Execute("EXEC dbo.ImportUpdateSpeedRunRanksFull");
+                    }
+                }
+                _logger.Information("Completed UpdateSpeedRunRanksFull");
+            }
+            catch (Exception ex)
+            {
+                result = false;
+                _logger.Error(ex, "UpdateSpeedRunRanksFull");
+            }
+
+            return result;
+        }
+
         public bool UpdateSpeedRunRanks(DateTime lastImportDateUtc)
         {
             bool result = true;

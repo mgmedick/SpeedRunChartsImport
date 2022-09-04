@@ -22,6 +22,7 @@ namespace SpeedRunAppImport.Interfaces.Repositories
         bool CreateFullTables();
         bool ReorderSpeedRuns();
         bool RenameFullTables();
+        bool UpdateSpeedRunRanksFull();
         bool UpdateSpeedRunRanks(DateTime lastImportDateUtc);
         bool RebuildIndexes();
         bool UpdateStats();

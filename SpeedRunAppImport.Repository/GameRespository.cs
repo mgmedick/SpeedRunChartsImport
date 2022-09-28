@@ -440,8 +440,11 @@ namespace SpeedRunAppImport.Repository
 
                             _logger.Information("Pulling variableValuesToDelete");
                             var variableValueIDs = variablesValuesBatch.Select(i => i.ID).ToList();
+                            db.OneTimeCommandTimeout = 32767;
                             var variableValuesForGame = db.Query<VariableValueEntity>().Where(i => i.GameID == game.ID).ToList();
+                            db.OneTimeCommandTimeout = 32767;
                             var variableValueIDsToDelete = variableValuesForGame.Where(i => !variableValueIDs.Contains(i.ID)).Select(i => i.ID).ToList();
+                            db.OneTimeCommandTimeout = 32767;
                             var variableValueRunIDsToDelete = db.Query<SpeedRunVariableValueEntity>().Where(i => variableValueIDsToDelete.Contains(i.VariableValueID)).ToList().Select(i => i.SpeedRunID).Distinct().ToList();
 
                             _logger.Information("Deleting variableValuesToDelete related speedruns");

@@ -13,6 +13,7 @@ namespace SpeedRunAppImport.Model.Data
         public string Rules { get; set; }
         public Players Players { get; set; }
         public bool IsMiscellaneous { get; set; }
+        public bool IsTimerAscending { get; set; }
 
         //linkIDs
         public string GameID { get; set; }

@@ -252,7 +252,9 @@ namespace SpeedRunAppImport.Service
                 SpeedRunComID = g.ID,
                 Name = g.Name,
                 GameSpeedRunComID = i.ID,
-                CategoryTypeID = (int)g.Type
+                CategoryTypeID = (int)g.Type,
+                IsMiscellaneous = g.IsMiscellaneous,
+                IsTimerAscending = g.IsTimerAscending
             })).ToList();
             var categoryRuleEntities = games.SelectMany(i => i.Categories.Select(g => new CategoryRuleEntity
             {

@@ -79,6 +79,7 @@ namespace SpeedRunAppImport.Client
             category.Rules = categoryElement.rules as string;
             category.Players = ParsePlayers(categoryElement.players);
             category.IsMiscellaneous = categoryElement.miscellaneous;
+            category.IsTimerAscending = !string.IsNullOrWhiteSpace(category.Rules) && category.Rules.Contains("long as possible");
 
             //Parse Links
             var links = properties["links"] as IEnumerable<dynamic>;

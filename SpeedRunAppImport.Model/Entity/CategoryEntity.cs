@@ -12,6 +12,8 @@ namespace SpeedRunAppImport.Model.Entity
         public int GameID { get; set; }
         public string GameSpeedRunComID { get; set; }
         public int CategoryTypeID { get; set; }
+        public bool IsMiscellaneous { get; set; }
+        public bool IsTimerAscending { get; set; }
     }
 }
 

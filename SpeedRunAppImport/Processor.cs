@@ -222,7 +222,7 @@ namespace SpeedRunAppImport
                         result = _speedRunRepo.RenameFullTables();
                     }
                 }
-                else if (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.SpeedRun))
+                else if (BaseService.IsSpeedRunsImported && (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.SpeedRun)))
                 {
                     result = _speedRunRepo.UpdateSpeedRunRanks(ImportLastRunDateUtc);
                 }

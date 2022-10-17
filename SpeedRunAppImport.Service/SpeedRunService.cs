@@ -609,6 +609,7 @@ namespace SpeedRunAppImport.Service
                 _speedRunRepo.SaveSpeedRuns(runEntities, runLinkEntities, runSystemEntities, runTimeEntities, runCommentEntities, variableValueEntities, playerEntities, guestPlayerEntities, videoEntities, videoDetailEntities);
             }
 
+            IsSpeedRunsImported = true;
             _logger.Information("Completed SaveSpeedRuns");
         }
 

@@ -169,6 +169,7 @@ namespace SpeedRunAppImport
         public void RunProcesses()
         {
             bool result = true;
+            _logger.Information("Started RunProcesses");
 
             if (IsBulkReload)
             {
@@ -255,6 +256,7 @@ namespace SpeedRunAppImport
             }
 
             _settingService.UpdateSetting("ImportLastRunDate", currDateUtc);
+            _logger.Information("Completed RunProcesses");
         }
 
         public void RunMaintenance()

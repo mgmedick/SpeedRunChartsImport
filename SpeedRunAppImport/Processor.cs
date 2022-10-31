@@ -234,11 +234,11 @@ namespace SpeedRunAppImport
                 if (IsBulkReload || IsUpdateSpeedRuns)
                 {
                     result = _settingService.GenerateAndMoveSitemapXml();
+                }
 
-                    if (result)
-                    {
-                        RunMaintenance();
-                    }
+                if (result && (IsBulkReload || IsUpdateSpeedRuns || BaseService.IsSpeedRunsImported))
+                {
+                    RunMaintenance();
                 }
             }
 

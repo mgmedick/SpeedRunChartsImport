@@ -9,6 +9,7 @@ using SpeedRunAppImport.Model.Entity;
 using SpeedRunAppImport.Interfaces.Repositories;
 //using Microsoft.Extensions.Configuration;
 using System.Linq.Expressions;
+using System.Data.SqlTypes;
 
 namespace SpeedRunAppImport.Repository
 {
@@ -552,6 +553,28 @@ namespace SpeedRunAppImport.Repository
             {
                 result = false;
                 _logger.Error(ex, "RebuildIndexes");
+            }
+
+            return result;
+        }
+
+        public DateTime GetMaxSpeedRunVerifyDate()
+        {
+            DateTime result = (DateTime)SqlDateTime.MinValue;
+
+            try
+            {
+                _logger.Information("Started GetMaxSpeedRunVerifyDate");
+                using (IDatabase db = DBFactory.GetDatabase())
+                {
+                    db.OneTimeCommandTimeout = 32767;
+                    result = db.Query<DateTime?>("SELECT MAX(VerifyDate) FROM tbl_SpeedRun;").FirstOrDefault() ?? result;
+                }
+                _logger.Information("Completed GetMaxSpeedRunVerifyDate");
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "GetMaxSpeedRunVerifyDate");
             }
 
             return result;

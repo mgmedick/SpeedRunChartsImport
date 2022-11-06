@@ -8,6 +8,7 @@ using SpeedRunAppImport.Interfaces.Repositories;
 //using Microsoft.Extensions.Configuration;
 using System.Linq.Expressions;
 using System.IO;
+using System.Data.SqlTypes;
 
 namespace SpeedRunAppImport.Repository
 {
@@ -560,6 +561,28 @@ namespace SpeedRunAppImport.Repository
 
                 return results;
             }
+        }
+
+        public DateTime GetMaxGameCreatedDate()
+        {
+            DateTime result = (DateTime)SqlDateTime.MinValue;
+
+            try
+            {
+                _logger.Information("Started GetMaxGameCreatedDate");
+                using (IDatabase db = DBFactory.GetDatabase())
+                {
+                    db.OneTimeCommandTimeout = 32767;
+                    result = db.Query<DateTime?>("SELECT MAX(CreatedDate) FROM tbl_Game;").FirstOrDefault() ?? result;
+                }
+                _logger.Information("Completed GetMaxGameCreatedDate");
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "GetMaxGameCreatedDate");
+            }
+
+            return result;
         }
 
         public IEnumerable<GameSpeedRunComView> GetGameSpeedRunComViews(Expression<Func<GameSpeedRunComView, bool>> predicate = null)

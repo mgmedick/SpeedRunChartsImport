@@ -21,6 +21,7 @@ namespace SpeedRunAppImport.Interfaces.Repositories
         IEnumerable<RegionSpeedRunComIDEntity> GetRegionSpeedRunComIDs(Expression<Func<RegionSpeedRunComIDEntity, bool>> predicate = null);
         void RemoveObsoleteGameSpeedRunComIDs();
         IEnumerable<SitemapEntity> GetGamesForSitemap();
+        DateTime GetMaxGameCreatedDate();
     }
 }
 

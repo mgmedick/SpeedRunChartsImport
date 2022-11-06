@@ -18,6 +18,7 @@ using SpeedRunAppImport.Service;
 using SpeedRunAppImport.Model.Entity;
 using System.Data.SqlTypes;
 using System.IO;
+using MySqlX.XDevAPI.Common;
 
 namespace SpeedRunAppImport
 {
@@ -30,10 +31,11 @@ namespace SpeedRunAppImport
         private readonly ISettingService _settingService;
         private readonly ISpeedRunRepository _speedRunRepo;
         private readonly IUserRepository _userRepo;
+        private readonly IGameRepository _gameRepo;
         private readonly IConfiguration _config;
         private readonly ILogger _logger;
 
-        public Processor(IGameService gameService, IUserService userService, ISpeedRunService speedRunService, IPlatformService platformService, ISettingService settingService, ISpeedRunRepository speedRunRepo, IUserRepository userRepo, IConfiguration config, ILogger logger)
+        public Processor(IGameService gameService, IUserService userService, ISpeedRunService speedRunService, IPlatformService platformService, ISettingService settingService, ISpeedRunRepository speedRunRepo, IUserRepository userRepo, IGameRepository gameRepo, IConfiguration config, ILogger logger)
         {
             _gameService = gameService;
             _userService = userService;
@@ -42,6 +44,7 @@ namespace SpeedRunAppImport
             _settingService = settingService;
             _userRepo = userRepo;
             _speedRunRepo = speedRunRepo;
+            _gameRepo = gameRepo;
 
             _config = config;
             _logger = logger;
@@ -111,7 +114,6 @@ namespace SpeedRunAppImport
                 if (IsUpdateSpeedRuns)
                 {
                     IsGameFullPull = true;
-                    IsUpdateSpeedRuns = true;
                     IsUpdateSpeedRunVideoDetails = true;
                 }
                 else if (!string.IsNullOrWhiteSpace(updateSpeedRunsTimeString) && !IsBulkReloadRunning)
@@ -248,6 +250,12 @@ namespace SpeedRunAppImport
                 _settingService.UpdateSetting("IsBulkReloadRunning", 0);
                 _settingService.UpdateSetting("IsBulkReloadPostProcessRunning", 0);
                 _settingService.UpdateSetting("ImportLastBulkReloadDate", currDateUtc);
+
+                var gameLastImportDateUtc = _gameRepo.GetMaxGameCreatedDate();
+                _settingService.UpdateSetting("GameLastImportDate", gameLastImportDateUtc);
+
+                var speedRunLastImportDateUtc = _speedRunRepo.GetMaxSpeedRunVerifyDate();
+                _settingService.UpdateSetting("SpeedRunLastImportDate", speedRunLastImportDateUtc);
             }
 
             if (IsUpdateSpeedRuns)

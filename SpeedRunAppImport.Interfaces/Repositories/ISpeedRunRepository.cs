@@ -27,6 +27,7 @@ namespace SpeedRunAppImport.Interfaces.Repositories
         bool RebuildIndexes();
         bool UpdateStats();
         IEnumerable<SpeedRunVideoEntity> GetSpeedRunVideos(Expression<Func<SpeedRunVideoEntity, bool>> predicate = null);
+        DateTime GetMaxSpeedRunVerifyDate();
     }
 }
 

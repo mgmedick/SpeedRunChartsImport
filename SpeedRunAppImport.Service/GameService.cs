@@ -355,22 +355,22 @@ namespace SpeedRunAppImport.Service
 
             if (IsProcessGameCoverImages)
             {
-                ProcessGameCoverImages(gameLinkEntities, gameEntities);
+                ProcessGameCoverImages(gameLinkEntities, gameEntities, isBulkReload);
             }
 
             _logger.Information("Completed SaveGames");
         }
 
-        public void ProcessGameCoverImages(List<GameLinkEntity> gameLinks, List<GameEntity> games)
+        public void ProcessGameCoverImages(List<GameLinkEntity> gameLinks, List<GameEntity> games, bool isBulkReload)
         {
             gameLinks = gameLinks.Where(i => !string.IsNullOrWhiteSpace(i.CoverImageUrl)).ToList();
-            var tempGameCoverPaths = GetGameCoverImages(gameLinks, games);
+            var tempGameCoverPaths = GetGameCoverImages(gameLinks, games, isBulkReload);
             var gameCoverPaths = MoveGameCoverImages(tempGameCoverPaths);
             ClearTempFolder();
             SaveGameCoverImages(gameLinks, gameCoverPaths);
         }
 
-        public Dictionary<int, string> GetGameCoverImages(List<GameLinkEntity> gameLinks, List<GameEntity> games)
+        public Dictionary<int, string> GetGameCoverImages(List<GameLinkEntity> gameLinks, List<GameEntity> games, bool isBulkReload)
         {
             _logger.Information("Started GetGameCoverImages: {@Count}", gameLinks.Count);
             var tempGameCoverPaths = new Dictionary<int, string>();
@@ -403,6 +403,10 @@ namespace SpeedRunAppImport.Service
                     {
                         tempGameCoverPaths.Add(gameLink.GameID, tempFilePath);
                     }
+                }
+                else if (isBulkReload)
+                {
+                    gameLink.CoverImagePath = filePath;
                 }
 
                 _logger.Information("Set gameImage {@Count} / {@Total}", count, gameLinks.Count);

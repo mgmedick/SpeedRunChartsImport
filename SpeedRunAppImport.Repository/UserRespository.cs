@@ -8,6 +8,7 @@ using SpeedRunAppImport.Interfaces.Repositories;
 //using Microsoft.Extensions.Configuration;
 using System.Linq.Expressions;
 using System.IO;
+using SpeedRunAppImport.Model.Data;
 
 namespace SpeedRunAppImport.Repository
 {
@@ -166,6 +167,7 @@ namespace SpeedRunAppImport.Repository
                             if (user.ID != 0)
                             {
                                 user.ModifiedDate = DateTime.UtcNow;
+                                user.IsChanged = null;
                                 //db.DeleteWhere<UserSpeedRunComIDEntity>("UserID = @userID", new { userID = user.ID });
                                 //db.DeleteWhere<UserLocationEntity>("UserID = @userID", new { userID = user.ID });
                                 //db.DeleteWhere<UserLinkEntity>("UserID = @userID", new { userID = user.ID });
@@ -208,6 +210,15 @@ namespace SpeedRunAppImport.Repository
             {
                 db.OneTimeCommandTimeout = 32767;
                 return db.Query<UserSpeedRunComIDEntity>().Where(predicate ?? (x => true)).ToList();
+            }
+        }
+
+        public IEnumerable<UserEntity> GetUsers(Expression<Func<UserEntity, bool>> predicate = null)
+        {
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                db.OneTimeCommandTimeout = 32767;
+                return db.Query<UserEntity>().Where(predicate ?? (x => true)).ToList();
             }
         }
 

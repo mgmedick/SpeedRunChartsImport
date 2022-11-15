@@ -149,6 +149,7 @@ namespace SpeedRunAppImport
                 BaseService.YouTubeAPIRequestCount = 0;
                 BaseService.YouTubeAPIEnabled = _settingService.GetSetting("YouTubeAPIEnabled")?.Num == 1;
                 BaseService.GameIDsToUpdateSpeedRuns = new List<int>();
+                BaseService.UserIDsToUpdateSpeedRuns = new List<int>();
                 BaseService.BaseWebPath = _config.GetSection("AppSettings").GetSection("BaseWebPath").Value;
                 BaseService.GameImageWebPath = _config.GetSection("AppSettings").GetSection("GameImageWebPath").Value;
                 BaseService.ImageFileExt = _config.GetSection("AppSettings").GetSection("ImageFileExt").Value;
@@ -191,6 +192,11 @@ namespace SpeedRunAppImport
             if (result && (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.Game)))
             {
                 result = _gameService.ProcessGames(GameLastImportDateUtc, IsGameFullPull, IsBulkReload);
+            }
+
+            if (result && !IsBulkReload && (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.User)))
+            {
+                result = _userService.ProcessChangedUsers();
             }
 
             if (result && (Processes.Contains(ImportProcess.All) || Processes.Contains(ImportProcess.SpeedRun)))

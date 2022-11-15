@@ -59,6 +59,11 @@ namespace SpeedRunAppImport.Service
                     {
                         ProcessSpeedRunsByGame(importLastRunDateUtc, isFullPull, isBulkReload);
                     }
+
+                    if (UserIDsToUpdateSpeedRuns.Any() && !isBulkReload)
+                    {
+                        ProcessSpeedRunsByUser(importLastRunDateUtc);
+                    }
                 }
 
                 _logger.Information("Completed ProcessSpeedRuns");
@@ -189,6 +194,67 @@ namespace SpeedRunAppImport.Service
             }
         }
 
+        public void ProcessSpeedRunsByUser(DateTime importLastRunDateUtc)
+        {
+            RunsOrdering orderBy = RunsOrdering.DateSubmitted;
+            var runEmbeds = new SpeedRunEmbeds { EmbedCategory = false, EmbedGame = false, EmbedLevel = false, EmbedPlayers = true, EmbedPlatform = false, EmbedRegion = false };
+            var results = new List<SpeedRun>();
+            var runs = new List<SpeedRun>();
+            var userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs();
+            var userIDs = UserIDsToUpdateSpeedRuns;
+            userSpeedRunComIDs = userSpeedRunComIDs.Join(userIDs, o => o.UserID, id => id, (o, id) => o).ToList();
+
+            _logger.Information("Found NewOrChangedUsers: {@Count}, ImportLastRunDate: {ImportLastRunDateUtc}", userSpeedRunComIDs.Count(), importLastRunDateUtc);
+
+            var prevTotal = 0;
+            foreach (var userSpeedRunComID in userSpeedRunComIDs)
+            {
+                var prevUserTotal = 0;
+                do
+                {
+                    try
+                    {
+                        runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count(i => i.PlayerUsers != null && i.PlayerUsers.Any(g => g.ID == userSpeedRunComID.SpeedRunComID)) + prevUserTotal, null, null, runEmbeds, orderBy, RunStatusType.Verified, userSpeedRunComID.SpeedRunComID);
+                    }
+                    catch (APIException ex)
+                    {
+                        throw ex;
+                    }
+                    catch (Exception ex)
+                    {
+                        throw ex;
+                    }
+
+                    results.AddRange(runs);
+                    _logger.Information("UserID: {@UserID}, pulled runs: {@New}, user total: {@UserTotal}, total runs: {@Total}",
+                                         userSpeedRunComID.SpeedRunComID,
+                                         runs.Count,
+                                         results.Count(i => i.PlayerUsers != null && i.PlayerUsers.Any(g => g.ID == userSpeedRunComID.SpeedRunComID)) + prevUserTotal,
+                                         results.Count + prevTotal);
+                    Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
+
+                    var memorySize = GC.GetTotalMemory(false);
+                    if (memorySize > MaxMemorySizeBytes)
+                    {
+                        prevTotal += results.Count;
+                        prevUserTotal += results.Count(i => i.PlayerUsers != null && i.PlayerUsers.Any(g => g.ID == userSpeedRunComID.SpeedRunComID));
+                        _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
+                        SaveSpeedRuns(results, false, true);
+                        results.ClearMemory();
+                    }
+                }
+                while (runs.Count == MaxElementsPerPage);
+            }
+
+            if (results.Any())
+            {
+                SaveSpeedRuns(results, false, true);
+                results.ClearMemory();
+
+                DeleteObsoleteSpeedRunsByUser(userSpeedRunComIDs, importLastRunDateUtc);
+            }
+        }
+
         private void DeleteObsoleteSpeedRuns(IEnumerable<GameSpeedRunComIDEntity> gameSpeedRunComIDs, DateTime importLastRunDateUtc)
         {
             _logger.Information("Started DeleteObsoleteSpeedRuns: GameCount: {@GameCount}, LastImportDateUTC: {@ImportLastRunDateUtc}", gameSpeedRunComIDs.Count(), importLastRunDateUtc);
@@ -202,6 +268,20 @@ namespace SpeedRunAppImport.Service
             }
 
             _logger.Information("Completed DeleteObsoleteSpeedRuns: GameCount: {@GameCount}, LastImportDateUTC: {@ImportLastRunDateUtc}", gameSpeedRunComIDs.Count(), importLastRunDateUtc);
+        }
+
+        private void DeleteObsoleteSpeedRunsByUser(IEnumerable<UserSpeedRunComIDEntity> userSpeedRunComIDs, DateTime importLastRunDateUtc)
+        {
+            _logger.Information("Started DeleteObsoleteSpeedRunsByUser: UserCount: {@UserCount}, LastImportDateUTC: {@ImportLastRunDateUtc}", userSpeedRunComIDs.Count(), importLastRunDateUtc);
+
+            foreach (var userSpeedRunComID in userSpeedRunComIDs)
+            {
+                _logger.Information("Deleting obsolete speedruns for UserID: {@UserID}", userSpeedRunComID.UserID);
+                var paramString = string.Format("EXISTS(SELECT 1 FROM tbl_SpeedRun_Player sp WHERE sp.SpeedRunID = ID AND sp.UserID = {0}) AND COALESCE(ModifiedDate, ImportedDate) < '{1}'", userSpeedRunComID.UserID, importLastRunDateUtc.ToString("yyyy-MM-dd HH:mm:ss"));
+                _speedRunRepo.DeleteSpeedRuns(paramString);
+                _logger.Information("Completed deleting obsolete speedruns for UserID: {@UserID}", userSpeedRunComID.UserID);
+            }
+            _logger.Information("Completed DeleteObsoleteSpeedRunsByUser: UserCount: {@UserCount}, LastImportDateUTC: {@ImportLastRunDateUtc}", userSpeedRunComIDs.Count(), importLastRunDateUtc);
         }
 
         private void DeleteGameSpeedRunsAndProcessByCategory(int gameID, string gameSpeedRunComID, SpeedRunEmbeds runEmbeds, RunsOrdering orderBy, bool isBulkReload, List<SpeedRun> results, ref int prevTotal)
@@ -362,33 +442,40 @@ namespace SpeedRunAppImport.Service
         }
         #endregion
 
-        public List<SpeedRun> GetSpeedRunsWithRetry(int elementsPerPage, int elementsOffset, string gameID, string categoryID, SpeedRunEmbeds embeds, RunsOrdering orderBy, RunStatusType? statusType = null, int retryCount = 0)
+        public List<SpeedRun> GetSpeedRunsWithRetry(int elementsPerPage, int elementsOffset, string gameID, string categoryID, SpeedRunEmbeds embeds, RunsOrdering orderBy, RunStatusType? statusType = null, string userID = null, int retryCount = 0)
         {
             ClientContainer clientContainer = new ClientContainer();
             List<SpeedRun> runs = null;
 
             try
             {
-                runs = clientContainer.Runs.GetRuns(status: statusType, elementsPerPage: elementsPerPage, elementsOffset: elementsOffset, gameId: gameID, categoryId: categoryID, embeds: embeds, orderBy: orderBy).ToList();
+                if (string.IsNullOrWhiteSpace(userID))
+                {
+                    runs = clientContainer.Runs.GetRuns(status: statusType, elementsPerPage: elementsPerPage, elementsOffset: elementsOffset, gameId: gameID, categoryId: categoryID, embeds: embeds, orderBy: orderBy).ToList();
+                }
+                else
+                {
+                    runs = clientContainer.Runs.GetRuns(status: statusType, elementsPerPage: elementsPerPage, elementsOffset: elementsOffset, gameId: null, categoryId: null, embeds: embeds, orderBy: orderBy, userId: userID).ToList();
+                }
             }
             catch (Exception ex)
             {
                 if (ex is APIException && ((APIException)ex).Message.Contains("Invalid pagination values"))
                 {
-                    _logger.Information(ex, "GetSpeedRunsWithRetry - Invalid pagination values - GameID: {gameID}", gameID);
+                    _logger.Information(ex, "GetSpeedRunsWithRetry - Invalid pagination values - GameID: {gameID}, UserID: {userID}", gameID, userID);
                     throw ex;
                 }
                 else if (ex is APIException && ((APIException)ex).Message.Contains("Non-existing"))
                 {
                     runs = new List<SpeedRun>();
-                    _logger.Information(ex, "GetSpeedRunsWithRetry - Non-existing - GameID: {gameID}, CategoryID: {categoryID}", gameID, categoryID);
+                    _logger.Information(ex, "GetSpeedRunsWithRetry - Non-existing - GameID: {gameID}, CategoryID: {categoryID}, UserID: {userID}", gameID, categoryID, userID);
                 }
                 else if (retryCount <= MaxRetryCount)
                 {
                     Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.ErrorPullDelayMS));
                     retryCount++;
                     _logger.Information("Retrying pull speedRuns: {@New}, total speedRuns: {@Total}, retry: {@RetryCount}", elementsPerPage, elementsOffset, retryCount);
-                    runs = GetSpeedRunsWithRetry(elementsPerPage, elementsOffset, gameID, categoryID, embeds, orderBy, statusType, retryCount);
+                    runs = GetSpeedRunsWithRetry(elementsPerPage, elementsOffset, gameID, categoryID, embeds, orderBy, statusType, userID, retryCount);
                 }
                 else
                 {

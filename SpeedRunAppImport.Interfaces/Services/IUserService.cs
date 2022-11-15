@@ -10,6 +10,7 @@ namespace SpeedRunAppImport.Interfaces.Services
     public interface IUserService
     {
         bool ProcessUsers(DateTime lastImportDate, bool isFullImport, bool IsBulkReload);
+        bool ProcessChangedUsers();
         List<User> GetUsersWithRetry(int elementsPerPage, int elementsOffset, UsersOrdering orderBy, int retryCount = 0);
         void SaveGuests(IEnumerable<Guest> guests, bool isBulkReload, IEnumerable<GuestEntity> guestSpeedRunComIDs = null);
         void SaveUsers(IEnumerable<User> users, bool IsBulkReload, IEnumerable<UserSpeedRunComIDEntity> userSpeedRunComIDs = null);

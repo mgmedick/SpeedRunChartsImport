@@ -31,6 +31,7 @@ namespace SpeedRunAppImport.Service
         public static int YouTubeAPIRequestCount { get; set; }
         public static bool YouTubeAPIEnabled { get; set; }
         public static List<int> GameIDsToUpdateSpeedRuns { get; set; }
+        public static List<int> UserIDsToUpdateSpeedRuns { get; set; }
         public static string TempImportPath { get; set; }     
         public static string BaseWebPath { get; set; }
         public static string GameImageWebPath { get; set; }

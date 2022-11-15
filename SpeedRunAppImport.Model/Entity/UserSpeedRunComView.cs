@@ -16,5 +16,6 @@ namespace SpeedRunAppImport.Model.Entity
         public string HitboxProfileUrl { get; set; }
         public string YoutubeProfileUrl { get; set; }
         public string TwitterProfileUrl { get; set; }
+        public bool? IsChanged { get; set; }
     }
 } 

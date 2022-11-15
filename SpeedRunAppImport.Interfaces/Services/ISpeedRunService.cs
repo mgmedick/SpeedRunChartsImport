@@ -13,7 +13,7 @@ namespace SpeedRunAppImport.Interfaces.Services
         void ProcessSpeedRunsDefault(DateTime lastImportDateUtc, bool isFullPull, bool isBulkReload);
         void ProcessSpeedRunsByGame(DateTime importLastRunDateUtc, bool isFullPull, bool isBulkReload);
         void ProcessSpeedRunsByScreenScrape();
-        List<SpeedRun> GetSpeedRunsWithRetry(int elementsPerPage, int elementsOffset, string gameID, string categoryID, SpeedRunEmbeds embeds, RunsOrdering orderBy, RunStatusType? statusType = null, int retryCount = 0);
+        List<SpeedRun> GetSpeedRunsWithRetry(int elementsPerPage, int elementsOffset, string gameID, string categoryID, SpeedRunEmbeds embeds, RunsOrdering orderBy, RunStatusType? statusType = null, string userID = null, int retryCount = 0);
         void SaveSpeedRuns(IEnumerable<SpeedRun> runs, bool isBulkReload, bool isUpdateSpeedRuns);
         bool UpdateSpeedRunVideoDetails();
         bool ProcessYouTubeSpeedRunVideoDetails();

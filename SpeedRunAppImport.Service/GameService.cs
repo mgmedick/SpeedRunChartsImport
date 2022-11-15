@@ -98,7 +98,7 @@ namespace SpeedRunAppImport.Service
             return result;
         }
 
-        public void ProcessChangedGames(GameEmbeds gameEmbeds, int retryCount = 0)
+        public void ProcessChangedGames(GameEmbeds gameEmbeds)
         {
             _logger.Information("Started ProcessChangedGames");
 

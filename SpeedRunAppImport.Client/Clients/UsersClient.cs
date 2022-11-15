@@ -131,7 +131,7 @@ namespace SpeedRunAppImport.Client
         //        x => Parse(x) as User);
         //}
 
-        public User GetUser(string userId, IEnumerable<Embeds> embeds = null)
+        public User GetUser(string userId)
         {
             User user = null;
             var uri = GetUsersUri(string.Format("/{0}",
@@ -141,7 +141,7 @@ namespace SpeedRunAppImport.Client
 
             if (result != null)
             {
-                user = Parse(result.data, embeds);
+                user = Parse(result.data);
             }
 
             return user;
@@ -173,7 +173,7 @@ namespace SpeedRunAppImport.Client
         //    return Task.Run(async () => await ParseProfileImageUri(userName)).Result;
         //}
 
-        public User Parse(dynamic userElement, IEnumerable<Embeds> embeds = null)
+        public User Parse(dynamic userElement)
         {
             var user = new User();
             var properties = userElement.Properties as IDictionary<string, dynamic>;

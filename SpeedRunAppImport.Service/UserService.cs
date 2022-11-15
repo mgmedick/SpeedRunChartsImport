@@ -84,6 +84,57 @@ namespace SpeedRunAppImport.Service
             return result;
         }
 
+        public bool ProcessChangedUsers()
+        {
+            bool result = true;
+
+            try
+            {
+                _logger.Information("Started ProcessChangedUsers");
+
+                var results = new List<User>();
+                var userSpeedRunComViews = _userRepo.GetUserSpeedRunComViews(i => i.IsChanged == true).ToList();
+
+                if (userSpeedRunComViews.Any())
+                {
+                    var clientContainer = new ClientContainer();
+                    foreach (var userSpeedRunComView in userSpeedRunComViews)
+                    {
+                        try
+                        {
+                            var user = clientContainer.Users.GetUser(userSpeedRunComView.SpeedRunComID);
+                            if (user != null)
+                            {
+                                results.Add(user);
+                                _logger.Information("Pulled changed users: {@New}, total changed users: {@Total}", 1, results.Count);
+                            }
+                            Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
+                        }
+                        catch (Exception ex)
+                        {
+                            Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.ErrorPullDelayMS));
+                            _logger.Error(ex, "ProcessChangedUsers");
+                        }
+                    }
+                }
+
+                if (results.Any())
+                {
+                    SaveUsers(results, false);
+                    results.ClearMemory();
+                }
+
+                _logger.Information("Completed ProcessChangedUsers");
+            }
+            catch (Exception ex)
+            {
+                result = false;
+                _logger.Error(ex, "ProcessChangedUsers");
+            }
+
+            return result;
+        }
+
         public List<User> GetUsersWithRetry(int elementsPerPage, int elementsOffset, UsersOrdering orderBy, int retryCount = 0)
         {
             ClientContainer clientContainer = new ClientContainer();
@@ -194,8 +245,8 @@ namespace SpeedRunAppImport.Service
             else
             {
                 var newUserEntities = userEntities.Where(i => i.ID == 0).ToList();
-                var changedUserIDs = GetChangedUserIDs(userEntities, userLocationEntities, userLinkEntities);
-                var changedUserEntities = userEntities.Where(i => changedUserIDs.Contains(i.ID)).ToList();
+                SetChangedUsers(userEntities, userLocationEntities, userLinkEntities);
+                var changedUserEntities = userEntities.Where(i => i.IsChanged == true).ToList();
                 var totalUsers = userEntities.Count();
                 userEntities = newUserEntities.Concat(changedUserEntities).ToList();
                 userLocationEntities = userLocationEntities.Where(i => userEntities.Any(g => g.SpeedRunComID == i.UserSpeedRunComID)).ToList();
@@ -208,6 +259,88 @@ namespace SpeedRunAppImport.Service
 
             _logger.Information("Completed SaveUsers");
         }
+
+        public void SetChangedUsers(List<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, List<UserLinkEntity> userLinks)
+        {
+            _logger.Information("Started SetChangedUsers: {@Count}", users.Count());
+
+            var userSpeedRunComViews = new List<UserSpeedRunComView>();
+
+            var maxBatchCount = 500;
+            var batchCount = 0;
+            while (batchCount < users.Count())
+            {
+                var userSpeedRunComIDsBatch = users.Skip(batchCount).Take(maxBatchCount).Select(i => i.SpeedRunComID).ToList();
+                var userSpeedRunComViewsBatch = _userRepo.GetUserSpeedRunComViews(i => userSpeedRunComIDsBatch.Contains(i.SpeedRunComID));
+                userSpeedRunComViews.AddRange(userSpeedRunComViewsBatch);
+                batchCount += maxBatchCount;
+            }
+
+            bool isChanged;
+            foreach (var user in users)
+            {
+                isChanged = false;
+                var changeReasons = new List<string>();
+                var userSpeedRunComView = userSpeedRunComViews.FirstOrDefault(i => i.SpeedRunComID == user.SpeedRunComID);
+
+                if (userSpeedRunComView != null)
+                {
+                    if (userSpeedRunComView.IsChanged.HasValue && userSpeedRunComView.IsChanged.Value)
+                    {
+                        isChanged = true;
+                        UserIDsToUpdateSpeedRuns.Add(user.ID);
+                        changeReasons.Add("Changed from DB");
+                    }
+
+                    if (!isChanged)
+                    {
+                        isChanged = (user.Name != userSpeedRunComView.Name);
+
+                        if (isChanged)
+                        {
+                            changeReasons.Add("Name changed");
+                        }
+                    }
+
+                    if (!isChanged)
+                    {
+                        var userLink = userLinks.FirstOrDefault(i => i.UserSpeedRunComID == userSpeedRunComView.SpeedRunComID);
+                        isChanged = userLink?.SpeedRunComUrl != userSpeedRunComView.SpeedRunComUrl
+                                    || userLink?.ProfileImageUrl != userSpeedRunComView.ProfileImageUrl
+                                    || userLink?.TwitchProfileUrl != userSpeedRunComView.TwitchProfileUrl
+                                    || userLink?.HitboxProfileUrl != userSpeedRunComView.HitboxProfileUrl
+                                    || userLink?.YoutubeProfileUrl != userSpeedRunComView.YoutubeProfileUrl
+                                    || userLink?.TwitterProfileUrl != userSpeedRunComView.TwitterProfileUrl;
+
+                        if (isChanged)
+                        {
+                            changeReasons.Add("Urls changed");
+                        }
+                    }
+
+                    //if (!isChanged)
+                    //{
+                    //    var userLocation = userLocations.FirstOrDefault(i => i.UserSpeedRunComID == userSpeedRunComView.SpeedRunComID);
+                    //    isChanged = userLocation?.Location != userSpeedRunComView.Location;
+
+                    //    if (isChanged)
+                    //    {
+                    //        changeReasons.Add("Location changed");
+                    //    }
+                    //}
+
+                    user.IsChanged = isChanged;
+
+                    if (user.IsChanged.Value)
+                    {
+                        _logger.Information("UserID: {@UserID}, ChangeReason: {@ChangeReason}", user.ID, string.Join("; ", changeReasons));
+                    }
+                }
+            }
+
+            _logger.Information("Completed SetChangedUsers");
+        }
+
 
         public IEnumerable<int> GetChangedUserIDs(List<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, List<UserLinkEntity> userLinks)
         {

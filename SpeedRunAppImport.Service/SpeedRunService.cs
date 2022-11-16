@@ -120,7 +120,7 @@ namespace SpeedRunAppImport.Service
         #region ProcessSpeedRunsByGame
         public void ProcessSpeedRunsByGame(DateTime importLastRunDateUtc, bool isFullPull, bool isBulkReload)
         {
-            RunsOrdering orderBy = RunsOrdering.DateSubmitted;
+            RunsOrdering orderBy = default(RunsOrdering);
             var runEmbeds = new SpeedRunEmbeds { EmbedCategory = false, EmbedGame = false, EmbedLevel = false, EmbedPlayers = true, EmbedPlatform = false, EmbedRegion = false };
             var results = new List<SpeedRun>();
             var runs = new List<SpeedRun>();
@@ -196,7 +196,7 @@ namespace SpeedRunAppImport.Service
 
         public void ProcessSpeedRunsByUser(DateTime importLastRunDateUtc)
         {
-            RunsOrdering orderBy = RunsOrdering.DateSubmitted;
+            RunsOrdering orderBy = default(RunsOrdering);
             var runEmbeds = new SpeedRunEmbeds { EmbedCategory = false, EmbedGame = false, EmbedLevel = false, EmbedPlayers = true, EmbedPlatform = false, EmbedRegion = false };
             var results = new List<SpeedRun>();
             var runs = new List<SpeedRun>();

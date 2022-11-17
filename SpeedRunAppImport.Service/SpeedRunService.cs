@@ -303,7 +303,6 @@ namespace SpeedRunAppImport.Service
         private void ProcessSpeedRunsByCategory(int gameID, string gameSpeedRunComID, IEnumerable<CategorySpeedRunComIDEntity> categorySpeedRunComIDs, SpeedRunEmbeds runEmbeds, RunsOrdering orderBy, bool isBulkReload, List<SpeedRun> results, ref int prevTotal)
         {
             var runs = new List<SpeedRun>();
-            var order = orderBy;
 
             foreach (var categorySpeedRunComID in categorySpeedRunComIDs)
             {
@@ -312,7 +311,7 @@ namespace SpeedRunAppImport.Service
                 {
                     try
                     {
-                        runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count(i => i.GameID == gameSpeedRunComID && i.CategoryID == categorySpeedRunComID.SpeedRunComID) + prevCategoryTotal, gameSpeedRunComID, categorySpeedRunComID.SpeedRunComID, runEmbeds, orderBy, RunStatusType.Verified);
+                        runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count(i => i.GameID == gameSpeedRunComID && i.CategoryID == categorySpeedRunComID.SpeedRunComID) + prevCategoryTotal, gameSpeedRunComID, categorySpeedRunComID.SpeedRunComID, runEmbeds, RunsOrdering.DateSubmitted, RunStatusType.Verified);
                     }
                     catch (APIException ex)
                     {

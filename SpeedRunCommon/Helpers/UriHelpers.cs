@@ -90,7 +90,7 @@ namespace SpeedRunCommon
                     {
                         var queryDictionary = QueryHelpers.ParseQuery(query);
                         videoIDString = queryDictionary.ContainsKey("v") ? queryDictionary["v"].ToString() : uri.Segments.Last();
-                        uriString = string.Format(@"https://img.youtube.com/vi/{0}/1.jpg", videoIDString);
+                        uriString = string.Format(@"https://img.youtube.com/vi/{0}/hqdefault.jpg", videoIDString);
                     }
                     //else if (domain.Contains("vimeo.com"))
                     //{

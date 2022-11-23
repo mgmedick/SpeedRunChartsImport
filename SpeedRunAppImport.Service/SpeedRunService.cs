@@ -727,6 +727,22 @@ namespace SpeedRunAppImport.Service
                 }
 
                 var videoDetails = GetSpeedRunVideoDetails(videos, false);
+                var videosToUpdate = new List<SpeedRunVideoEntity>();
+                foreach (var videoDetail in videoDetails)
+                {
+                    if (!string.IsNullOrWhiteSpace(videoDetail.ThumbnailLinkUrl))
+                    {
+                        var video = videos.Find(g => g.LocalID == videoDetail.SpeedRunVideoLocalID);
+
+                        if (string.IsNullOrWhiteSpace(video.ThumbnailLinkUrl) || (video.ThumbnailLinkUrl.EndsWith("hqdefault.jpg") && videoDetail.ThumbnailLinkUrl.EndsWith("maxresdefault.jpg")))
+                        {
+                            video.ThumbnailLinkUrl = videoDetail.ThumbnailLinkUrl;
+                            videosToUpdate.Add(video);
+                        }
+                    }
+                }
+
+                _speedRunRepo.UpdateSpeedRunVideoThumbnailLinkUrls(videosToUpdate);
                 _speedRunRepo.SaveSpeedRunVideoDetails(videoDetails);
 
                 _logger.Information("Completed UpdateSpeedRunVideoDetails");
@@ -760,6 +776,22 @@ namespace SpeedRunAppImport.Service
                 }
 
                 var videoDetails = GetSpeedRunVideoDetails(videos, false);
+                var videosToUpdate = new List<SpeedRunVideoEntity>();
+                foreach (var videoDetail in videoDetails)
+                {
+                    if (!string.IsNullOrWhiteSpace(videoDetail.ThumbnailLinkUrl))
+                    {
+                        var video = videos.Find(g => g.LocalID == videoDetail.SpeedRunVideoLocalID);
+
+                        if (string.IsNullOrWhiteSpace(video.ThumbnailLinkUrl) || (video.ThumbnailLinkUrl.EndsWith("hqdefault.jpg") && videoDetail.ThumbnailLinkUrl.EndsWith("maxresdefault.jpg")))
+                        {
+                            video.ThumbnailLinkUrl = videoDetail.ThumbnailLinkUrl;
+                            videosToUpdate.Add(video);
+                        }
+                    }
+                }
+
+                _speedRunRepo.UpdateSpeedRunVideoThumbnailLinkUrls(videosToUpdate);
                 _speedRunRepo.InsertSpeedRunVideoDetails(videoDetails);
 
                 _logger.Information("Completed ProcessYouTubeSpeedRunVideoDetails");
@@ -826,7 +858,7 @@ namespace SpeedRunAppImport.Service
                         if (result != null)
                         {
                             var thumbnailUriString = (string)result.thumbnail_url;
-                            var thumbnailLinkUrl = thumbnailUriString?.Replace("%{width}", "320").Replace("%{height}", "190");
+                            var thumbnailLinkUrl = thumbnailUriString?.Replace("%{width}", "1280").Replace("%{height}", "720");
                             details.Add(new SpeedRunVideoDetailEntity() { SpeedRunVideoLocalID = video.LocalID, SpeedRunVideoID = video.ID, SpeedRunID = video.SpeedRunID, ChannelCode = (string)result.user_id, ViewCount = (int?)result.view_count, ThumbnailLinkUrl = thumbnailLinkUrl });
                         }
                     }
@@ -886,7 +918,8 @@ namespace SpeedRunAppImport.Service
 
                         if (result != null)
                         {
-                            details.Add(new SpeedRunVideoDetailEntity() { SpeedRunVideoLocalID = video.LocalID, SpeedRunVideoID = video.ID, SpeedRunID = video.SpeedRunID, ChannelCode = (string)result.snippet?.channelId, ViewCount = (int?)result.statistics?.viewCount, ThumbnailLinkUrl = null });
+                            var thumbnailLinkUrl = (string)(result.snippet?.thumbnails?.maxres?.url ?? result.snippet?.thumbnails?.high?.url);
+                            details.Add(new SpeedRunVideoDetailEntity() { SpeedRunVideoLocalID = video.LocalID, SpeedRunVideoID = video.ID, SpeedRunID = video.SpeedRunID, ChannelCode = (string)result.snippet?.channelId, ViewCount = (int?)result.statistics?.viewCount, ThumbnailLinkUrl = thumbnailLinkUrl });
                         }
 
                         break;

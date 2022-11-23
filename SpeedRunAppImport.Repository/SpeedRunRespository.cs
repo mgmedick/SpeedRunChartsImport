@@ -10,6 +10,7 @@ using SpeedRunAppImport.Interfaces.Repositories;
 //using Microsoft.Extensions.Configuration;
 using System.Linq.Expressions;
 using System.Data.SqlTypes;
+using SpeedRunAppImport.Model.Data;
 
 namespace SpeedRunAppImport.Repository
 {
@@ -276,6 +277,24 @@ namespace SpeedRunAppImport.Repository
             }
 
             _logger.Information("Completed SaveSpeedRunVideoDetails");
+        }
+
+        public void UpdateSpeedRunVideoThumbnailLinkUrls(IEnumerable<SpeedRunVideoEntity> videos)
+        {
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                foreach (var video in videos)
+                {
+                    try
+                    {
+                        db.Update<SpeedRunVideoEntity>(video, i => new { i.ThumbnailLinkUrl });
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Error(ex, "UpdateSpeedRunVideoThumnailLinkUrls SpeedRunID: {@SpeedRunID}", video.SpeedRunID);
+                    }
+                }
+            }
         }
 
         public void DeleteSpeedRuns(string predicate)

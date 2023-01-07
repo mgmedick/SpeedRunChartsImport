@@ -11,6 +11,7 @@ using SpeedRunAppImport.Interfaces.Repositories;
 using System.Linq.Expressions;
 using System.Data.SqlTypes;
 using SpeedRunAppImport.Model.Data;
+using SpeedRunApp.Model.Data;
 
 namespace SpeedRunAppImport.Repository
 {
@@ -620,6 +621,26 @@ namespace SpeedRunAppImport.Repository
             {
                 result = false;
                 _logger.Error(ex, "UpdateStats");
+            }
+
+            return result;
+        }
+
+        public bool GetLatestSpeedRuns(int category, int topAmount, int? orderValueOffset, int? categoryTypeID)
+        {
+            bool result = true;
+
+            try
+            {
+                using (IDatabase db = DBFactory.GetDatabase())
+                {
+                    var results = db.Query<SpeedRunSummaryViewEntity>("CALL GetLatestSpeedRuns (@0, @1, @2, @3);", category, topAmount, orderValueOffset, categoryTypeID).ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                result = false;
+                _logger.Error(ex, "GetLatestSpeedRuns");
             }
 
             return result;

@@ -4,6 +4,7 @@ using SpeedRunAppImport.Model;
 using SpeedRunAppImport.Model.Entity;
 using System.Threading.Tasks;
 using System.Linq.Expressions;
+using SpeedRunApp.Model.Data;
 
 namespace SpeedRunAppImport.Interfaces.Repositories
 {
@@ -29,6 +30,7 @@ namespace SpeedRunAppImport.Interfaces.Repositories
         bool UpdateStats();
         IEnumerable<SpeedRunVideoEntity> GetSpeedRunVideos(Expression<Func<SpeedRunVideoEntity, bool>> predicate = null);
         DateTime GetMaxSpeedRunVerifyDate();
+        bool GetLatestSpeedRuns(int category, int topAmount, int? orderValueOffset, int? categoryTypeID);
     }
 }
 

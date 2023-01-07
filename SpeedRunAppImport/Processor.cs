@@ -244,9 +244,13 @@ namespace SpeedRunAppImport
                     result = _settingService.GenerateAndMoveSitemapXml();
                 }
 
-                if (result && (IsBulkReload || IsUpdateSpeedRuns))
+                if (result)
                 {
-                    RunMaintenance();
+                    var isLoadingResults = _speedRunRepo.GetLatestSpeedRuns(0, 10, null, null);
+                    if (IsBulkReload || IsUpdateSpeedRuns || !isLoadingResults)
+                    {
+                        RunMaintenance();
+                    }
                 }
             }
 

@@ -253,49 +253,40 @@ namespace SpeedRunAppImport.Repository
             _logger.Information("Completed InsertSpeedRunVideoDetails");
         }
 
-        public void SaveSpeedRunVideoDetails(IEnumerable<SpeedRunVideoDetailEntity> videoDetails)
+        public void UpdateSpeedRunVideoDetailVideoCounts(IEnumerable<SpeedRunVideoDetailEntity> videoDetails)
         {
-            _logger.Information("Started SaveSpeedRunVideoDetails");
-            int count = 1;
-            var videoDetailsList = videoDetails.ToList();
-
+            _logger.Information("Started UpdateSpeedRunVideoDetailVideoCounts");
+            var videoDetailsBatch = videoDetails.Select(i => UpdateBatch.For(i)).Select(i => { i.Poco.ViewCount = i.Poco.ViewCount; return i; });
             using (IDatabase db = DBFactory.GetDatabase())
             {
-                foreach (var videoDetail in videoDetails)
+                try
                 {
-                    try
-                    {
-                        db.Save<SpeedRunVideoDetailEntity>(videoDetail);
-                        _logger.Information("Saved videoDetail {@Count} / {@Total}", count, videoDetailsList.Count);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.Error(ex, "SaveSpeedRunVideoDetails SpeedRunVideoID: {@SpeedRunVideoID}, SpeedRunID: {@SpeedRunID}", videoDetail.SpeedRunVideoID, videoDetail.SpeedRunID);
-                    }
-
-                    count++;
+                    db.UpdateBatch<SpeedRunVideoDetailEntity>(videoDetailsBatch, new BatchOptions() { BatchSize = 200 });
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(ex, "UpdateSpeedRunVideoDetailVideoCounts");
                 }
             }
-
-            _logger.Information("Completed SaveSpeedRunVideoDetails");
+            _logger.Information("Completed UpdateSpeedRunVideoDetailVideoCounts");
         }
 
         public void UpdateSpeedRunVideoThumbnailLinkUrls(IEnumerable<SpeedRunVideoEntity> videos)
         {
+            _logger.Information("Started UpdateSpeedRunVideoThumbnailLinkUrls");
+            var videoBatch = videos.Select(i => UpdateBatch.For(i)).Select(i => { i.Poco.ThumbnailLinkUrl = i.Poco.ThumbnailLinkUrl; return i; });
             using (IDatabase db = DBFactory.GetDatabase())
             {
-                foreach (var video in videos)
+                try
                 {
-                    try
-                    {
-                        db.Update<SpeedRunVideoEntity>(video, i => new { i.ThumbnailLinkUrl });
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.Error(ex, "UpdateSpeedRunVideoThumnailLinkUrls SpeedRunID: {@SpeedRunID}", video.SpeedRunID);
-                    }
+                    db.UpdateBatch<SpeedRunVideoEntity>(videoBatch, new BatchOptions() { BatchSize = 200 });
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(ex, "UpdateSpeedRunVideoThumnailLinkUrls");
                 }
             }
+            _logger.Information("Completed UpdateSpeedRunVideoThumbnailLinkUrls");
         }
 
         public void DeleteSpeedRuns(string predicate)
@@ -384,6 +375,15 @@ namespace SpeedRunAppImport.Repository
             {
                 db.OneTimeCommandTimeout = 32767;
                 return db.Query<SpeedRunVideoEntity>().Where(predicate ?? (x => true)).ToList();
+            }
+        }
+
+        public IEnumerable<SpeedRunVideoDetailEntity> GetSpeedRunVideoDetails(Expression<Func<SpeedRunVideoDetailEntity, bool>> predicate = null)
+        {
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                db.OneTimeCommandTimeout = 32767;
+                return db.Query<SpeedRunVideoDetailEntity>().Where(predicate ?? (x => true)).ToList();
             }
         }
 

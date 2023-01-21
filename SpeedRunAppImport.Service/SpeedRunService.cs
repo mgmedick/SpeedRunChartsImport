@@ -720,6 +720,17 @@ namespace SpeedRunAppImport.Service
 
                 videos.AddRange(twitchVideos);
 
+                var existingVideoDetails = new List<SpeedRunVideoDetailEntity>();
+                var maxBatchCount = 500;
+                var batchCount = 0;
+                while (batchCount < videos.Count())
+                {
+                    var videosBatch = videos.Skip(batchCount).Take(maxBatchCount).Select(i => i.ID).ToList();
+                    var videoDetailsBatch = _speedRunRepo.GetSpeedRunVideoDetails(i => videosBatch.Contains(i.SpeedRunVideoID));
+                    existingVideoDetails.AddRange(videoDetailsBatch);
+                    batchCount += maxBatchCount;
+                }
+
                 for (int i = 0; i < videos.Count; i++)
                 {
                     videos[i].LocalID = i + 1;
@@ -728,6 +739,8 @@ namespace SpeedRunAppImport.Service
 
                 var videoDetails = GetSpeedRunVideoDetails(videos, false);
                 var videosToUpdate = new List<SpeedRunVideoEntity>();
+                var videoDetailsToUpdate = new List<SpeedRunVideoDetailEntity>();
+                var videoDetailsToInsert = new List<SpeedRunVideoDetailEntity>();
                 foreach (var videoDetail in videoDetails)
                 {
                     if (!string.IsNullOrWhiteSpace(videoDetail.ThumbnailLinkUrl))
@@ -740,10 +753,21 @@ namespace SpeedRunAppImport.Service
                             videosToUpdate.Add(video);
                         }
                     }
+
+                    var existingVideoDetail = existingVideoDetails.FirstOrDefault(g => g.SpeedRunVideoID == videoDetail.SpeedRunVideoID);
+                    if (existingVideoDetail == null)
+                    {
+                        videoDetailsToInsert.Add(videoDetail);
+                    }
+                    else if (existingVideoDetail.ViewCount != videoDetail.ViewCount)
+                    {
+                        videoDetailsToUpdate.Add(videoDetail);
+                    }
                 }
 
                 _speedRunRepo.UpdateSpeedRunVideoThumbnailLinkUrls(videosToUpdate);
-                _speedRunRepo.SaveSpeedRunVideoDetails(videoDetails);
+                _speedRunRepo.UpdateSpeedRunVideoDetailVideoCounts(videoDetailsToUpdate);
+                _speedRunRepo.InsertSpeedRunVideoDetails(videoDetailsToInsert);
 
                 _logger.Information("Completed UpdateSpeedRunVideoDetails");
             }

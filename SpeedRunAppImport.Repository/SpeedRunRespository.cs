@@ -255,7 +255,7 @@ namespace SpeedRunAppImport.Repository
 
         public void UpdateSpeedRunVideoDetailVideoCounts(IEnumerable<SpeedRunVideoDetailEntity> videoDetails)
         {
-            _logger.Information("Started UpdateSpeedRunVideoDetailVideoCounts");
+            _logger.Information("Started UpdateSpeedRunVideoDetailVideoCounts videoDetails {@Total}", videoDetails.Count());
             var videoDetailsBatch = videoDetails.Select(i => UpdateBatch.For(i)).Select(i => { i.Poco.ViewCount = i.Poco.ViewCount; return i; });
             using (IDatabase db = DBFactory.GetDatabase())
             {
@@ -273,7 +273,7 @@ namespace SpeedRunAppImport.Repository
 
         public void UpdateSpeedRunVideoThumbnailLinkUrls(IEnumerable<SpeedRunVideoEntity> videos)
         {
-            _logger.Information("Started UpdateSpeedRunVideoThumbnailLinkUrls");
+            _logger.Information("Started UpdateSpeedRunVideoThumbnailLinkUrls videos {@Total}", videos.Count());
             var videoBatch = videos.Select(i => UpdateBatch.For(i)).Select(i => { i.Poco.ThumbnailLinkUrl = i.Poco.ThumbnailLinkUrl; return i; });
             using (IDatabase db = DBFactory.GetDatabase())
             {

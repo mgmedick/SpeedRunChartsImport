@@ -108,6 +108,7 @@ namespace SpeedRunAppImport
                 ImportLastRunDateUtc = IsBulkReload ? sqlMinDateTime : (_settingService.GetSetting("ImportLastRunDate")?.Dte ?? currDateUtc);
                 IsBulkReloadRunning = _settingService.GetSetting("IsBulkReloadRunning")?.Num == 1;
                 IsBulkReloadPostProcessRunning = _settingService.GetSetting("IsBulkReloadPostProcessRunning")?.Num == 1;
+                ImportLastBulkReloadDateUtc = (_settingService.GetSetting("ImportLastBulkReloadDate")?.Dte ?? currDateUtc);
 
                 var updateSpeedRunsTimeString = _settingService.GetSetting("UpdateSpeedRunsTime")?.Str;
 
@@ -206,7 +207,8 @@ namespace SpeedRunAppImport
 
             if (result && !IsBulkReload && IsUpdateSpeedRunVideoDetails)
             {
-                result = _speedRunService.UpdateSpeedRunVideoDetails();
+                var isPostBulkImport = ImportLastRunDateUtc == ImportLastBulkReloadDateUtc;
+                result = _speedRunService.UpdateSpeedRunVideoDetails(isPostBulkImport, ImportLastRunDateUtc);
             }
 
             if (result)
@@ -292,7 +294,8 @@ namespace SpeedRunAppImport
         public DateTime GameLastImportDateUtc { get; set; }
         public DateTime UserLastImportDateUtc { get; set; }
         public DateTime SpeedRunLastImportDateUtc { get; set; }
-        public DateTime ImportLastRunDateUtc { get; set; }     
+        public DateTime ImportLastRunDateUtc { get; set; }
+        public DateTime ImportLastBulkReloadDateUtc { get; set; }
         public bool IsPlatformFullPull { get; set; }
         public bool IsGameFullPull { get; set; }
         public bool IsSpeedRunFullPull { get; set; }

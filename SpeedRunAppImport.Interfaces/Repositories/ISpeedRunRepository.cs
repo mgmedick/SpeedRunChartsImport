@@ -32,6 +32,7 @@ namespace SpeedRunAppImport.Interfaces.Repositories
         DateTime GetMaxSpeedRunVerifyDate();
         bool GetLatestSpeedRuns(int category, int topAmount, int? orderValueOffset, int? categoryTypeID);
         IEnumerable<SpeedRunVideoDetailEntity> GetSpeedRunVideoDetails(Expression<Func<SpeedRunVideoDetailEntity, bool>> predicate = null);
+        IEnumerable<SpeedRunVideoView> GetSpeedRunVideoViews(Expression<Func<SpeedRunVideoView, bool>> predicate = null);
     }
 }
 

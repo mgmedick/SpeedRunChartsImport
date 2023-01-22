@@ -15,7 +15,7 @@ namespace SpeedRunAppImport.Interfaces.Services
         void ProcessSpeedRunsByScreenScrape();
         List<SpeedRun> GetSpeedRunsWithRetry(int elementsPerPage, int elementsOffset, string gameID, string categoryID, SpeedRunEmbeds embeds, RunsOrdering orderBy, RunStatusType? statusType = null, string userID = null, int retryCount = 0);
         void SaveSpeedRuns(IEnumerable<SpeedRun> runs, bool isBulkReload, bool isUpdateSpeedRuns);
-        bool UpdateSpeedRunVideoDetails();
+        bool UpdateSpeedRunVideoDetails(bool isPostBulkImport, DateTime importLastRunDateUtc);
         bool ProcessYouTubeSpeedRunVideoDetails();
     }
 } 

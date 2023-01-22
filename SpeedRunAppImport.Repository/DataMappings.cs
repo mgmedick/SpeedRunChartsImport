@@ -179,6 +179,7 @@ namespace SpeedRunAppImport.Repository
                 i.Column(g => g.SpeedRunVideoLocalID).Ignore();
                 i.Column(g => g.ThumbnailLinkUrl).Ignore();
             });
+            For<SpeedRunVideoView>().PrimaryKey("ID", false).TableName("vw_SpeedRunVideo");
         }
     }
 }

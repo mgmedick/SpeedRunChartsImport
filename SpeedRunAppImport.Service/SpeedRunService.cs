@@ -699,67 +699,46 @@ namespace SpeedRunAppImport.Service
             _logger.Information("Completed SaveSpeedRuns");
         }
 
-        public bool UpdateSpeedRunVideoDetails()
+        public bool UpdateSpeedRunVideoDetails(bool isPostBulkImport, DateTime importLastRunDateUtc)
         {
             bool result = true;
 
             try
             {
-                _logger.Information("Started UpdateSpeedRunVideoDetails");
+                _logger.Information("Started UpdateSpeedRunVideoDetails {@IsPostBulkImport}, {@ImportLastRunDateUtc}", isPostBulkImport, importLastRunDateUtc);
                 var maxVideoCount = YouTubeAPIDailyRequestLimit * YouTubeAPIMaxBatchCount;
 
-                var videos = _speedRunRepo.GetSpeedRunVideos(i => i.VideoLinkUrl != null && (i.VideoLinkUrl.Contains("youtube.com") || i.VideoLinkUrl.Contains("youtu.be")))
-                                        .OrderByDescending(i => i.ID)
-                                        .Take(maxVideoCount)
-                                        .ToList();
+                var refDate = importLastRunDateUtc.AddDays(-14);
+                var videoViews = _speedRunRepo.GetSpeedRunVideoViews(i => i.VideoLinkUrl != null && (isPostBulkImport || i.VerifyDate >= refDate) && (i.VideoLinkUrl.Contains("youtube.com") || i.VideoLinkUrl.Contains("youtu.be"))).OrderByDescending(i => i.ID).Take(maxVideoCount).ToList();
 
-                var twitchVideos = _speedRunRepo.GetSpeedRunVideos(i => i.VideoLinkUrl != null && i.VideoLinkUrl.Contains("twitch.tv"))
-                                            .OrderByDescending(i => i.ID)
-                                            .Take(maxVideoCount)
-                                            .ToList();
-
-                videos.AddRange(twitchVideos);
-
-                var existingVideoDetails = new List<SpeedRunVideoDetailEntity>();
-                var maxBatchCount = 500;
-                var batchCount = 0;
-                while (batchCount < videos.Count())
+                if (!isPostBulkImport)
                 {
-                    var videosBatch = videos.Skip(batchCount).Take(maxBatchCount).Select(i => i.ID).ToList();
-                    var videoDetailsBatch = _speedRunRepo.GetSpeedRunVideoDetails(i => videosBatch.Contains(i.SpeedRunVideoID));
-                    existingVideoDetails.AddRange(videoDetailsBatch);
-                    batchCount += maxBatchCount;
+                    var twitchVideoViews = _speedRunRepo.GetSpeedRunVideoViews(i => i.VideoLinkUrl != null && i.VerifyDate >= refDate && i.VideoLinkUrl.Contains("twitch.tv\"")).OrderByDescending(i => i.ID).Take(maxVideoCount).ToList();
+                    videoViews.AddRange(twitchVideoViews);
                 }
 
-                for (int i = 0; i < videos.Count; i++)
-                {
-                    videos[i].LocalID = i + 1;
-                    videos[i].VideoLinkUri = new Uri(videos[i].VideoLinkUrl);
-                }
-
+                var videos = videoViews.Select(i => new SpeedRunVideoEntity() { ID = i.ID, SpeedRunID = i.SpeedRunID, VideoLinkUrl = i.VideoLinkUrl, VideoLinkUri = new Uri(i.VideoLinkUrl), ThumbnailLinkUrl = i.ThumbnailLinkUrl, EmbeddedVideoLinkUrl = i.EmbeddedVideoLinkUrl }).ToList();
+                
                 var videoDetails = GetSpeedRunVideoDetails(videos, false);
                 var videosToUpdate = new List<SpeedRunVideoEntity>();
                 var videoDetailsToUpdate = new List<SpeedRunVideoDetailEntity>();
                 var videoDetailsToInsert = new List<SpeedRunVideoDetailEntity>();
                 foreach (var videoDetail in videoDetails)
                 {
-                    if (!string.IsNullOrWhiteSpace(videoDetail.ThumbnailLinkUrl))
-                    {
-                        var video = videos.Find(g => g.LocalID == videoDetail.SpeedRunVideoLocalID);
+                    var video = videos.Find(g => g.ID == videoDetail.SpeedRunVideoID);
 
-                        if (string.IsNullOrWhiteSpace(video.ThumbnailLinkUrl) || (video.ThumbnailLinkUrl.EndsWith("hqdefault.jpg") && videoDetail.ThumbnailLinkUrl.EndsWith("maxresdefault.jpg")))
-                        {
-                            video.ThumbnailLinkUrl = videoDetail.ThumbnailLinkUrl;
-                            videosToUpdate.Add(video);
-                        }
+                    if (!string.IsNullOrWhiteSpace(videoDetail.ThumbnailLinkUrl) && (string.IsNullOrWhiteSpace(video.ThumbnailLinkUrl) || (video.ThumbnailLinkUrl.EndsWith("hqdefault.jpg") && videoDetail.ThumbnailLinkUrl.EndsWith("maxresdefault.jpg"))))
+                    {
+                        video.ThumbnailLinkUrl = videoDetail.ThumbnailLinkUrl;
+                        videosToUpdate.Add(video);
                     }
 
-                    var existingVideoDetail = existingVideoDetails.FirstOrDefault(g => g.SpeedRunVideoID == videoDetail.SpeedRunVideoID);
-                    if (existingVideoDetail == null)
+                    var videoVW = videoViews.Find(g => g.ID == videoDetail.SpeedRunVideoID);
+                    if (!videoVW.HasDetails)
                     {
                         videoDetailsToInsert.Add(videoDetail);
                     }
-                    else if (existingVideoDetail.ViewCount != videoDetail.ViewCount)
+                    else if (videoVW.ViewCount != videoDetail.ViewCount)
                     {
                         videoDetailsToUpdate.Add(videoDetail);
                     }

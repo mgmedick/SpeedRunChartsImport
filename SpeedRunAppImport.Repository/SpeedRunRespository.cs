@@ -387,6 +387,15 @@ namespace SpeedRunAppImport.Repository
             }
         }
 
+        public IEnumerable<SpeedRunVideoView> GetSpeedRunVideoViews(Expression<Func<SpeedRunVideoView, bool>> predicate = null)
+        {
+            using (IDatabase db = DBFactory.GetDatabase())
+            {
+                db.OneTimeCommandTimeout = 32767;
+                return db.Query<SpeedRunVideoView>().Where(predicate ?? (x => true)).ToList();
+            }
+        }
+
         public bool CreateFullTables()
         {
             bool result = true;

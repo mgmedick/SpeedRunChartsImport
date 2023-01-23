@@ -207,7 +207,7 @@ namespace SpeedRunAppImport
 
             if (result && !IsBulkReload && IsUpdateSpeedRunVideoDetails)
             {
-                var isPostBulkImport = ImportLastRunDateUtc == ImportLastBulkReloadDateUtc;
+                var isPostBulkImport = ImportLastRunDateUtc <= ImportLastBulkReloadDateUtc;
                 result = _speedRunService.UpdateSpeedRunVideoDetails(isPostBulkImport, ImportLastRunDateUtc);
             }
 

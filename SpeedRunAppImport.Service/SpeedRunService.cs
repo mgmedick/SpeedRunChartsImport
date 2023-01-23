@@ -709,15 +709,15 @@ namespace SpeedRunAppImport.Service
                 var maxVideoCount = YouTubeAPIDailyRequestLimit * YouTubeAPIMaxBatchCount;
 
                 var refDate = importLastRunDateUtc.AddDays(-14);
-                var videoViews = _speedRunRepo.GetSpeedRunVideoViews(i => i.VideoLinkUrl != null && (isPostBulkImport || i.VerifyDate >= refDate) && (i.VideoLinkUrl.Contains("youtube.com") || i.VideoLinkUrl.Contains("youtu.be"))).OrderByDescending(i => i.ID).Take(maxVideoCount).ToList();
+                var videoViews = _speedRunRepo.GetSpeedRunVideoViews(i => i.VideoLinkUrl != null && (isPostBulkImport || i.VerifyDate >= refDate) && (i.VideoLinkUrl.Contains("youtube.com") || i.VideoLinkUrl.Contains("youtu.be"))).OrderByDescending(i => i.SpeedRunVideoID).Take(maxVideoCount).ToList();
 
                 if (!isPostBulkImport)
                 {
-                    var twitchVideoViews = _speedRunRepo.GetSpeedRunVideoViews(i => i.VideoLinkUrl != null && i.VerifyDate >= refDate && i.VideoLinkUrl.Contains("twitch.tv\"")).OrderByDescending(i => i.ID).Take(maxVideoCount).ToList();
+                    var twitchVideoViews = _speedRunRepo.GetSpeedRunVideoViews(i => i.VideoLinkUrl != null && i.VerifyDate >= refDate && i.VideoLinkUrl.Contains("twitch.tv\"")).OrderByDescending(i => i.SpeedRunVideoID).Take(maxVideoCount).ToList();
                     videoViews.AddRange(twitchVideoViews);
                 }
 
-                var videos = videoViews.Select(i => new SpeedRunVideoEntity() { ID = i.ID, SpeedRunID = i.SpeedRunID, VideoLinkUrl = i.VideoLinkUrl, VideoLinkUri = new Uri(i.VideoLinkUrl), ThumbnailLinkUrl = i.ThumbnailLinkUrl, EmbeddedVideoLinkUrl = i.EmbeddedVideoLinkUrl }).ToList();
+                var videos = videoViews.Select(i => new SpeedRunVideoEntity() { ID = i.SpeedRunVideoID, SpeedRunID = i.SpeedRunID, VideoLinkUrl = i.VideoLinkUrl, VideoLinkUri = new Uri(i.VideoLinkUrl), ThumbnailLinkUrl = i.ThumbnailLinkUrl, EmbeddedVideoLinkUrl = i.EmbeddedVideoLinkUrl }).ToList();
                 
                 var videoDetails = GetSpeedRunVideoDetails(videos, false);
                 var videosToUpdate = new List<SpeedRunVideoEntity>();
@@ -733,7 +733,7 @@ namespace SpeedRunAppImport.Service
                         videosToUpdate.Add(video);
                     }
 
-                    var videoVW = videoViews.Find(g => g.ID == videoDetail.SpeedRunVideoID);
+                    var videoVW = videoViews.Find(g => g.SpeedRunVideoID == videoDetail.SpeedRunVideoID);
                     if (!videoVW.HasDetails)
                     {
                         videoDetailsToInsert.Add(videoDetail);

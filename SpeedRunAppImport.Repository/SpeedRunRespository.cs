@@ -587,6 +587,36 @@ namespace SpeedRunAppImport.Repository
             return result;
         }
 
+        public bool KillOtherProcesses()
+        {
+            bool result = true;
+
+            try
+            {
+                _logger.Information("Started KillOtherProcesses");
+                using (IDatabase db = DBFactory.GetDatabase())
+                {
+                    db.OneTimeCommandTimeout = 32767;
+                    if (IsMySQL)
+                    {
+                        db.Execute("CALL ImportKillOtherProcesses;");
+                    }
+                    else
+                    {
+                        db.Execute("EXEC dbo.ImportKillOtherProcesses");
+                    }
+                }
+                _logger.Information("Completed KillOtherProcesses");
+            }
+            catch (Exception ex)
+            {
+                result = false;
+                _logger.Error(ex, "KillOtherProcesses");
+            }
+
+            return result;
+        }
+
         public DateTime GetMaxSpeedRunVerifyDate()
         {
             DateTime result = (DateTime)SqlDateTime.MinValue;

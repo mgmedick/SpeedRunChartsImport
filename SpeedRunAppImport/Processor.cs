@@ -251,7 +251,15 @@ namespace SpeedRunAppImport
                     var isLoadingResults = _speedRunRepo.GetLatestSpeedRuns(0, 10, null, null);
                     if (IsBulkReload || IsUpdateSpeedRuns || !isLoadingResults)
                     {
-                        RunMaintenance();
+                        if (!isLoadingResults)
+                        {
+                            result = _speedRunRepo.KillOtherProcesses();
+                        }
+
+                        if (result)
+                        {
+                            RunMaintenance();
+                        }
                     }
                 }
             }

@@ -10,8 +10,8 @@ namespace SpeedRunAppImport.Interfaces.Repositories
     {
         //void CopyUserTables();
         //void RenameAndDropUserTables();
-        void InsertUsers(IEnumerable<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, IEnumerable<UserLinkEntity> userLinks);
-        void SaveUsers(IEnumerable<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, IEnumerable<UserLinkEntity> userLinks);
+        void InsertUsers(IEnumerable<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, IEnumerable<UserNameStyleEntity> userNameStyles, IEnumerable<UserLinkEntity> userLinks);
+        void SaveUsers(IEnumerable<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, IEnumerable<UserNameStyleEntity> userNameStyles, IEnumerable<UserLinkEntity> userLinks);
         IEnumerable<UserSpeedRunComIDEntity> GetUserSpeedRunComIDs(Expression<Func<UserSpeedRunComIDEntity, bool>> predicate = null);
         IEnumerable<UserEntity> GetUsers(Expression<Func<UserEntity, bool>> predicate = null);
         IEnumerable<GuestEntity> GetGuests(Expression<Func<GuestEntity, bool>> predicate = null);

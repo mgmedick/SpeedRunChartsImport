@@ -21,7 +21,7 @@ namespace SpeedRunAppImport.Repository
             _logger = logger;
         }
 
-        public void InsertUsers(IEnumerable<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, IEnumerable<UserLinkEntity> userLinks)
+        public void InsertUsers(IEnumerable<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, IEnumerable<UserNameStyleEntity> userNameStyles, IEnumerable<UserLinkEntity> userLinks)
         {
             _logger.Information("Started InsertUsers");
             int batchCount = 0;
@@ -34,6 +34,7 @@ namespace SpeedRunAppImport.Repository
                     var usersBatch = usersList.Skip(batchCount).Take(MaxBulkRows).ToList();
                     var userSpeedRunComIDs = usersBatch.Select(i => i.SpeedRunComID).Distinct().ToList();
                     var userLocationsBatch = userLocations.Where(i => userSpeedRunComIDs.Contains(i.UserSpeedRunComID)).ToList();
+                    var userNameStylesBatch = userNameStyles.Where(i => userSpeedRunComIDs.Contains(i.UserSpeedRunComID)).ToList();
                     var userLinksBatch = userLinks.Where(i => userSpeedRunComIDs.Contains(i.UserSpeedRunComID)).ToList();
 
                     using (var tran = db.GetTransaction())
@@ -51,6 +52,9 @@ namespace SpeedRunAppImport.Repository
 
                         userLocationsBatch.ForEach(i => i.UserID = usersBatch.Find(g => g.SpeedRunComID == i.UserSpeedRunComID).ID);
                         db.InsertBatch<UserLocationEntity>(userLocationsBatch);
+
+                        userNameStylesBatch.ForEach(i => i.UserID = usersBatch.Find(g => g.SpeedRunComID == i.UserSpeedRunComID).ID);
+                        db.InsertBatch<UserNameStyleEntity>(userNameStylesBatch);
 
                         userLinksBatch.ForEach(i => i.UserID = usersBatch.Find(g => g.SpeedRunComID == i.UserSpeedRunComID).ID);
                         db.InsertBatch<UserLinkEntity>(userLinksBatch);
@@ -148,7 +152,7 @@ namespace SpeedRunAppImport.Repository
             _logger.Information("Completed SaveGuests");
         }
 
-        public void SaveUsers(IEnumerable<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, IEnumerable<UserLinkEntity> userLinks)
+        public void SaveUsers(IEnumerable<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, IEnumerable<UserNameStyleEntity> userNameStyles, IEnumerable<UserLinkEntity> userLinks)
         {
             int count = 1;
             var usersList = users.ToList();
@@ -158,6 +162,7 @@ namespace SpeedRunAppImport.Repository
                 foreach (var user in usersList)
                 {
                     var userLocation = userLocations.FirstOrDefault(i => i.UserSpeedRunComID == user.SpeedRunComID);
+                    var userNameStyle = userNameStyles.FirstOrDefault(i => i.UserSpeedRunComID == user.SpeedRunComID);
                     var userLink = userLinks.FirstOrDefault(i => i.UserSpeedRunComID == user.SpeedRunComID);
 
                     using (var tran = db.GetTransaction())
@@ -182,6 +187,12 @@ namespace SpeedRunAppImport.Repository
                             {
                                 userLocation.UserID = user.ID;
                                 db.Save<UserLocationEntity>(userLocation);
+                            }
+
+                            if (userNameStyle != null)
+                            {
+                                userNameStyle.UserID = user.ID;
+                                db.Save<UserNameStyleEntity>(userNameStyle);
                             }
 
                             if (userLink != null)

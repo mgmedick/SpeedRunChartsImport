@@ -223,6 +223,16 @@ namespace SpeedRunAppImport.Service
                                                 Location = i.Location?.ToString()
                                             })
                                             .ToList();
+            var userNameStyleEntities = users.Select(i => new UserNameStyleEntity
+            {
+                UserSpeedRunComID = i.ID,
+                IsGradient = i.NameStyle.IsGradient,
+                ColorLight = i.NameStyle.IsGradient ? i.NameStyle.LightGradientStartColorCode : i.NameStyle.LightSolidColorCode,
+                ColorDark = i.NameStyle.IsGradient ? i.NameStyle.DarkGradientStartColorCode : i.NameStyle.DarkSolidColorCode,
+                ColorToLight = i.NameStyle.LightGradientEndColorCode,
+                ColorToDark = i.NameStyle.DarkGradientEndColorCode
+            })
+            .ToList();
             var userLinkEntities = users.Select(i => new UserLinkEntity
             {
                 UserSpeedRunComID = i.ID,
@@ -239,28 +249,30 @@ namespace SpeedRunAppImport.Service
             {
                 var newUserEntities = userEntities.Where(i => i.ID == 0).ToList();
                 userLocationEntities = userLocationEntities.Where(i => userEntities.Any(g => g.ID == i.UserID)).ToList();
+                userNameStyleEntities = userNameStyleEntities.Where(i => userEntities.Any(g => g.ID == i.UserID)).ToList();
                 userLinkEntities = userLinkEntities.Where(i => userEntities.Any(g => g.ID == i.UserID)).ToList();
-                _userRepo.InsertUsers(newUserEntities, userLocationEntities, userLinkEntities);
+                _userRepo.InsertUsers(newUserEntities, userLocationEntities, userNameStyleEntities, userLinkEntities);
             }
             else
             {
                 var newUserEntities = userEntities.Where(i => i.ID == 0).ToList();
-                SetChangedUsers(userEntities, userLocationEntities, userLinkEntities);
+                SetChangedUsers(userEntities, userLocationEntities, userNameStyleEntities, userLinkEntities);
                 var changedUserEntities = userEntities.Where(i => i.IsChanged == true).ToList();
                 var totalUsers = userEntities.Count();
                 userEntities = newUserEntities.Concat(changedUserEntities).ToList();
                 userLocationEntities = userLocationEntities.Where(i => userEntities.Any(g => g.SpeedRunComID == i.UserSpeedRunComID)).ToList();
+                userNameStyleEntities = userNameStyleEntities.Where(i => userEntities.Any(g => g.SpeedRunComID == i.UserSpeedRunComID)).ToList();
                 userLinkEntities = userLinkEntities.Where(i => userEntities.Any(g => g.SpeedRunComID == i.UserSpeedRunComID)).ToList();
 
                 _logger.Information("Found NewUsers: {@New}, ChangedUsers: {@Changed}, TotalUsers: {@Total}", newUserEntities.Count(), changedUserEntities.Count(), totalUsers);
 
-                _userRepo.SaveUsers(userEntities, userLocationEntities, userLinkEntities);
+                _userRepo.SaveUsers(userEntities, userLocationEntities, userNameStyleEntities, userLinkEntities);
             }
 
             _logger.Information("Completed SaveUsers");
         }
 
-        public void SetChangedUsers(List<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, List<UserLinkEntity> userLinks)
+        public void SetChangedUsers(List<UserEntity> users, IEnumerable<UserLocationEntity> userLocations, IEnumerable<UserNameStyleEntity> userNameStyles, List<UserLinkEntity> userLinks)
         {
             _logger.Information("Started SetChangedUsers: {@Count}", users.Count());
 
@@ -299,6 +311,21 @@ namespace SpeedRunAppImport.Service
                         if (isChanged)
                         {
                             changeReasons.Add("Name changed");
+                        }
+                    }
+
+                    if (!isChanged)
+                    {
+                        var userNameStyle = userNameStyles.FirstOrDefault(i => i.UserSpeedRunComID == userSpeedRunComView.SpeedRunComID);
+                        isChanged = userNameStyle?.IsGradient != userSpeedRunComView.IsGradient
+                                    || userNameStyle?.ColorLight != userSpeedRunComView.ColorLight
+                                    || userNameStyle?.ColorDark != userSpeedRunComView.ColorDark
+                                    || userNameStyle?.ColorToLight != userSpeedRunComView.ColorToLight
+                                    || userNameStyle?.ColorToDark != userSpeedRunComView.ColorToDark;
+
+                        if (isChanged)
+                        {
+                            changeReasons.Add("Name Styles changed");
                         }
                     }
 

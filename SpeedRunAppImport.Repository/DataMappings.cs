@@ -28,6 +28,10 @@ namespace SpeedRunAppImport.Repository
             {
                 i.Column(g => g.UserSpeedRunComID).Ignore();
             });
+            For<UserNameStyleEntity>().PrimaryKey("UserID", false).TableName("tbl_User_NameStyle" + tblEnd).Columns(i =>
+            {
+                i.Column(g => g.UserSpeedRunComID).Ignore();
+            });
             For<UserLinkEntity>().PrimaryKey("UserID", false).TableName("tbl_User_Link" + tblEnd).Columns(i =>
             {
                 i.Column(g => g.UserSpeedRunComID).Ignore();

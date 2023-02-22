@@ -10,6 +10,11 @@ namespace SpeedRunAppImport.Model.Entity
         public string SpeedRunComID { get; set; }
         public string Name { get; set; }
         public string Location { get; set; }
+        public bool IsGradient { get; set; }
+        public string ColorLight { get; set; }
+        public string ColorDark { get; set; }
+        public string ColorToLight { get; set; }
+        public string ColorToDark { get; set; }
         public string SpeedRunComUrl { get; set; }
         public string ProfileImageUrl { get; set; }
         public string TwitchProfileUrl { get; set; }

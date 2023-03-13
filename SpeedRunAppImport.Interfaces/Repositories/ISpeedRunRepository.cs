@@ -27,8 +27,8 @@ namespace SpeedRunAppImport.Interfaces.Repositories
         bool UpdateSpeedRunRanksFull();
         bool UpdateSpeedRunRanks(DateTime lastImportDateUtc);
         bool RebuildIndexes();
-        bool KillOtherProcesses();
         bool RecreateSpeedRunIndexes();
+        bool KillOtherProcesses();
         bool UpdateStats();
         IEnumerable<SpeedRunVideoEntity> GetSpeedRunVideos(Expression<Func<SpeedRunVideoEntity, bool>> predicate = null);
         DateTime GetMaxSpeedRunVerifyDate();

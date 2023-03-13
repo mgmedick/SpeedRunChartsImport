@@ -109,6 +109,7 @@ namespace SpeedRunAppImport
                 IsBulkReloadRunning = _settingService.GetSetting("IsBulkReloadRunning")?.Num == 1;
                 IsBulkReloadPostProcessRunning = _settingService.GetSetting("IsBulkReloadPostProcessRunning")?.Num == 1;
                 ImportLastBulkReloadDateUtc = (_settingService.GetSetting("ImportLastBulkReloadDate")?.Dte ?? currDateUtc);
+                IsGetLatestSpeedRunsCheckEnabled = _settingService.GetSetting("IsGetLatestSpeedRunsCheckEnabled")?.Num == 1;
 
                 var updateSpeedRunsTimeString = _settingService.GetSetting("UpdateSpeedRunsTime")?.Str;
 
@@ -248,23 +249,50 @@ namespace SpeedRunAppImport
 
                 if (result)
                 {
-                    var isLoadingResults = _speedRunRepo.GetLatestSpeedRuns(0, 10, null, null);
-                    if (IsBulkReload || IsUpdateSpeedRuns || !isLoadingResults)
+                    var isLoadingResults = true;
+                    if (IsGetLatestSpeedRunsCheckEnabled)
                     {
-                        if (!isLoadingResults)
-                        {
-                            result = _speedRunRepo.KillOtherProcesses();
+                        isLoadingResults = _speedRunRepo.GetLatestSpeedRuns(0, 10, null, null);
+                    }
 
-                            if (result)
-                            {
-                                result = _speedRunRepo.RecreateSpeedRunIndexes();
-                            }
+                    if (!isLoadingResults)
+                    {
+                        result = _speedRunRepo.KillOtherProcesses();
+
+                        if (result)
+                        {
+                            result = RunMaintenance();
                         }
 
                         if (result)
                         {
-                            RunMaintenance();
+                            isLoadingResults = _speedRunRepo.GetLatestSpeedRuns(0, 10, null, null);
+
+                            if (!isLoadingResults)
+                            {
+                                result = _speedRunRepo.KillOtherProcesses();
+
+                                if (result)
+                                {
+                                    result = _speedRunRepo.RecreateSpeedRunIndexes();
+
+                                    if (result)
+                                    {
+                                        isLoadingResults = _speedRunRepo.GetLatestSpeedRuns(0, 10, null, null);
+
+                                        if (!isLoadingResults)
+                                        {
+                                            _settingService.UpdateSetting("IsGetLatestSpeedRunsCheckEnabled", 0);
+                                            _speedRunRepo.KillOtherProcesses();
+                                        }
+                                    }
+                                }
+                            }
                         }
+                    }
+                    else if (IsBulkReload || IsUpdateSpeedRuns)
+                    {
+                        RunMaintenance();
                     }
                 }
             }
@@ -292,7 +320,7 @@ namespace SpeedRunAppImport
             _logger.Information("Completed RunProcesses");
         }
 
-        public void RunMaintenance()
+        public bool RunMaintenance()
         {
             bool result = true;
             result = _speedRunRepo.RebuildIndexes();
@@ -301,6 +329,8 @@ namespace SpeedRunAppImport
             {
                 _speedRunRepo.UpdateStats();
             }
+
+            return result;
         }
 
         public DateTime PlatformLastImportDateUtc { get; set; }
@@ -319,6 +349,7 @@ namespace SpeedRunAppImport
         public bool IsUpdateSpeedRuns { get; set; }
         public bool IsMySQL { get; set; }
         public bool IsUpdateSpeedRunVideoDetails { get; set; }
+        public bool IsGetLatestSpeedRunsCheckEnabled { get; set; }    
         public List<ImportProcess> Processes { get; set; }
     }
 }

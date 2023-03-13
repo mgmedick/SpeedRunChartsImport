@@ -254,6 +254,11 @@ namespace SpeedRunAppImport
                         if (!isLoadingResults)
                         {
                             result = _speedRunRepo.KillOtherProcesses();
+
+                            if (result)
+                            {
+                                result = _speedRunRepo.RecreateSpeedRunIndexes();
+                            }
                         }
 
                         if (result)

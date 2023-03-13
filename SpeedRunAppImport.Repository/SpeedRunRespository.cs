@@ -617,6 +617,36 @@ namespace SpeedRunAppImport.Repository
             return result;
         }
 
+        public bool RecreateSpeedRunIndexes()
+        {
+            bool result = true;
+
+            try
+            {
+                _logger.Information("Started RecreateSpeedRunIndexes");
+                using (IDatabase db = DBFactory.GetDatabase())
+                {
+                    db.OneTimeCommandTimeout = 32767;
+                    if (IsMySQL)
+                    {
+                        db.Execute("ALTER TABLE tbl_SpeedRun DROP INDEX IDX_tbl_SpeedRun_GameID_CategoryID_LevelID_Rank; ALTER TABLE tbl_SpeedRun DROP INDEX IDX_tbl_SpeedRun_IsExcludeFromSpeedRunList; CREATE INDEX IDX_tbl_SpeedRun_GameID_CategoryID_LevelID_Rank ON tbl_SpeedRun (GameID, CategoryID, LevelID, `Rank`); CREATE INDEX IDX_tbl_SpeedRun_IsExcludeFromSpeedRunList ON tbl_SpeedRun (IsExcludeFromSpeedRunList);");
+                    }
+                    else
+                    {
+                        db.Execute("ALTER TABLE tbl_SpeedRun DROP INDEX IDX_tbl_SpeedRun_GameID_CategoryID_LevelID_Rank; ALTER TABLE tbl_SpeedRun DROP INDEX IDX_tbl_SpeedRun_IsExcludeFromSpeedRunList; CREATE INDEX IDX_tbl_SpeedRun_GameID_CategoryID_LevelID_Rank ON tbl_SpeedRun (GameID, CategoryID, LevelID, [Rank]); CREATE INDEX IDX_tbl_SpeedRun_IsExcludeFromSpeedRunList ON tbl_SpeedRun (IsExcludeFromSpeedRunList)");
+                    }
+                }
+                _logger.Information("Completed RecreateSpeedRunIndexes");
+            }
+            catch (Exception ex)
+            {
+                result = false;
+                _logger.Error(ex, "RecreateSpeedRunIndexes");
+            }
+
+            return result;
+        }
+
         public DateTime GetMaxSpeedRunVerifyDate()
         {
             DateTime result = (DateTime)SqlDateTime.MinValue;

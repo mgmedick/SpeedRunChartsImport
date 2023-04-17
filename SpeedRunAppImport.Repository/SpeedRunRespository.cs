@@ -703,6 +703,7 @@ namespace SpeedRunAppImport.Repository
             {
                 using (IDatabase db = DBFactory.GetDatabase())
                 {
+                    db.OneTimeCommandTimeout = 120;
                     var results = db.Query<SpeedRunSummaryViewEntity>("CALL GetLatestSpeedRuns (@0, @1, @2, @3);", category, topAmount, orderValueOffset, categoryTypeID).ToList();
                 }
             }

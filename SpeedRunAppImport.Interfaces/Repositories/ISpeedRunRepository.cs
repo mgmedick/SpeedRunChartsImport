@@ -27,6 +27,7 @@ namespace SpeedRunAppImport.Interfaces.Repositories
         bool UpdateSpeedRunRanksFull();
         bool UpdateSpeedRunRanks(DateTime lastImportDateUtc);
         bool RebuildIndexes();
+        bool OptimizeTables();
         bool RecreateSpeedRunIndexes();
         bool KillOtherProcesses();
         bool UpdateStats();

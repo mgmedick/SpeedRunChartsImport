@@ -244,55 +244,11 @@ namespace SpeedRunAppImport
             {
                 if (IsBulkReload || IsUpdateSpeedRuns)
                 {
-                    result = _settingService.GenerateAndMoveSitemapXml();
-                }
+                    result = RunMaintenance();
 
-                if (result)
-                {
-                    var isLoadingResults = true;
-                    if (IsGetLatestSpeedRunsCheckEnabled)
+                    if (result)
                     {
-                        isLoadingResults = _speedRunRepo.GetLatestSpeedRuns(0, 10, null, null);
-                    }
-
-                    if (!isLoadingResults)
-                    {
-                        result = _speedRunRepo.KillOtherProcesses();
-
-                        if (result)
-                        {
-                            result = RunMaintenance();
-                        }
-
-                        if (result)
-                        {
-                            isLoadingResults = _speedRunRepo.GetLatestSpeedRuns(0, 10, null, null);
-
-                            if (!isLoadingResults)
-                            {
-                                result = _speedRunRepo.KillOtherProcesses();
-
-                                if (result)
-                                {
-                                    result = _speedRunRepo.RecreateSpeedRunIndexes();
-
-                                    if (result)
-                                    {
-                                        isLoadingResults = _speedRunRepo.GetLatestSpeedRuns(0, 10, null, null);
-
-                                        if (!isLoadingResults)
-                                        {
-                                            _settingService.UpdateSetting("IsGetLatestSpeedRunsCheckEnabled", 0);
-                                            _speedRunRepo.KillOtherProcesses();
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    else if (IsBulkReload || IsUpdateSpeedRuns)
-                    {
-                        RunMaintenance();
+                        result = _settingService.GenerateAndMoveSitemapXml();
                     }
                 }
             }
@@ -323,7 +279,12 @@ namespace SpeedRunAppImport
         public bool RunMaintenance()
         {
             bool result = true;
-            result = _speedRunRepo.RebuildIndexes();
+            result = _speedRunRepo.KillOtherProcesses();
+
+            if (result)
+            {
+                result = _speedRunRepo.OptimizeTables();
+            }
 
             if (result && !IsMySQL)
             {

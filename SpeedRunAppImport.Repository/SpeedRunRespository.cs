@@ -587,6 +587,36 @@ namespace SpeedRunAppImport.Repository
             return result;
         }
 
+        public bool OptimizeTables()
+        {
+            bool result = true;
+
+            try
+            {
+                _logger.Information("Started OptimizeTables");
+                using (IDatabase db = DBFactory.GetDatabase())
+                {
+                    db.OneTimeCommandTimeout = 32767;
+                    if (IsMySQL)
+                    {
+                        db.Execute("CALL ImportOptimizeTables;");
+                    }
+                    else
+                    {
+                        db.Execute("EXEC dbo.ImportOptimizeTables");
+                    }
+                }
+                _logger.Information("Completed OptimizeTables");
+            }
+            catch (Exception ex)
+            {
+                result = false;
+                _logger.Error(ex, "OptimizeTables");
+            }
+
+            return result;
+        }
+
         public bool RecreateSpeedRunIndexes()
         {
             bool result = true;

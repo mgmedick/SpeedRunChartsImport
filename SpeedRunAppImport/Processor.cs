@@ -55,14 +55,7 @@ namespace SpeedRunAppImport
             try
             {
                 Init();
-                if (IsMaintenance & !IsMySQL)
-                {
-                    RunMaintenance();
-                }
-                else
-                {
-                    RunProcesses();
-                }
+                RunProcesses();
             }
             catch (Exception ex)
             {
@@ -244,11 +237,51 @@ namespace SpeedRunAppImport
             {
                 if (IsBulkReload || IsUpdateSpeedRuns)
                 {
-                    result = RunMaintenance();
+                    result = _settingService.GenerateAndMoveSitemapXml();
+                }
+            }
+
+            if (result)
+            {
+                var isLoadingResults = true;
+                if (IsGetLatestSpeedRunsCheckEnabled)
+                {
+                    isLoadingResults = _speedRunRepo.GetLatestSpeedRuns(0, 10, null, null);
+                }
+
+                if (!isLoadingResults)
+                {
+                    result = _speedRunRepo.KillOtherProcesses("vw_speedrunsummary");
+
+                    if (IsBulkReload || IsUpdateSpeedRuns)
+                    {
+                        result = _speedRunRepo.AnalyzeTables();
+                    }
 
                     if (result)
                     {
-                        result = _settingService.GenerateAndMoveSitemapXml();
+                        isLoadingResults = _speedRunRepo.GetLatestSpeedRuns(0, 10, null, null);
+
+                        if (!isLoadingResults)
+                        {
+                            result = _speedRunRepo.KillOtherProcesses("vw_speedrunsummary");
+
+                            if (result)
+                            {
+                                result = _speedRunRepo.RecreateSpeedRunIndexes();
+
+                                if (result)
+                                {
+                                    isLoadingResults = _speedRunRepo.GetLatestSpeedRuns(0, 10, null, null);
+
+                                    if (!isLoadingResults)
+                                    {
+                                        _settingService.UpdateSetting("IsGetLatestSpeedRunsCheckEnabled", 0);
+                                        _speedRunRepo.KillOtherProcesses("vw_speedrunsummary");
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -274,24 +307,6 @@ namespace SpeedRunAppImport
 
             _settingService.UpdateSetting("ImportLastRunDate", currDateUtc);
             _logger.Information("Completed RunProcesses");
-        }
-
-        public bool RunMaintenance()
-        {
-            bool result = true;
-            result = _speedRunRepo.KillOtherProcesses();
-
-            if (result)
-            {
-                result = _speedRunRepo.OptimizeTables();
-            }
-
-            if (result && !IsMySQL)
-            {
-                _speedRunRepo.UpdateStats();
-            }
-
-            return result;
         }
 
         public DateTime PlatformLastImportDateUtc { get; set; }

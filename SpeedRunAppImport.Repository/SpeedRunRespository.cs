@@ -557,23 +557,23 @@ namespace SpeedRunAppImport.Repository
             return result;
         }
 
-        public bool RebuildIndexes()
+        public bool AnalyzeTables()
         {
             bool result = true;
 
             try
             {
-                _logger.Information("Started RebuildIndexes");
+                _logger.Information("Started AnalyzeTablesx");
                 using (IDatabase db = DBFactory.GetDatabase())
                 {
                     db.OneTimeCommandTimeout = 32767;
                     if (IsMySQL)
                     {
-                        db.Execute("CALL ImportRebuildIndexes;");
+                        db.Execute("CALL ImportAnalyzeTables;");
                     }
                     else
                     {
-                        db.Execute("EXEC dbo.ImportRebuildIndexes");
+                        db.Execute("EXEC dbo.ImportAnalyzeTables");
                     }
                 }
                 _logger.Information("Completed RebuildIndexes");
@@ -581,7 +581,7 @@ namespace SpeedRunAppImport.Repository
             catch (Exception ex)
             {
                 result = false;
-                _logger.Error(ex, "RebuildIndexes");
+                _logger.Error(ex, "AnalyzeTables");
             }
 
             return result;
@@ -647,23 +647,53 @@ namespace SpeedRunAppImport.Repository
             return result;
         }
 
-        public bool KillOtherProcesses()
+        public bool OptimizeSpeedRunTables()
         {
             bool result = true;
 
             try
             {
-                _logger.Information("Started KillOtherProcesses");
+                _logger.Information("Started OptimizeSpeedRunTables");
                 using (IDatabase db = DBFactory.GetDatabase())
                 {
                     db.OneTimeCommandTimeout = 32767;
                     if (IsMySQL)
                     {
-                        db.Execute("CALL ImportKillOtherProcesses;");
+                        db.Execute("CALL ImportOptimizeSpeedRunTables;");
                     }
                     else
                     {
-                        db.Execute("EXEC dbo.ImportKillOtherProcesses");
+                        db.Execute("EXEC dbo.ImportOptimizeSpeedRunTables");
+                    }
+                }
+                _logger.Information("Completed OptimizeSpeedRunTables");
+            }
+            catch (Exception ex)
+            {
+                result = false;
+                _logger.Error(ex, "OptimizeSpeedRunTables");
+            }
+
+            return result;
+        }
+
+        public bool KillOtherProcesses(string InfoContains)
+        {
+            bool result = true;
+
+            try
+            {
+                _logger.Information("Started KillOtherProcesses {@InfoContains}", InfoContains);
+                using (IDatabase db = DBFactory.GetDatabase())
+                {
+                    db.OneTimeCommandTimeout = 32767;
+                    if (IsMySQL)
+                    {
+                        db.Execute("CALL ImportKillOtherProcesses (@0);", InfoContains);
+                    }
+                    else
+                    {
+                        db.Execute("EXEC dbo.ImportKillOtherProcesses @0", InfoContains);
                     }
                 }
                 _logger.Information("Completed KillOtherProcesses");
@@ -731,11 +761,13 @@ namespace SpeedRunAppImport.Repository
 
             try
             {
+                _logger.Information("Started GetLatestSpeedRuns {@category}, {@topAmount}, {@orderValueOffset}, {@categoryTypeID}", category, topAmount, orderValueOffset, categoryTypeID);
                 using (IDatabase db = DBFactory.GetDatabase())
                 {
                     db.OneTimeCommandTimeout = 120;
                     var results = db.Query<SpeedRunSummaryViewEntity>("CALL GetLatestSpeedRuns (@0, @1, @2, @3);", category, topAmount, orderValueOffset, categoryTypeID).ToList();
                 }
+                _logger.Information("Completed GetLatestSpeedRuns");
             }
             catch (Exception ex)
             {

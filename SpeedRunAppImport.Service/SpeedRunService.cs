@@ -862,7 +862,7 @@ namespace SpeedRunAppImport.Service
                         {
                             var thumbnailUriString = (string)result.thumbnail_url;
                             var thumbnailLinkUrl = thumbnailUriString?.Replace("%{width}", "1280").Replace("%{height}", "720");
-                            details.Add(new SpeedRunVideoDetailEntity() { SpeedRunVideoLocalID = video.LocalID, SpeedRunVideoID = video.ID, SpeedRunID = video.SpeedRunID, ChannelCode = (string)result.user_id, ViewCount = (int?)result.view_count, ThumbnailLinkUrl = thumbnailLinkUrl });
+                            details.Add(new SpeedRunVideoDetailEntity() { SpeedRunVideoLocalID = video.LocalID, SpeedRunVideoID = video.ID, SpeedRunID = video.SpeedRunID, ChannelCode = (string)result.user_id, ViewCount = (long?)result.view_count, ThumbnailLinkUrl = thumbnailLinkUrl });
                         }
                     }
 
@@ -922,7 +922,7 @@ namespace SpeedRunAppImport.Service
                         if (result != null)
                         {
                             var thumbnailLinkUrl = (string)(result.snippet?.thumbnails?.maxres?.url ?? result.snippet?.thumbnails?.high?.url);
-                            details.Add(new SpeedRunVideoDetailEntity() { SpeedRunVideoLocalID = video.LocalID, SpeedRunVideoID = video.ID, SpeedRunID = video.SpeedRunID, ChannelCode = (string)result.snippet?.channelId, ViewCount = (int?)result.statistics?.viewCount, ThumbnailLinkUrl = thumbnailLinkUrl });
+                            details.Add(new SpeedRunVideoDetailEntity() { SpeedRunVideoLocalID = video.LocalID, SpeedRunVideoID = video.ID, SpeedRunID = video.SpeedRunID, ChannelCode = (string)result.snippet?.channelId, ViewCount = (long?)result.statistics?.viewCount, ThumbnailLinkUrl = thumbnailLinkUrl });
                         }
 
                         break;

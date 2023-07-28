@@ -37,9 +37,9 @@ namespace SpeedRunAppImport.Service
             return results;
         }
 
-        public int? GetYouTubeViewCount(string videoLinkUrl)
+        public long? GetYouTubeViewCount(string videoLinkUrl)
         {
-            int? viewCount = null;
+            long? viewCount = null;
             var requester = new DefaultHttpRequester("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36");
             var angleSharpConfig = Configuration.Default.With(requester).WithDefaultLoader();
             var context = BrowsingContext.New(angleSharpConfig);
@@ -47,7 +47,7 @@ namespace SpeedRunAppImport.Service
             var viewCountString = document.QuerySelectorAll("meta").Where(i => i.GetAttribute("itemprop") == "interactionCount").Select(i => i.GetAttribute("content")).FirstOrDefault();
             if (!string.IsNullOrWhiteSpace(viewCountString))
             {
-                viewCount = Convert.ToInt32(viewCountString);
+                viewCount = Convert.ToInt64(viewCountString);
             }
 
             return viewCount;

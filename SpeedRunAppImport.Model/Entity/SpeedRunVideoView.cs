@@ -12,7 +12,7 @@ namespace SpeedRunAppImport.Model.Entity
         public string ThumbnailLinkUrl { get; set; }
         public string EmbeddedVideoLinkUrl { get; set; }
         public DateTime? VerifyDate { get; set; }
-        public int? ViewCount { get; set; }
+        public long? ViewCount { get; set; }
         public string ChannelCode { get; set; }
         public bool HasDetails { get; set; }
     }

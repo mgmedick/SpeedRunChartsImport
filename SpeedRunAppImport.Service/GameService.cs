@@ -45,7 +45,7 @@ namespace SpeedRunAppImport.Service
             {
                 _logger.Information("Started ProcessGames: {@LastImportDateUtc}, {@IsFullPull}, {@IsBulkReload}", lastImportDateUtc, isFullPull, isBulkReload);
                 GamesOrdering? orderBy = isFullPull ? (GamesOrdering?)null : GamesOrdering.CreationDateDescending;
-                var gameEmbeds = new GameEmbeds { EmbedCategories = true, EmbedLevels = true, EmbedModerators = true, EmbedPlatforms = false, EmbedVariables = true };
+                var gameEmbeds = new GameEmbeds { EmbedCategories = true, EmbedLevels = true, EmbedPlatforms = false, EmbedVariables = true };
                 var results = new List<Game>();
                 var games = new List<Game>();
                 var prevTotal = 0;

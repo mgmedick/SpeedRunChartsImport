@@ -128,6 +128,7 @@ namespace SpeedRunAppImport
 
                 BaseService.SqlMinDateTime = sqlMinDateTime;
                 BaseService.MaxElementsPerPage = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxElementsPerPage").Value);
+                BaseService.MaxElementsPerPageSM = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxElementsPerPageSM").Value);
                 BaseService.MaxRetryCount = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxRetryCount").Value);
                 BaseService.MaxMemorySizeBytes = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("MaxMemorySizeBytes").Value);
                 BaseService.PullDelayMS = Convert.ToInt32(_config.GetSection("ApiSettings").GetSection("PullDelayMS").Value);

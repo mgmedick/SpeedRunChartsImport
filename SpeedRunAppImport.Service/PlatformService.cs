@@ -36,31 +36,34 @@ namespace SpeedRunAppImport.Service
                 var orderBy = PlatformsOrdering.YearOfRelease;
                 var results = new List<Platform>();
                 var platforms = new List<Platform>();
-                var prevTotal = 0;
+                var total = 0;
+                var offset = 0;
                 var speedRunComIDs = _platformRepo.GetPlatformSpeedRunComIDs().Select(i => i.SpeedRunComID).ToList();
 
                 do
                 {
-                    platforms = GetPlatformsWithRetry(MaxElementsPerPage, results.Count + prevTotal, orderBy);
+                    platforms = GetPlatformsWithRetry(MaxElementsPerPage, offset, orderBy);
                     results.AddRange(platforms);
-                    _logger.Information("Pulled platforms: {@New}, total platforms: {@Total}", platforms.Count, results.Count + prevTotal);
+                    total += platforms.Count;
+                    offset += platforms.Count;
+
+                    _logger.Information("Pulled platforms: {@New}, total platforms: {@Total}", platforms.Count, total);
                     Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
 
                     var memorySize = GC.GetTotalMemory(false);
                     if (memorySize > MaxMemorySizeBytes)
                     {
-                        prevTotal += results.Count;
                         _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
                         SavePlatforms(results, isBulkReload);
                         results.ClearMemory();
                     }
-                }
-                while (platforms.Count == MaxElementsPerPage);
 
-                if (!isFullPull)
-                {
-                    results.RemoveAll(i => speedRunComIDs.Contains(i.ID));
+                    if (!isFullPull)
+                    {
+                        platforms.RemoveAll(i => speedRunComIDs.Contains(i.ID));
+                    }
                 }
+                while (platforms.Count > 0);
 
                 if (results.Any())
                 {

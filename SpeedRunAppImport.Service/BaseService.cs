@@ -14,6 +14,7 @@ namespace SpeedRunAppImport.Service
     public abstract class BaseService
     {
         public static int MaxElementsPerPage { get; set; }
+        public static int MaxElementsPerPageSM { get; set; }
         public static int MaxRetryCount { get; set; }
         public static long MaxMemorySizeBytes { get; set; }
         public static int PullDelayMS { get; set; }

@@ -13,6 +13,7 @@ using System.Threading;
 using SpeedRunCommon;
 using System.IO;
 using System.Net;
+using System.Text;
 
 namespace SpeedRunAppImport.Service
 {
@@ -45,34 +46,37 @@ namespace SpeedRunAppImport.Service
             {
                 _logger.Information("Started ProcessGames: {@LastImportDateUtc}, {@IsFullPull}, {@IsBulkReload}", lastImportDateUtc, isFullPull, isBulkReload);
                 GamesOrdering? orderBy = isFullPull ? (GamesOrdering?)null : GamesOrdering.CreationDateDescending;
-                var gameEmbeds = new GameEmbeds { EmbedCategories = true, EmbedLevels = true, EmbedPlatforms = false, EmbedVariables = true };
+                var gameEmbeds = new GameEmbeds { EmbedCategories = true, EmbedLevels = true, EmbedModerators = true, EmbedPlatforms = false, EmbedVariables = true };
                 var results = new List<Game>();
                 var games = new List<Game>();
-                var prevTotal = 0;
+                var total = 0;
+                var offset = 0;
 
                 do
                 {
-                    games = GetGamesWithRetry(MaxElementsPerPage, results.Count + prevTotal, gameEmbeds, orderBy);
+                    games = GetGamesWithRetry(MaxElementsPerPageSM, ref offset, gameEmbeds, orderBy);
                     results.AddRange(games);
-                    _logger.Information("Pulled games: {@New}, total games: {@Total}", games.Count, results.Count + prevTotal);
+                    total += games.Count;
+                    offset += games.Count;
+
+                    _logger.Information("Pulled games: {@New}, total games: {@Total}, offset: {@Offset}", games.Count, total, offset);
                     Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
 
                     var memorySize = GC.GetTotalMemory(false);
                     if (memorySize > MaxMemorySizeBytes)
                     {
-                        prevTotal += results.Count;
                         _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
                         SaveGames(results, isBulkReload);
                         results.ClearMemory();
                     }
-                }
-                while (games.Count == MaxElementsPerPage && (isFullPull || games.Min(i => i.CreationDate ?? SqlMinDateTime) > lastImportDateUtc));
-                //while (1 == 0);
 
-                if (!isFullPull)
-                {
-                    results.RemoveAll(i => (i.CreationDate ?? SqlMinDateTime) <= lastImportDateUtc);
+                    if (!isFullPull)
+                    {
+                        games.RemoveAll(i => (i.CreationDate ?? SqlMinDateTime) <= lastImportDateUtc);
+                    }
                 }
+                while (games.Count > 0);
+                //while (1 == 0);
 
                 if (results.Any())
                 {
@@ -137,7 +141,7 @@ namespace SpeedRunAppImport.Service
             _logger.Information("Completed ProcessChangedGames");
         }
 
-        public List<Game> GetGamesWithRetry(int elementsPerPage, int elementsOffset, GameEmbeds embeds, GamesOrdering? orderBy, int retryCount = 0)
+        public List<Game> GetGamesWithRetry(int elementsPerPage, ref int elementsOffset, GameEmbeds embeds, GamesOrdering? orderBy, int retryCount = 0, int badRecordRetryCount = 0, int? initElementsPerPage = null)
         {
             ClientContainer clientContainer = new ClientContainer();
             List<Game> games = null;
@@ -148,12 +152,39 @@ namespace SpeedRunAppImport.Service
             }
             catch (Exception ex)
             {
-                if (retryCount <= MaxRetryCount)
+                if (ex.Message.Contains("(500) Internal Server Error"))
+                {
+                    if (initElementsPerPage == null)
+                    {
+                        initElementsPerPage = elementsPerPage;
+                    }
+
+                    if (badRecordRetryCount < initElementsPerPage)
+                    {
+                        elementsPerPage = elementsPerPage - 1;
+                    }
+                    else
+                    {
+                        elementsPerPage = initElementsPerPage.Value - (badRecordRetryCount - initElementsPerPage.Value) - 1;
+                        elementsOffset = elementsOffset + 1;
+                    }
+
+                    if (elementsPerPage == 0)
+                    {
+                        elementsPerPage = initElementsPerPage.Value;
+                    }
+
+                    Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
+                    badRecordRetryCount++;
+                    _logger.Information("Retrying pull games skip elementsPerPage: {@ElementsPerPage}, offset: {@ElementsOffset}, retry: {@BadRecordRetryCount}", elementsPerPage, elementsOffset, badRecordRetryCount);
+                    games = GetGamesWithRetry(elementsPerPage, ref elementsOffset, embeds, orderBy, retryCount, badRecordRetryCount, initElementsPerPage);
+                }
+                else if (retryCount <= MaxRetryCount)
                 {
                     Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.ErrorPullDelayMS));
                     retryCount++;
-                    _logger.Information("Retrying pull games: {@New}, total games: {@Total}, retry: {@RetryCount}", elementsPerPage, elementsOffset, retryCount);
-                    games = GetGamesWithRetry(elementsPerPage, elementsOffset, embeds, orderBy, retryCount);
+                    _logger.Information("Retrying pull games elementsPerPage: {@ElementsPerPage}, offset: {@ElementsOffset}, retry: {@RetryCount}", elementsPerPage, elementsOffset, retryCount);
+                    games = GetGamesWithRetry(elementsPerPage, ref elementsOffset, embeds, orderBy, retryCount, badRecordRetryCount, initElementsPerPage);
                 }
                 else
                 {

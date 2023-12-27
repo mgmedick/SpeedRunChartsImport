@@ -83,30 +83,33 @@ namespace SpeedRunAppImport.Service
             var runEmbeds = new SpeedRunEmbeds { EmbedCategory = false, EmbedGame = false, EmbedLevel = false, EmbedPlayers = true, EmbedPlatform = false, EmbedRegion = false };
             var results = new List<SpeedRun>();
             var runs = new List<SpeedRun>();
-            var prevTotal = 0;
+            var total = 0;
+            var offset = 0;
 
             do
             {
-                runs = GetSpeedRunsWithRetry(MaxElementsPerPage, results.Count() + prevTotal, null, null, runEmbeds, orderBy, RunStatusType.Verified);
+                runs = GetSpeedRunsWithRetry(MaxElementsPerPage, offset, null, null, runEmbeds, orderBy, RunStatusType.Verified);
                 results.AddRange(runs);
-                _logger.Information("Pulled runs: {@New}, total runs: {@Total}", runs.Count, results.Count() + prevTotal);
+                total += runs.Count;
+                offset += runs.Count;
+
+                _logger.Information("Pulled runs: {@New}, total runs: {@Total}", runs.Count, total);
                 Thread.Sleep(TimeSpan.FromMilliseconds(BaseService.PullDelayMS));
 
                 var memorySize = GC.GetTotalMemory(false);
                 if (memorySize > MaxMemorySizeBytes)
                 {
-                    prevTotal += results.Count;
                     _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
                     SaveSpeedRuns(results, isBulkReload, false);
                     results.ClearMemory();
                 }
-            }
-            while (runs.Count == MaxElementsPerPage && (isFullPull || runs.Min(i => i.Status.VerifyDate ?? SqlMinDateTime) >= lastImportDateUtc));
 
-            if (!isFullPull)
-            {
-                results.RemoveAll(i => (i.Status.VerifyDate ?? SqlMinDateTime) <= lastImportDateUtc);
+                if (!isFullPull)
+                {
+                    runs.RemoveAll(i => (i.Status.VerifyDate ?? SqlMinDateTime) <= lastImportDateUtc);
+                }
             }
+            while (runs.Count > 0);
 
             if (results.Any())
             {
@@ -713,7 +716,7 @@ namespace SpeedRunAppImport.Service
 
                 if (!isPostBulkImport)
                 {
-                    var twitchVideoViews = _speedRunRepo.GetSpeedRunVideoViews(i => i.VideoLinkUrl != null && i.VerifyDate >= refDate && i.VideoLinkUrl.Contains("twitch.tv\"")).OrderByDescending(i => i.SpeedRunVideoID).Take(maxVideoCount).ToList();
+                    var twitchVideoViews = _speedRunRepo.GetSpeedRunVideoViews(i => i.VideoLinkUrl != null && i.VerifyDate >= refDate && i.VideoLinkUrl.Contains("twitch.tv")).OrderByDescending(i => i.SpeedRunVideoID).Take(maxVideoCount).ToList();
                     videoViews.AddRange(twitchVideoViews);
                 }
 
@@ -830,7 +833,7 @@ namespace SpeedRunAppImport.Service
                 {
                     var videosBatch = twitchVideos.Skip(batchCount).Take(TwitchAPIMaxBatchCount).ToList();
                     var videoIDsBatch = videosBatch.Select(i => i.VideoID).ToList();
-                    var videoIDsString = string.Join(",", videoIDsBatch);
+                    var videoIDsString = string.Join("&id=", videoIDsBatch);
                     var requestString = string.Format(@"https://api.twitch.tv/helix/videos?id={0}", videoIDsString);
                     var parameters = new Dictionary<string, string>() { { "Client-Id", TwitchClientID }, { "Authorization", "Bearer " + twitchToken } };
                     dynamic results = null;

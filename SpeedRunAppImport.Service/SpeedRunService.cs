@@ -89,6 +89,11 @@ namespace SpeedRunAppImport.Service
             do
             {
                 runs = GetSpeedRunsWithRetry(MaxElementsPerPage, offset, null, null, runEmbeds, orderBy, RunStatusType.Verified);
+                if (!isFullPull)
+                {
+                    runs.RemoveAll(i => (i.Status.VerifyDate ?? SqlMinDateTime) <= lastImportDateUtc);
+                }
+
                 results.AddRange(runs);
                 total += runs.Count;
                 offset += runs.Count;
@@ -102,11 +107,6 @@ namespace SpeedRunAppImport.Service
                     _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
                     SaveSpeedRuns(results, isBulkReload, false);
                     results.ClearMemory();
-                }
-
-                if (!isFullPull)
-                {
-                    runs.RemoveAll(i => (i.Status.VerifyDate ?? SqlMinDateTime) <= lastImportDateUtc);
                 }
             }
             while (runs.Count > 0);

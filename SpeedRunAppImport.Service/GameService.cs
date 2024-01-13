@@ -55,6 +55,11 @@ namespace SpeedRunAppImport.Service
                 do
                 {
                     games = GetGamesWithRetry(MaxElementsPerPageSM, ref offset, gameEmbeds, orderBy);
+                    if (!isFullPull)
+                    {
+                        games.RemoveAll(i => (i.CreationDate ?? SqlMinDateTime) <= lastImportDateUtc);
+                    }
+
                     results.AddRange(games);
                     total += games.Count;
                     offset += games.Count;
@@ -68,11 +73,6 @@ namespace SpeedRunAppImport.Service
                         _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
                         SaveGames(results, isBulkReload);
                         results.ClearMemory();
-                    }
-
-                    if (!isFullPull)
-                    {
-                        games.RemoveAll(i => (i.CreationDate ?? SqlMinDateTime) <= lastImportDateUtc);
                     }
                 }
                 while (games.Count > 0);

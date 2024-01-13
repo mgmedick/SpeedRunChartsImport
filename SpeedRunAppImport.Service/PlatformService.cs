@@ -43,6 +43,11 @@ namespace SpeedRunAppImport.Service
                 do
                 {
                     platforms = GetPlatformsWithRetry(MaxElementsPerPage, offset, orderBy);
+                    if (!isFullPull)
+                    {
+                        platforms.RemoveAll(i => speedRunComIDs.Contains(i.ID));
+                    }
+
                     results.AddRange(platforms);
                     total += platforms.Count;
                     offset += platforms.Count;
@@ -56,11 +61,6 @@ namespace SpeedRunAppImport.Service
                         _logger.Information("Saving to clear memory, results: {@Count}, size: {@Size}", results.Count, memorySize);
                         SavePlatforms(results, isBulkReload);
                         results.ClearMemory();
-                    }
-
-                    if (!isFullPull)
-                    {
-                        platforms.RemoveAll(i => speedRunComIDs.Contains(i.ID));
                     }
                 }
                 while (platforms.Count > 0);

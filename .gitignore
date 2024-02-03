@@ -338,6 +338,6 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database
 healthchecksdb
-/SpeedrunComSharp.Common
-
-/SpeedRunAppImport/Properties
+SpeedRunAppImport/logs
+SpeedRunAppImport/appsettings.dev.json
+.DS_Store

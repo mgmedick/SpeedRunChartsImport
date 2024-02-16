@@ -6,8 +6,13 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import org.slf4j.Logger;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import speedrunappimport.interfaces.repositories.IGameRepository;
 import speedrunappimport.interfaces.services.*;
 import speedrunappimport.model.JSON.*;
@@ -104,14 +109,14 @@ public class GameService extends BaseService implements IGameService
 
 			var request = HttpRequest.newBuilder()
 			.uri(URI.create("https://www.speedrun.com/api/v1/games?" + paramString))
-			// .header("Content-Type", "application/json")
-			// .GET()
 			.build();
 
 			var response = client.send(request, BodyHandlers.ofString());
 			if (response.statusCode() == 200)
 			{
-				System.out.println("success");
+				var mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+				var games = mapper.readerFor(GameResponse[].class).readValue(mapper.readTree(response.body()).get("data"), GameResponse[].class);
+				data = new ArrayList<>(Arrays.asList(games));
 			}
 		}
 		catch (Exception ex)

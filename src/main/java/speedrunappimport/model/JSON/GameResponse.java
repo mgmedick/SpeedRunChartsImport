@@ -1,40 +1,31 @@
 package speedrunappimport.model.JSON;
 
-public class GameResponse {
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.HashMap;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public class GameResponse
+{
     public String id;
     public GameNameResponse names;
     public String abbreviation;
-    public String created;
+    public String weblink;
+    public int released;
 
-    public String getId() {
-        return id;
-    }
+    @JsonProperty("release-date")
+    public LocalDate releasedDate;
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public GameNameResponse getNames() {
-        return names;
-    }
-
-    public void setNames(GameNameResponse names) {
-        this.names = names;
-    }
-
-    public String getAbbreviation() {
-        return abbreviation;
-    }
-
-    public void setAbbreviation(String abbreviation) {
-        this.abbreviation = abbreviation;
-    }  
-
-    public String getCreated() {
-        return created;
-    }
-
-    public void setCreated(String created) {
-        this.created = created;
-    }      
+    public GameRulesetResponse ruleset;
+    public boolean romhack;
+    public String[] gametypes;
+    public String[] platforms;
+    public String[] genres;
+    public String[] engines;  
+    public String[] developers;      
+    public String[] publishers;   
+    public HashMap<String, String> moderators;  
+    public Instant created;
+    public GameAssetsResponse assets;
 }

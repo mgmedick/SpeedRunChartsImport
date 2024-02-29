@@ -6,12 +6,10 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import speedrunappimport.interfaces.services.*;
 
 @Service
-public class Processor
-{
+public class Processor {
 	private IGameService _gameService;
 	private Logger _logger;
 	//private Logger _logger = LoggerFactory.getLogger(GameService.class);

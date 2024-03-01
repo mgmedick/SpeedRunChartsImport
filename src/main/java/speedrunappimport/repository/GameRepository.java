@@ -1,14 +1,24 @@
 package speedrunappimport.repository;
 
-import java.util.ArrayList;
-
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import speedrunappimport.interfaces.repositories.*;
-import speedrunappimport.model.Data.*;
+import speedrunappimport.model.Data.Game;
 
 public class GameRepository implements IGameRepository
 {
-	public boolean SaveGames(ArrayList<Game> games)
+	private IGameCrudRepository _db;
+
+	public GameRepository(IGameCrudRepository db) {
+		_db = db;
+	}
+
+	public List<Game> GetAllGames()
 	{
-		return true;
+		var games = _db.findAll();
+		
+		return StreamSupport.stream(games.spliterator(), false)
+                            .collect(Collectors.toList());
 	}
 }

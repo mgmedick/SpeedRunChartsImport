@@ -1,9 +1,11 @@
 package speedrunappimport.interfaces.repositories;
 
-import java.util.ArrayList;
+import java.util.List;
+
 import speedrunappimport.model.Data.*;
 
-public interface IGameRepository
-{
-	boolean SaveGames(ArrayList<Game> games);
+public interface IGameRepository {
+    List<Game> GetAllGames();
 }
+
+

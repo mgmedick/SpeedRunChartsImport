@@ -16,9 +16,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-import speedrunappimport.interfaces.repositories.IGameRepository;
+import speedrunappimport.interfaces.repositories.*;
 import speedrunappimport.interfaces.services.*;
-import speedrunappimport.model.Data.Game;
 import speedrunappimport.model.JSON.*;
 
 public class GameService extends BaseService implements IGameService
@@ -60,7 +59,7 @@ public class GameService extends BaseService implements IGameService
 				}
 			}
 			while (games.size() == super.maxPageLimit && (isReload || games.stream().map(i -> i.created != null ? i.created : super.sqlMinDateTime).max(Instant::compareTo).get().compareTo(lastImportDateUtc) > 0));                
-			//while (1 == 0);
+			// while (1 == 0);
 
 			if (!isReload)
 			{
@@ -69,7 +68,7 @@ public class GameService extends BaseService implements IGameService
 
 			if (results.size() > 0)
 			{
-				//SaveGames(results, isReload);
+				SaveGames(results);
 				//var lastUpdateDate = results.stream().map(i -> i.created != null ?  Instant.parse(i.created) : super.sqlMinDateTime).max(Instant::compareTo).get();
 				//_settingService.UpdateSetting("GameLastImportDate", lastUpdateDate);
 				results.clear();
@@ -148,7 +147,9 @@ public class GameService extends BaseService implements IGameService
 					 .sorted((a, b) -> (a.created != null ? a.created : super.sqlMinDateTime).compareTo((b.created != null ? b.created : super.sqlMinDateTime)))
 					 .collect(Collectors.toCollection(ArrayList::new));
 
-		_logger.info("Completed SaveGames");
+		var existingGames = _gameRepo.GetAllGames();			 
+
+		_logger.info(Integer.toString(existingGames.size()));
 	}
 
 	/*

@@ -1,4 +1,4 @@
-package speedrunappimport.interfaces.dbcontext;
+package speedrunappimport.interfaces.jparepositories;
 
 import java.io.*;
 import org.springframework.data.jpa.repository.JpaRepository;

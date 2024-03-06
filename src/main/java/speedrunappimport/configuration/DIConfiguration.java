@@ -10,7 +10,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import speedrunappimport.interfaces.dbcontext.*;
+
+import speedrunappimport.interfaces.jparepositories.*;
 import speedrunappimport.interfaces.repositories.*;
 import speedrunappimport.interfaces.services.*;
 import speedrunappimport.repositories.*;
@@ -20,7 +21,7 @@ import speedrunappimport.services.*;
 @PropertySource("classpath:/appsettings.properties")
 @ComponentScan(value={"speedrunappimport"})
 @EntityScan("speedrunappimport.model.entity")
-@EnableJpaRepositories("speedrunappimport.interfaces.dbcontext")
+@EnableJpaRepositories("speedrunappimport.interfaces.jparepositories")
 public class DIConfiguration
 {
 	@Bean

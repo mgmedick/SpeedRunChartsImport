@@ -3,7 +3,8 @@ package speedrunappimport.repositories;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
-import speedrunappimport.interfaces.dbcontext.*;
+
+import speedrunappimport.interfaces.jparepositories.*;
 import speedrunappimport.interfaces.repositories.*;
 import speedrunappimport.model.entity.*;
 

@@ -1,4 +1,4 @@
-package speedrunappimport.interfaces.dbcontext;
+package speedrunappimport.interfaces.jparepositories;
 
 import speedrunappimport.model.entity.*;
 

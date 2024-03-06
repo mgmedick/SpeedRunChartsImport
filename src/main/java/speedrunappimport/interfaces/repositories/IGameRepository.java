@@ -2,10 +2,11 @@ package speedrunappimport.interfaces.repositories;
 
 import java.util.List;
 
-import speedrunappimport.model.Data.*;
+import speedrunappimport.model.entity.*;
 
 public interface IGameRepository {
-    List<Game> GetAllGames();
+    void SaveGames(List<Game> games, List<Level> levels);
+    List<Game> GetGamesByCode(List<String> codes);
 }
 
 

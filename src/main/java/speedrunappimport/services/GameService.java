@@ -6,9 +6,12 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.stream.Collectors;
+import java.util.function.Function;
+import java.util.Comparator;
 
 import org.slf4j.Logger;
 
@@ -18,7 +21,8 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import speedrunappimport.interfaces.repositories.*;
 import speedrunappimport.interfaces.services.*;
-import speedrunappimport.model.JSON.*;
+import speedrunappimport.model.entity.Game;
+import speedrunappimport.model.json.*;
 
 public class GameService extends BaseService implements IGameService
 {
@@ -30,13 +34,13 @@ public class GameService extends BaseService implements IGameService
 		_logger = logger;
 	}
 
-	public boolean ProcessGames(Instant lastImportDateUtc, boolean isReload)
+	public boolean ProcessGames(Instant lastImportRefDateUtc, boolean isReload)
 	{	
 		boolean result = true;
 
 		try
 		{
-			_logger.info("Started ProcessGames: {@lastImportDateUtc}, {@isReload}", lastImportDateUtc, isReload);
+			_logger.info("Started ProcessGames: {@lastImportRefDateUtc}, {@isReload}", lastImportRefDateUtc, isReload);
 			var results = new ArrayList<GameResponse>();
 			var games = new ArrayList<GameResponse>();
 			var prevTotal = 0;
@@ -53,24 +57,24 @@ public class GameService extends BaseService implements IGameService
 				{
 					prevTotal += results.size();
 					_logger.info("Saving to clear memory, results: {@Count}, size: {@Size}", results.size(), memorySize);
-					//SaveGames(results, isReload);
+					//SaveGames(results);
 					results.clear();
 					results.trimToSize();
 				}
 			}
-			while (games.size() == super.maxPageLimit && (isReload || games.stream().map(i -> i.created != null ? i.created : super.sqlMinDateTime).max(Instant::compareTo).get().compareTo(lastImportDateUtc) > 0));                
-			// while (1 == 0);
+			//while (games.size() == super.maxPageLimit && (isReload || games.stream().map(i -> i.created != null ? i.created : super.sqlMinDateTime).max(Instant::compareTo).get().compareTo(lastImportDateUtc) > 0));                
+			while (1 == 0);
 
 			if (!isReload)
 			{
-				results.removeIf(i -> (i.created != null ? i.created : super.sqlMinDateTime).compareTo(lastImportDateUtc) <= 0);
+				results.removeIf(i -> (i.created != null ? i.created : super.sqlMinDateTime).compareTo(lastImportRefDateUtc) <= 0);
 			}
 
 			if (results.size() > 0)
 			{
-				SaveGames(results);
+				//SaveGames(results);
 				//var lastUpdateDate = results.stream().map(i -> i.created != null ?  Instant.parse(i.created) : super.sqlMinDateTime).max(Instant::compareTo).get();
-				//_settingService.UpdateSetting("GameLastImportDate", lastUpdateDate);
+				//_settingService.UpdateSetting("GameLastImportRefDate", lastUpdateDate);
 				results.clear();
 				results.trimToSize();
 			}
@@ -98,6 +102,7 @@ public class GameService extends BaseService implements IGameService
 		try (var client = HttpClient.newHttpClient())
 		{
 			var parameters = new HashMap<String, String>();
+			parameters.put("embed", "levels");
 			parameters.put("orderby", sort);
 			parameters.put("max", Integer.toString(super.maxPageLimitSM));
 			parameters.put("offset", Integer.toString(offset));
@@ -116,7 +121,8 @@ public class GameService extends BaseService implements IGameService
 			var response = client.send(request, BodyHandlers.ofString());
 			if (response.statusCode() == 200)
 			{
-				var mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).registerModule(new JavaTimeModule());
+				var mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+											   .registerModule(new JavaTimeModule());
 				var games = mapper.readerFor(GameResponse[].class).readValue(mapper.readTree(response.body()).get("data"), GameResponse[].class);
 				data = new ArrayList<>(Arrays.asList(games));
 			}
@@ -139,15 +145,32 @@ public class GameService extends BaseService implements IGameService
 		return data;
 	}
 
-	public void SaveGames(ArrayList<GameResponse> games)
+	public void SaveGames(List<GameResponse> games)
 	{
 		_logger.info("Started SaveGames: {@count}", games.size());
 		
-		games = games.stream()
-					 .sorted((a, b) -> (a.created != null ? a.created : super.sqlMinDateTime).compareTo((b.created != null ? b.created : super.sqlMinDateTime)))
-					 .collect(Collectors.toCollection(ArrayList::new));
+		games =  games.stream()
+					  .collect(Collectors.toMap(GameResponse::getId, Function.identity(), (u1, u2) -> u1))
+					  .values()
+					  .stream()
+					  .sorted(Comparator.comparing(GameResponse::getCreated, Comparator.nullsFirst(Instant::compareTo)))
+					  .collect(Collectors.toList());
 
-		var existingGames = _gameRepo.GetAllGames();			 
+		var existingGames = _gameRepo.GetGamesByCode(games.stream().map(x -> x.id).toList());			 
+
+		games.stream().map(i -> { var game = new Game();
+								  var existingGame = existingGames.stream().filter(x -> x.code == i.id).findFirst().orElse(null);
+								  game.id = existingGame != null ? existingGame.id : null;
+								  game.name = i.names.international;
+								  game.code = i.id;
+								  game.abbr = i.abbreviation;
+								  game.isromhack = i.romhack;
+								  game.yearofrelease = i.released;
+								  game.importrefdate = i.created;
+
+								  return game;
+								});
+
 
 		_logger.info(Integer.toString(existingGames.size()));
 	}

@@ -1,4 +1,4 @@
-package speedrunappimport.model.JSON;
+package speedrunappimport.model.json;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -14,7 +14,7 @@ public class GameAssetsResponse
 
     @JsonProperty("cover-medium")
     public GameAssetResponse coverMedium;
-
+    
     @JsonProperty("cover-large")
     public GameAssetResponse coverLarge;  
 }

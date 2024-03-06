@@ -1,4 +1,4 @@
-package speedrunappimport.model.JSON;
+package speedrunappimport.model.json;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -24,8 +24,25 @@ public class GameResponse
     public String[] genres;
     public String[] engines;  
     public String[] developers;      
-    public String[] publishers;   
+    public String[] publishers;
     public HashMap<String, String> moderators;  
     public Instant created;
     public GameAssetsResponse assets;
+    public GameLevelResponse[] levels;
+
+    public String getId() {
+        return id;
+      }
+    
+    public void setId(String id) {
+        this.id = id;
+    }    
+
+    public Instant getCreated() {
+        return this.created;
+    }
+
+    public void setCreated(Instant created) {
+        this.created = created;
+    }       
 }

@@ -1,4 +1,4 @@
-package speedrunappimport.model.Data;
+package speedrunappimport.model.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -12,15 +12,15 @@ import java.time.Instant;
 public class Game {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)    
-    public int id;
+    public Integer id;
     public String name;
+    public String code;
+    public String abbr;
     public Boolean isromhack;
     public Integer yearofrelease;
-    public String abbr;
+    public Instant importrefdate;
     public Instant createddate;
-    public Instant importeddate;
     public Instant modifieddate;
-    public Boolean ischanged;
 }
 
 

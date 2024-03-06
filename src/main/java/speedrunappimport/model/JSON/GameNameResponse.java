@@ -1,4 +1,4 @@
-package speedrunappimport.model.JSON;
+package speedrunappimport.model.json;
 
 public class GameNameResponse 
 {

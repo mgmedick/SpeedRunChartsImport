@@ -1,4 +1,4 @@
-package speedrunappimport.model.JSON;
+package speedrunappimport.model.json;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -18,7 +18,7 @@ public class GameRulesetResponse
 
     @JsonProperty("default-time")
     public String defaultTime;
-
+    
     @JsonProperty("emulators-allowed")
     public boolean emulatorsAllowed;
 }

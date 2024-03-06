@@ -1,10 +1,7 @@
 package speedrunappimport;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
 import java.time.Instant;
-
 import org.slf4j.Logger;
 import speedrunappimport.interfaces.services.*;
 
@@ -48,12 +45,12 @@ public class Processor {
 		}
 	}
 	
-	@Value("${isreload}")
-	private boolean isReload;
+	// @Value("${isreload}")
+	// private boolean isReload;
 
-	@Value("${database.ConnectionString}")
-	private String connString;		
+	// @Value("${database.ConnectionString}")
+	// private String connString;		
 
-	@Value("${settings.pullDelayMS}")
-	private String pullDelayMS;	
+	// @Value("${settings.pullDelayMS}")
+	// private String pullDelayMS;	
 }

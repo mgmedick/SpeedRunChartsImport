@@ -9,17 +9,18 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
-// import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import speedrunappimport.interfaces.dbcontext.*;
 import speedrunappimport.interfaces.repositories.*;
 import speedrunappimport.interfaces.services.*;
-import speedrunappimport.repository.*;
+import speedrunappimport.repositories.*;
 import speedrunappimport.services.*;
 
 @Configuration
 @PropertySource("classpath:/appsettings.properties")
 @ComponentScan(value={"speedrunappimport"})
-@EntityScan("speedrunappimport.model")
-// @EnableJpaRepositories("speedrunappimport.interfaces.repositories")
+@EntityScan("speedrunappimport.model.entity")
+@EnableJpaRepositories("speedrunappimport.interfaces.dbcontext")
 public class DIConfiguration
 {
 	@Bean
@@ -29,8 +30,8 @@ public class DIConfiguration
 	}	
 
 	@Bean
-	public IGameRepository getGameRepository(IGameCrudRepository gameCrudRepository){
-		return new GameRepository(gameCrudRepository);
+	public IGameRepository getGameRepository(IGameDB gameDB, ILevelDB levelDB){
+		return new GameRepository(gameDB, levelDB);
 	}
 
 	@Bean

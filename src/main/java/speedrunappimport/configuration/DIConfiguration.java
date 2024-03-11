@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.Scope;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import speedrunappimport.interfaces.jparepositories.*;
 import speedrunappimport.interfaces.repositories.*;
@@ -22,6 +23,7 @@ import speedrunappimport.services.*;
 @ComponentScan(value={"speedrunappimport"})
 @EntityScan("speedrunappimport.model.entity")
 @EnableJpaRepositories("speedrunappimport.interfaces.jparepositories")
+@EnableTransactionManagement
 public class DIConfiguration
 {
 	@Bean

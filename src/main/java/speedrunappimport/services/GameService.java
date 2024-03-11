@@ -21,7 +21,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import speedrunappimport.interfaces.repositories.*;
 import speedrunappimport.interfaces.services.*;
-import speedrunappimport.model.entity.Game;
+import speedrunappimport.model.entity.*;
 import speedrunappimport.model.json.*;
 
 public class GameService extends BaseService implements IGameService
@@ -48,12 +48,12 @@ public class GameService extends BaseService implements IGameService
 			do
 			{
 				games = GetGameResponses("created", !isReload, results.size() + prevTotal);
-				Thread.sleep(super.pullDelayMS);
+				Thread.sleep(super.getPullDelayMS());
 				results.addAll(games);
 				_logger.info("Pulled games: {@New}, total games: {@Total}", games.size(), results.size() + prevTotal);
 
 				var memorySize = Runtime.getRuntime().totalMemory();
-				if (memorySize > super.maxMemorySizeBytes)
+				if (memorySize > super.getMaxMemorySizeBytes())
 				{
 					prevTotal += results.size();
 					_logger.info("Saving to clear memory, results: {@Count}, size: {@Size}", results.size(), memorySize);
@@ -62,12 +62,12 @@ public class GameService extends BaseService implements IGameService
 					results.trimToSize();
 				}
 			}
-			//while (games.size() == super.maxPageLimit && (isReload || games.stream().map(i -> i.created != null ? i.created : super.sqlMinDateTime).max(Instant::compareTo).get().compareTo(lastImportDateUtc) > 0));                
-			while (1 == 0);
+			while (games.size() == super.getMaxPageLimit() && (isReload || games.stream().map(i -> i.created() != null ? i.created() : super.getSqlMinDateTime()).max(Instant::compareTo).get().compareTo(lastImportRefDateUtc) > 0));                
+			//while (1 == 0);
 
 			if (!isReload)
 			{
-				results.removeIf(i -> (i.created != null ? i.created : super.sqlMinDateTime).compareTo(lastImportRefDateUtc) <= 0);
+				results.removeIf(i -> (i.created() != null ? i.created() : super.getSqlMinDateTime()).compareTo(lastImportRefDateUtc) <= 0);
 			}
 
 			if (results.size() > 0)
@@ -104,7 +104,7 @@ public class GameService extends BaseService implements IGameService
 			var parameters = new HashMap<String, String>();
 			parameters.put("embed", "levels");
 			parameters.put("orderby", sort);
-			parameters.put("max", Integer.toString(super.maxPageLimitSM));
+			parameters.put("max", Integer.toString(super.getMaxPageLimitSM()));
 			parameters.put("offset", Integer.toString(offset));
 
 			if (isDesc)
@@ -126,14 +126,16 @@ public class GameService extends BaseService implements IGameService
 				var games = mapper.readerFor(GameResponse[].class).readValue(mapper.readTree(response.body()).get("data"), GameResponse[].class);
 				data = new ArrayList<>(Arrays.asList(games));
 			}
+
+			throw new Exception();
 		}
 		catch (Exception ex)
 		{
-			Thread.sleep(super.errorPullDelayMS);
+			Thread.sleep(super.getErrorPullDelayMS());
 			retryCount++;
-			if (retryCount <= super.maxRetryCount)
+			if (retryCount <= super.getMaxRetryCount())
 			{
-				_logger.info("Retrying pull games: {@New}, total games: {@Total}, retry: {@RetryCount}", super.maxPageLimit, offset, retryCount);
+				_logger.info("Retrying pull games: {@New}, total games: {@Total}, retry: {@RetryCount}", super.getMaxPageLimitSM(), offset, retryCount);
 				data = GetGameResponses(sort, isDesc, offset, retryCount);
 			}
 			else
@@ -150,29 +152,35 @@ public class GameService extends BaseService implements IGameService
 		_logger.info("Started SaveGames: {@count}", games.size());
 		
 		games =  games.stream()
-					  .collect(Collectors.toMap(GameResponse::getId, Function.identity(), (u1, u2) -> u1))
+					  .collect(Collectors.toMap(GameResponse::id, Function.identity(), (u1, u2) -> u1))
 					  .values()
 					  .stream()
-					  .sorted(Comparator.comparing(GameResponse::getCreated, Comparator.nullsFirst(Instant::compareTo)))
+					  .sorted(Comparator.comparing(GameResponse::created, Comparator.nullsFirst(Instant::compareTo)))
 					  .collect(Collectors.toList());
 
-		var existingGames = _gameRepo.GetGamesByCode(games.stream().map(x -> x.id).toList());			 
+		var existingGamesVWs = _gameRepo.GetGamesByCode(games.stream().map(x -> x.id()).toList());			 
 
-		games.stream().map(i -> { var game = new Game();
-								  var existingGame = existingGames.stream().filter(x -> x.code == i.id).findFirst().orElse(null);
-								  game.id = existingGame != null ? existingGame.id : null;
-								  game.name = i.names.international;
-								  game.code = i.id;
-								  game.abbr = i.abbreviation;
-								  game.isromhack = i.romhack;
-								  game.yearofrelease = i.released;
-								  game.importrefdate = i.created;
-
+		var gameEntities = games.stream().map(i -> { var game = new Game();
+								  var existingGame = existingGamesVWs.stream().filter(x -> x.getCode() == i.id()).findFirst().orElse(null);
+								  game.setId(existingGame != null ? existingGame.getId() : null);
+								  game.setName(i.names().international());
+								  game.setCode(i.id());
+								  game.setAbbr(i.abbreviation());
+								  game.setShowmilliseconds(i.ruleset() != null ? i.ruleset().showmilliseconds() : false);
+								  game.setReleasedate(i.releasedate());
+								  game.setImportrefdate(i.created());
+								  game.setLevels(Arrays.stream(i.levels().data())
+														.map(x -> { var level = new Level();
+																	level.setName(x.name());
+																	level.setCode(x.id());
+																	level.setGameid(game.getId());
+																	return level;
+														}).toArray(Level[]::new));
 								  return game;
-								});
+								}).toArray(Game[]::new);
 
 
-		_logger.info(Integer.toString(existingGames.size()));
+		_logger.info(Integer.toString(existingGamesVWs.size()));
 	}
 
 	/*

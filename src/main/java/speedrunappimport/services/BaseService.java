@@ -1,29 +1,61 @@
 package speedrunappimport.services;
 
-import java.time.Instant;
-
 import org.springframework.beans.factory.annotation.Value;
+
+import java.time.Instant;
 
 public abstract class BaseService
 {
 	@Value("${settings.pullDelayMS}")
-	public int pullDelayMS;
+	private int pullDelayMS;
 
 	@Value("${settings.errorPullDelayMS}")
-	public int errorPullDelayMS;	
+	private int errorPullDelayMS;	
 
 	@Value("${settings.maxMemorySizeBytes}")
-	public long maxMemorySizeBytes;		
+	private long maxMemorySizeBytes;		
 
 	@Value("${settings.maxPageLimit}")
-	public int maxPageLimit;	
+	private int maxPageLimit;	
 	
 	@Value("${settings.maxPageLimitSM}")
-	public int maxPageLimitSM;		
+	private int maxPageLimitSM;		
 
 	@Value("${settings.maxRetryCount}")
-	public int maxRetryCount;		
+	private int maxRetryCount;		
 
 	@Value("${settings.sqlMinDateTime}")
-	public Instant sqlMinDateTime;
+	private Instant sqlMinDateTime;
+
+	public int getPullDelayMS() {
+		return pullDelayMS;
+	}
+
+	public int getErrorPullDelayMS() {
+		return errorPullDelayMS;
+	}
+
+	public long getMaxMemorySizeBytes() {
+		return maxMemorySizeBytes;
+	}
+
+	public int getMaxPageLimit() {
+		return maxPageLimit;
+	}
+
+	public int getMaxPageLimitSM() {
+		return maxPageLimitSM;
+	}
+
+	public int getMaxRetryCount() {
+		return maxRetryCount;
+	}
+
+	public Instant getSqlMinDateTime() {
+		return sqlMinDateTime;
+	}
+
+	
 }
+
+

@@ -11,10 +11,35 @@ import jakarta.persistence.Table;
 public class Level {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)    
-    public Integer id;
-    public String name;
-    public String code;
-    public Integer gameid;
+    private Integer id;
+    private String name;
+    private String code;
+    private Integer gameid;
+
+    public Integer getId() {
+        return id;
+    }
+    public void setId(Integer id) {
+        this.id = id;
+    }
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+    public String getCode() {
+        return code;
+    }
+    public void setCode(String code) {
+        this.code = code;
+    }
+    public Integer getGameid() {
+        return gameid;
+    }
+    public void setGameid(Integer gameid) {
+        this.gameid = gameid;
+    }
 }
 
 

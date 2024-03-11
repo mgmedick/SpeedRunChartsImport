@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import speedrunappimport.interfaces.jparepositories.*;
 import speedrunappimport.interfaces.repositories.*;
 import speedrunappimport.model.entity.*;
@@ -18,16 +20,18 @@ public class GameRepository extends BaseRepository implements IGameRepository
 		_levelDB = levelDB;
 	}
 
+	@Transactional(rollbackFor = { Exception.class })
 	public void SaveGames(List<Game> games, List<Level> levels)
 	{
 		for (Game game : games)
 		{
-			var gameLevels = levels.stream().filter(x -> x.gameid == game.id).collect(Collectors.toList());
+			var gameLevels = levels.stream().filter(x -> x.getGameid() == game.getId()).collect(Collectors.toList());
 			_levelDB.saveAll(gameLevels);
 			_gameDB.save(game);
 		}
 	}
 
+	@Transactional(isolation = Isolation.READ_UNCOMMITTED)
 	public List<Game> GetGamesByCode(List<String> codes)
 	{
 		var maxBatchCount = super.maxQueryLimit;

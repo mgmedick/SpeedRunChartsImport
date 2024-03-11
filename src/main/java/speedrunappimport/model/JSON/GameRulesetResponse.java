@@ -2,23 +2,82 @@ package speedrunappimport.model.json;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+public record GameRulesetResponse(@JsonProperty("show-milliseconds") boolean showmilliseconds,
+@JsonProperty("require-verification") boolean requireverification,
+@JsonProperty("require-video") boolean requirevideo,
+@JsonProperty("run-times") boolean runtimes,
+@JsonProperty("default-time") boolean defaulttime,
+@JsonProperty("emulators-allowed") boolean emulatorsallowed) {
+}
+/*
 public class GameRulesetResponse
 {
     @JsonProperty("show-milliseconds")
-    public boolean showMilliseconds;
+    private boolean showmilliseconds;
 
     @JsonProperty("require-verification")
-    public boolean requireVerification;
+    private boolean requireverification;
 
     @JsonProperty("require-video")
-    public boolean requireVideo;
+    private boolean requirevideo;
 
     @JsonProperty("run-times")
-    public String[] runTimes;
+    private String[] runtimes;
 
     @JsonProperty("default-time")
-    public String defaultTime;
+    private String defaulttime;
     
     @JsonProperty("emulators-allowed")
-    public boolean emulatorsAllowed;
+    private boolean emulatorsallowed;
+
+    public boolean isShowmilliseconds() {
+        return showmilliseconds;
+    }
+
+    public void setShowmilliseconds(boolean showmilliseconds) {
+        this.showmilliseconds = showmilliseconds;
+    }
+
+    public boolean isRequireverification() {
+        return requireverification;
+    }
+
+    public void setRequireverification(boolean requireverification) {
+        this.requireverification = requireverification;
+    }
+
+    public boolean isRequirevideo() {
+        return requirevideo;
+    }
+
+    public void setRequirevideo(boolean requirevideo) {
+        this.requirevideo = requirevideo;
+    }
+
+    public String[] getRuntimes() {
+        return runtimes;
+    }
+
+    public void setRuntimes(String[] runtimes) {
+        this.runtimes = runtimes;
+    }
+
+    public String getDefaulttime() {
+        return defaulttime;
+    }
+
+    public void setDefaulttime(String defaulttime) {
+        this.defaulttime = defaulttime;
+    }
+
+    public boolean isEmulatorsallowed() {
+        return emulatorsallowed;
+    }
+
+    public void setEmulatorsallowed(boolean emulatorsallowed) {
+        this.emulatorsallowed = emulatorsallowed;
+    }
+
+    
 }
+*/

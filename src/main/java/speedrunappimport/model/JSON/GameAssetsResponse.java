@@ -2,19 +2,68 @@ package speedrunappimport.model.json;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+public record GameAssetsResponse(GameAssetResponse logo,
+@JsonProperty("cover-tiny") GameAssetResponse coverTiny,
+@JsonProperty("cover-small") GameAssetResponse coverSmall,
+@JsonProperty("cover-medium") GameAssetResponse coverMedium,
+@JsonProperty("cover-large") GameAssetResponse coverLarge) {
+}
+
+/*
 public class GameAssetsResponse 
 {
-    public GameAssetResponse logo;
+    private GameAssetResponse logo;
 
     @JsonProperty("cover-tiny")
-    public GameAssetResponse coverTiny;
+    private GameAssetResponse coverTiny;
 
     @JsonProperty("cover-small")
-    public GameAssetResponse coverSmall;
+    private GameAssetResponse coverSmall;
 
     @JsonProperty("cover-medium")
-    public GameAssetResponse coverMedium;
+    private GameAssetResponse coverMedium;
     
     @JsonProperty("cover-large")
-    public GameAssetResponse coverLarge;  
+    private GameAssetResponse coverLarge;  
+
+    public GameAssetResponse getLogo() {
+        return logo;
+    }
+
+    public void setLogo(GameAssetResponse logo) {
+        this.logo = logo;
+    }
+
+    public GameAssetResponse getCoverTiny() {
+        return coverTiny;
+    }
+
+    public void setCoverTiny(GameAssetResponse coverTiny) {
+        this.coverTiny = coverTiny;
+    }
+
+    public GameAssetResponse getCoverSmall() {
+        return coverSmall;
+    }
+
+    public void setCoverSmall(GameAssetResponse coverSmall) {
+        this.coverSmall = coverSmall;
+    }
+
+    public GameAssetResponse getCoverMedium() {
+        return coverMedium;
+    }
+
+    public void setCoverMedium(GameAssetResponse coverMedium) {
+        this.coverMedium = coverMedium;
+    }
+
+    public GameAssetResponse getCoverLarge() {
+        return coverLarge;
+    }
+
+    public void setCoverLarge(GameAssetResponse coverLarge) {
+        this.coverLarge = coverLarge;
+    }
 }
+*/

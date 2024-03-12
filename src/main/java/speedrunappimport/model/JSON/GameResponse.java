@@ -11,10 +11,11 @@ GameNameResponse names,
 String abbreviation,
 String weblink,
 Integer released,
-@JsonProperty("release-date") LocalDate releasedate,
+LocalDate releaseDate,
 GameRulesetResponse ruleset,
 Boolean romhack,
 String[] gametypes,
+String[] platforms,
 String[] genres,
 String[] engines,
 String[] developers,
@@ -24,6 +25,7 @@ Instant created,
 GameAssetsResponse assets,
 GameLevelResponse levels) {
 }
+
 /*
 public class GameResponse
 {
@@ -36,7 +38,7 @@ public class GameResponse
     @JsonProperty("release-date")
     private LocalDate releasedate;
 
-    private GameRulesetResponse ruleset;
+    // private GameRulesetResponse ruleset;
     private boolean romhack;
     private String[] gametypes;
     private String[] platforms;
@@ -46,8 +48,8 @@ public class GameResponse
     private String[] publishers;
     private HashMap<String, String> moderators;  
     private Instant created;
-    private GameAssetsResponse assets;
-    private GameLevelResponse levels;  
+    // private GameAssetsResponse assets;
+    // private GameLevelResponse levels;  
 
     public String getId() {
         return id;
@@ -85,12 +87,12 @@ public class GameResponse
     public void setReleasedate(LocalDate releasedate) {
         this.releasedate = releasedate;
     }
-    public GameRulesetResponse getRuleset() {
-        return ruleset;
-    }
-    public void setRuleset(GameRulesetResponse ruleset) {
-        this.ruleset = ruleset;
-    }
+    // public GameRulesetResponse getRuleset() {
+    //     return ruleset;
+    // }
+    // public void setRuleset(GameRulesetResponse ruleset) {
+    //     this.ruleset = ruleset;
+    // }
     public boolean isRomhack() {
         return romhack;
     }
@@ -145,18 +147,18 @@ public class GameResponse
     public void setCreated(Instant created) {
         this.created = created;
     }
-    public GameAssetsResponse getAssets() {
-        return assets;
-    }
-    public void setAssets(GameAssetsResponse assets) {
-        this.assets = assets;
-    }
-    public GameLevelResponse getLevels() {
-        return levels;
-    }
-    public void setLevels(GameLevelResponse levels) {
-        this.levels = levels;
-    }   
+    // public GameAssetsResponse getAssets() {
+    //     return assets;
+    // }
+    // public void setAssets(GameAssetsResponse assets) {
+    //     this.assets = assets;
+    // }
+    // public GameLevelResponse getLevels() {
+    //     return levels;
+    // }
+    // public void setLevels(GameLevelResponse levels) {
+    //     this.levels = levels;
+    // }   
 }
 */
 

@@ -5,7 +5,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -14,25 +13,22 @@ import java.time.LocalDate;
 @Table(name = "tbl_game")
 public class Game {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)    
-    private Integer id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
     private String name;
     private String code;
     private String abbr;
-    private Boolean showmilliseconds;
-    private LocalDate releasedate;
-    private Instant importrefdate;
-    private Instant createddate;
-    private Instant modifieddate;
+    private boolean showMilliseconds;
+    private LocalDate releaseDate;
+    private Instant importRefDate;
+    private Instant createdDate;
+    private Instant modifiedDate;
 
-    @Transient
-    public Level[] levels;
-
-    public Integer getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -60,53 +56,43 @@ public class Game {
         this.abbr = abbr;
     }
 
-    public Boolean getShowmilliseconds() {
-        return showmilliseconds;
+    public boolean isShowMilliseconds() {
+        return showMilliseconds;
     }
 
-    public void setShowmilliseconds(Boolean showmilliseconds) {
-        this.showmilliseconds = showmilliseconds;
+    public void setShowMilliseconds(boolean showMilliseconds) {
+        this.showMilliseconds = showMilliseconds;
     }
 
-    public LocalDate getReleasedate() {
-        return releasedate;
+    public LocalDate getReleaseDate() {
+        return releaseDate;
     }
 
-    public void setReleasedate(LocalDate releasedate) {
-        this.releasedate = releasedate;
+    public void setReleaseDate(LocalDate releaseDate) {
+        this.releaseDate = releaseDate;
     }
 
-    public Instant getImportrefdate() {
-        return importrefdate;
+    public Instant getImportRefDate() {
+        return importRefDate;
     }
 
-    public void setImportrefdate(Instant importrefdate) {
-        this.importrefdate = importrefdate;
+    public void setImportRefDate(Instant importRefDate) {
+        this.importRefDate = importRefDate;
     }
 
-    public Instant getCreateddate() {
-        return createddate;
+    public Instant getCreatedDate() {
+        return createdDate;
     }
 
-    public void setCreateddate(Instant createddate) {
-        this.createddate = createddate;
+    public void setCreatedDate(Instant createdDate) {
+        this.createdDate = createdDate;
     }
 
-    public Instant getModifieddate() {
-        return modifieddate;
+    public Instant getModifiedDate() {
+        return modifiedDate;
     }
 
-    public void setModifieddate(Instant modifieddate) {
-        this.modifieddate = modifieddate;
-    }
-
-    public Level[] getLevels() {
-        return levels;
-    }
-
-    public void setLevels(Level[] levels) {
-        this.levels = levels;
+    public void setModifiedDate(Instant modifiedDate) {
+        this.modifiedDate = modifiedDate;
     }
 }
-
-

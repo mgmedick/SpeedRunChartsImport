@@ -7,6 +7,7 @@ import speedrunappimport.model.entity.*;
 public interface IGameRepository {
     void SaveGames(List<Game> games, List<Level> levels);
     List<Game> GetGamesByCode(List<String> codes);
+    List<GameView> GetGameViewsByCode(List<String> codes);
 }
 
 

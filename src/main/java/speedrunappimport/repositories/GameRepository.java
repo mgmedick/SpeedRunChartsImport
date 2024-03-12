@@ -13,10 +13,12 @@ import speedrunappimport.model.entity.*;
 public class GameRepository extends BaseRepository implements IGameRepository
 {
 	private IGameDB _gameDB;
+	private IGameViewDB _gameViewDB;
 	private ILevelDB _levelDB;
 
-	public GameRepository(IGameDB gameDB, ILevelDB levelDB) {
+	public GameRepository(IGameDB gameDB, IGameViewDB gameViewDB, ILevelDB levelDB) {
 		_gameDB = gameDB;
+		_gameViewDB = gameViewDB;
 		_levelDB = levelDB;
 	}
 
@@ -25,7 +27,7 @@ public class GameRepository extends BaseRepository implements IGameRepository
 	{
 		for (Game game : games)
 		{
-			var gameLevels = levels.stream().filter(x -> x.getGameid() == game.getId()).collect(Collectors.toList());
+			var gameLevels = levels.stream().filter(x -> x.getGameId() == game.getId()).collect(Collectors.toList());
 			_levelDB.saveAll(gameLevels);
 			_gameDB.save(game);
 		}
@@ -48,4 +50,22 @@ public class GameRepository extends BaseRepository implements IGameRepository
 		
 		return results;
 	}
+
+	@Transactional(isolation = Isolation.READ_UNCOMMITTED)
+	public List<GameView> GetGameViewsByCode(List<String> codes)
+	{
+		var maxBatchCount = super.maxQueryLimit;
+		var batchCount = 0;
+		var results = new ArrayList<GameView>();
+
+		while (batchCount < codes.size())
+		{
+			var codesBatch = codes.stream().skip(batchCount).limit(maxBatchCount).collect(Collectors.toList());
+			var resultsBatch = _gameViewDB.findByCodeIn(codesBatch);
+			results.addAll(resultsBatch);
+			batchCount += maxBatchCount;
+		}
+		
+		return results;
+	}	
 }

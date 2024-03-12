@@ -3,10 +3,10 @@ package speedrunappimport.model.json;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public record GameAssetsResponse(GameAssetResponse logo,
-@JsonProperty("cover-tiny") GameAssetResponse coverTiny,
-@JsonProperty("cover-small") GameAssetResponse coverSmall,
-@JsonProperty("cover-medium") GameAssetResponse coverMedium,
-@JsonProperty("cover-large") GameAssetResponse coverLarge) {
+GameAssetResponse coverTiny,
+GameAssetResponse coverSmall,
+GameAssetResponse coverMedium,
+GameAssetResponse coverLarge) {
 }
 
 /*

@@ -33,8 +33,8 @@ public class DIConfiguration
 	}	
 
 	@Bean
-	public IGameRepository getGameRepository(IGameDB gameDB, ILevelDB levelDB){
-		return new GameRepository(gameDB, levelDB);
+	public IGameRepository getGameRepository(IGameDB gameDB, IGameViewDB gameViewDB, ILevelDB levelDB){
+		return new GameRepository(gameDB, gameViewDB, levelDB);
 	}
 
 	@Bean

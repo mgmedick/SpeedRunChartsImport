@@ -2,13 +2,14 @@ package speedrunappimport.model.json;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public record GameRulesetResponse(@JsonProperty("show-milliseconds") boolean showmilliseconds,
-@JsonProperty("require-verification") boolean requireverification,
-@JsonProperty("require-video") boolean requirevideo,
-@JsonProperty("run-times") boolean runtimes,
-@JsonProperty("default-time") boolean defaulttime,
-@JsonProperty("emulators-allowed") boolean emulatorsallowed) {
+public record GameRulesetResponse(boolean showMilliseconds,
+boolean requireVerification,
+boolean requireVideo,
+String[] runTimes,
+String defaultTime,
+boolean emulatorsAllowed) {
 }
+
 /*
 public class GameRulesetResponse
 {

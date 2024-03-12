@@ -9,48 +9,39 @@ import speedrunappimport.interfaces.services.*;
 public class Processor {
 	private IGameService _gameService;
 	private Logger _logger;
-	//private Logger _logger = LoggerFactory.getLogger(GameService.class);
-	//private Environment _env;
+	// private Logger _logger = LoggerFactory.getLogger(GameService.class);
+	// private Environment _env;
 
-	public Processor(IGameService gameService, Logger logger)
-	{
+	public Processor(IGameService gameService, Logger logger) {
 		this._gameService = gameService;
 		this._logger = logger;
-		//this._env = env;
+		// this._env = env;
 	}
-	
-	public void Run()
-	{
-		try
-		{
+
+	public void Run() {
+		try {
 			Init();
-		}
-		catch (Exception ex)
-		{
+		} catch (Exception ex) {
 			_logger.error("Run", ex);
 		}
 	}
 
-	public void Init()
-	{
-		try
-		{
+	public void Init() {
+		try {
 			_logger.info("Started Init");
-			_gameService.ProcessGames(Instant.now(), false);
+			_gameService.ProcessGames(Instant.now(), true);
 			_logger.info("Completed Init");
-		}
-		catch (Exception ex)
-		{
+		} catch (Exception ex) {
 			_logger.error("Run", ex);
 		}
 	}
-	
+
 	// @Value("${isreload}")
 	// private boolean isReload;
 
 	// @Value("${database.ConnectionString}")
-	// private String connString;		
+	// private String connString;
 
 	// @Value("${settings.pullDelayMS}")
-	// private String pullDelayMS;	
+	// private String pullDelayMS;
 }

@@ -5,9 +5,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Table(name = "tbl_game")
@@ -23,6 +25,12 @@ public class Game {
     private Instant importRefDate;
     private Instant createdDate;
     private Instant modifiedDate;
+
+    @Transient
+    private List<CategoryType> categoryTypes;
+
+    @Transient
+    private List<Level> levels;
 
     public int getId() {
         return id;
@@ -94,5 +102,21 @@ public class Game {
 
     public void setModifiedDate(Instant modifiedDate) {
         this.modifiedDate = modifiedDate;
+    }
+
+    public List<CategoryType> getCategoryTypes() {
+        return categoryTypes;
+    }
+
+    public void setCategoryTypes(List<CategoryType> categoryTypes) {
+        this.categoryTypes = categoryTypes;
+    }
+
+    public List<Level> getLevels() {
+        return levels;
+    }
+
+    public void setLevels(List<Level> levels) {
+        this.levels = levels;
     }
 }

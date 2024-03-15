@@ -1,18 +1,6 @@
 package speedrunappimport.model.json;
 
-public record GameLevelResponse(LevelResponse[] data) {
-}
-/*
-public class GameLevelResponse
-{
-    private LevelResponse[] data;
+import java.util.List;
 
-    public LevelResponse[] getData() {
-        return data;
-    }
-
-    public void setData(LevelResponse[] data) {
-        this.data = data;
-    }   
+public record GameLevelResponse(List<LevelResponse> data) {
 }
-*/

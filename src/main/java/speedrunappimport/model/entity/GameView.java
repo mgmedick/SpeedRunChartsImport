@@ -12,6 +12,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Locale.Category;
+import java.util.List;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -161,7 +163,15 @@ public class GameView {
         this.platformsJson = platformsJson;
     }
 
-    public CategoryType[] getCategoryTypes() throws Exception {
-        return _mapper.readValue(this.categoryTypesJson, CategoryType[].class);
+    public List<CategoryType> getCategoryTypes() throws Exception {
+        return Arrays.asList(_mapper.readValue(this.categoryTypesJson, CategoryType[].class));
     }    
+
+    public List<Category> getCategories() throws Exception {
+        return Arrays.asList(_mapper.readValue(this.categoriesJson, Category[].class));
+    }    
+    
+    public List<Level> getLevels() throws Exception {
+        return Arrays.asList(_mapper.readValue(this.levelsJson, Level[].class));
+    }     
 }

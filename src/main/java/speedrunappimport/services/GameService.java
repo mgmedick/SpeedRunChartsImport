@@ -95,12 +95,12 @@ public class GameService extends BaseService implements IGameService {
 
 		try (var client = HttpClient.newHttpClient()) {
 			var parameters = new HashMap<String, String>();
+			parameters.put("orderby", "created");
 			parameters.put("embed", "levels,categories,variables");
 			parameters.put("max", Integer.toString(super.getMaxPageLimitSM()));
 			parameters.put("offset", Integer.toString(offset));
 
 			if (!isReload) {
-				parameters.put("orderby", "created");
 				parameters.put("direction", "desc");
 			}
 
@@ -148,34 +148,40 @@ public class GameService extends BaseService implements IGameService {
 				.stream()
 				.collect(Collectors.toList());
 
-		 var codes = new ArrayList<String>();
-		 codes.add("yd4o5w1e");
-		 codes.add("9dowvo1p");
-		 codes.add("268ery6p");
-		 codes.add("9d3r70dl");
-		 codes.add("576rp418");
+		//  var codes = new ArrayList<String>();
+		//  codes.add("yd4o5w1e");
+		//  codes.add("9dowvo1p");
+		//  codes.add("268ery6p");
+		//  codes.add("9d3r70dl");
+		//  codes.add("576rp418");
 		 
-		var existingGamesVWs = _gameRepo.GetGameViewsByCode(codes);
+		// var existingGamesVWs = _gameRepo.GetGameViewsByCode(codes);
 
-		//var existingGamesVWs = _gameRepo.GetGamesByCode(games.stream().map(x -> x.id()).toList());
+		var existingGamesVWs = _gameRepo.GetGamesByCode(games.stream().map(x -> x.id()).toList());
 
 		var gameEntities = games.stream().map(i -> {
-			var game = new Game();
 			var existingGame = existingGamesVWs.stream().filter(x -> x.getCode() == i.id()).findFirst().orElse(null);
-			game.setId(existingGame != null ? existingGame.getId() : null);
+			
+			var game = new Game();
+			game.setId(existingGame != null ? existingGame.getId() : 0);
 			game.setName(i.names().international());
 			game.setCode(i.id());
 			game.setAbbr(i.abbreviation());
 			game.setShowMilliseconds(i.ruleset() != null ? i.ruleset().showMilliseconds() : false);
 			game.setReleaseDate(i.releaseDate());
 			game.setImportRefDate(i.created());
-			// game.setLevels(Arrays.stream(i.levels().data())
-			// .map(x -> { var level = new Level();
-			// level.setName(x.name());
-			// level.setCode(x.id());
-			// level.setGameid(game.getId());
-			// return level;
-			// }).toArray(Level[]::new));
+
+			var levels = i.levels().data().stream()
+								.map(x -> { 
+									var level = new Level();
+									level.setId(existingGame != null ? existingGame.getLevels().stream().filter(g ->  g.getCode() == x.id()).map(g -> g.getId()).findFirst().orElse(0) : 0);
+									level.setName(x.name());
+									level.setCode(x.id());
+									level.setGameId(game.getId());
+									return level;
+								}).toList();
+			game.setLevels(levels);
+
 			return game;
 		}).toArray(Game[]::new);
 

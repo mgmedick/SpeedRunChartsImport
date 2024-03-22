@@ -30,7 +30,16 @@ public class Game {
     private List<CategoryType> categoryTypes;
 
     @Transient
+    private List<Category> categories;    
+
+    @Transient
     private List<Level> levels;
+
+    @Transient
+    private List<Variable> variables;
+
+    @Transient
+    private List<VariableValue> variableValues;    
 
     public int getId() {
         return id;
@@ -112,11 +121,35 @@ public class Game {
         this.categoryTypes = categoryTypes;
     }
 
+    public List<Category> getCategories() {
+        return categories;
+    }
+
+    public void setCategories(List<Category> categories) {
+        this.categories = categories;
+    }
+
     public List<Level> getLevels() {
         return levels;
     }
 
     public void setLevels(List<Level> levels) {
         this.levels = levels;
+    }
+
+    public List<Variable> getVariables() {
+        return variables;
+    }
+
+    public void setVariables(List<Variable> variables) {
+        this.variables = variables;
+    }
+
+    public List<VariableValue> getVariableValues() {
+        return variableValues;
+    }
+
+    public void setVariableValues(List<VariableValue> variableValues) {
+        this.variableValues = variableValues;
     }
 }

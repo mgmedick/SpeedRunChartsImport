@@ -11,7 +11,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 import java.util.function.Function;
-import java.util.Comparator;
 
 import org.slf4j.Logger;
 
@@ -20,10 +19,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+import speedrunappimport.common.StringExtensions;
 import speedrunappimport.interfaces.repositories.*;
 import speedrunappimport.interfaces.services.*;
 import speedrunappimport.model.entity.*;
 import speedrunappimport.model.json.*;
+import speedrunappimport.model.Enums;
 
 public class GameService extends BaseService implements IGameService {
 	private IGameRepository _gameRepo;
@@ -40,7 +41,7 @@ public class GameService extends BaseService implements IGameService {
 		try {
 			_logger.info("Started ProcessGames: {@lastImportRefDateUtc}, {@isReload}", lastImportRefDateUtc, isReload);
 			var results = new ArrayList<GameResponse>();
-			var games = new ArrayList<GameResponse>();
+			List<GameResponse> games = new ArrayList<GameResponse>();
 			var prevTotal = 0;
 
 			do {
@@ -86,12 +87,12 @@ public class GameService extends BaseService implements IGameService {
 		return result;
 	}
 
-	public ArrayList<GameResponse> GetGameResponses(Boolean isReload, int offset) throws Exception {
+	public List<GameResponse> GetGameResponses(Boolean isReload, int offset) throws Exception {
 		return GetGameResponses(isReload, offset, 0);
 	}
 
-	public ArrayList<GameResponse> GetGameResponses(Boolean isReload, int offset, int retryCount) throws Exception {
-		var data = new ArrayList<GameResponse>();
+	public List<GameResponse> GetGameResponses(Boolean isReload, int offset, int retryCount) throws Exception {
+		List<GameResponse> data = new ArrayList<GameResponse>();
 
 		try (var client = HttpClient.newHttpClient()) {
 			var parameters = new HashMap<String, String>();
@@ -116,9 +117,9 @@ public class GameService extends BaseService implements IGameService {
 				var mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 											.setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE)
 											.registerModule(new JavaTimeModule());
-				var games = mapper.readerFor(GameResponse[].class)
-								.readValue(mapper.readTree(response.body()).get("data"), GameResponse[].class);
-				data = new ArrayList<>(Arrays.asList(games));
+				var games = Arrays.asList(mapper.readerFor(GameResponse[].class)
+								.readValue(mapper.readTree(response.body()).get("data"), GameResponse[].class));
+				data = new ArrayList<GameResponse>(games);
 			}
 		} catch (Exception ex) {
 			Thread.sleep(super.getErrorPullDelayMS());
@@ -160,9 +161,9 @@ public class GameService extends BaseService implements IGameService {
 		var existingGamesVWs = _gameRepo.GetGamesByCode(games.stream().map(x -> x.id()).toList());
 
 		var gameEntities = games.stream().map(i -> {
-			var existingGame = existingGamesVWs.stream().filter(x -> x.getCode() == i.id()).findFirst().orElse(null);
-			
 			var game = new Game();
+
+			var existingGame = existingGamesVWs.stream().filter(x -> x.getCode() == i.id()).findFirst().orElse(null);			
 			game.setId(existingGame != null ? existingGame.getId() : 0);
 			game.setName(i.names().international());
 			game.setCode(i.id());
@@ -170,6 +171,31 @@ public class GameService extends BaseService implements IGameService {
 			game.setShowMilliseconds(i.ruleset() != null ? i.ruleset().showMilliseconds() : false);
 			game.setReleaseDate(i.releaseDate());
 			game.setImportRefDate(i.created());
+
+			var categoryTypes = i.categories().data().stream()
+									.map(x -> { 
+										var categoryType = new CategoryType();
+										categoryType.setId(Enums.CategoryType.valueOf(StringExtensions.KebabToUpperCamelCase(x.type())).getValue());
+										categoryType.setName(Enums.CategoryType.valueOf(StringExtensions.KebabToUpperCamelCase(x.type())).name());
+										return categoryType;
+									}).collect(Collectors.groupingBy(CategoryType::getId, Collectors.collectingAndThen(
+										Collectors.toList(), 
+										values -> values.get(0)))).values().stream().toList();
+			game.setCategoryTypes(categoryTypes);
+
+			var categories = i.categories().data().stream()
+								.map(x -> { 
+									var category = new Category();
+									category.setId(existingGame != null ? existingGame.getCategories().stream().filter(g ->  g.getCode() == x.id()).map(g -> g.getId()).findFirst().orElse(0) : 0);
+									category.setName(x.name());
+									category.setCode(x.id());
+									category.setGameId(game.getId());
+									category.setCategoryTypeId(Enums.CategoryType.valueOf(StringExtensions.KebabToUpperCamelCase(x.type())).getValue());
+									category.setMiscellaneous(x.miscellaneous());
+									category.setIsTimerAscending(false);
+									return category;
+								}).toList();
+			game.setCategories(categories);
 
 			var levels = i.levels().data().stream()
 								.map(x -> { 
@@ -182,8 +208,32 @@ public class GameService extends BaseService implements IGameService {
 								}).toList();
 			game.setLevels(levels);
 
+			var variables = i.variables().data().stream()
+								.map(x -> { 
+									var variable = new Variable();
+									variable.setId(existingGame != null ? existingGame.getVariables().stream().filter(g ->  g.getCode() == x.id()).map(g -> g.getId()).findFirst().orElse(0) : 0);
+									variable.setName(x.name());
+									variable.setCode(x.id());
+									variable.setGameId(game.getId());
+									variable.setVariableScopeTypeId(Enums.VariableScopeType.valueOf(StringExtensions.KebabToUpperCamelCase(x.scope().type())).getValue());
+									return variable;
+								}).toList();
+			game.setVariables(variables);			
+
+			var variableValues = i.variables().data().stream()
+								.flatMap(x -> x.values().values().entrySet().stream().map(g -> {
+									var variableValue = new VariableValue();
+									variableValue.setId(existingGame != null ? existingGame.getVariableValues().stream().filter(h ->  h.getCode() == g.getKey()).map(h -> h.getId()).findFirst().orElse(0) : 0);
+									variableValue.setName(g.getValue().label());
+									variableValue.setCode(g.getKey());		
+									variableValue.setGameId(game.getId());
+									variableValue.setVariableId(existingGame != null ? existingGame.getVariables().stream().filter(h ->  h.getCode() == x.id()).map(h -> h.getId()).findFirst().orElse(0) : 0);
+									return variableValue;							
+								})).toList();
+			game.setVariableValues(variableValues);		
+			
 			return game;
-		}).toArray(Game[]::new);
+		}).toList();
 
 		_logger.info(Integer.toString(existingGamesVWs.size()));
 	}

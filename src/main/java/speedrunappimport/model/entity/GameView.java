@@ -6,18 +6,13 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
-import speedrunappimport.model.json.*;
 
-import java.time.Instant;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Locale.Category;
 import java.util.List;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -173,5 +168,13 @@ public class GameView {
     
     public List<Level> getLevels() throws Exception {
         return Arrays.asList(_mapper.readValue(this.levelsJson, Level[].class));
-    }     
+    }    
+    
+    public List<Variable> getVariables() throws Exception {
+        return Arrays.asList(_mapper.readValue(this.variablesJson, Variable[].class));
+    }      
+
+    public List<VariableValue> getVariableValues() throws Exception {
+        return Arrays.asList(_mapper.readValue(this.variableValuesJson, VariableValue[].class));
+    }       
 }

@@ -22,7 +22,9 @@ List<String> publishers,
 HashMap<String, String> moderators,
 Instant created,
 GameAssetsResponse assets,
-GameLevelResponse levels) {
+GameCategoryResponse categories,
+GameLevelResponse levels,
+GameVariableResponse variables) {
 }
 
 

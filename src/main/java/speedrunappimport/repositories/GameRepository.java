@@ -14,22 +14,62 @@ public class GameRepository extends BaseRepository implements IGameRepository
 {
 	private IGameDB _gameDB;
 	private IGameViewDB _gameViewDB;
+	private ICategoryDB _categoryDB;
 	private ILevelDB _levelDB;
+	private IVariableDB _variableDB;
+	private IVariableValueDB _variableValueDB;
 
-	public GameRepository(IGameDB gameDB, IGameViewDB gameViewDB, ILevelDB levelDB) {
+	public GameRepository(IGameDB gameDB, IGameViewDB gameViewDB, ICategoryDB categoryDB, ILevelDB levelDB, IVariableDB variableDB, IVariableValueDB variableValueDB) {
 		_gameDB = gameDB;
 		_gameViewDB = gameViewDB;
+		_categoryDB = categoryDB;	
 		_levelDB = levelDB;
+		_variableDB = variableDB;
+		_variableValueDB = variableValueDB;
 	}
 
 	@Transactional(rollbackFor = { Exception.class })
-	public void SaveGames(List<Game> games, List<Level> levels)
+	public void SaveGames(List<Game> games)
 	{
 		for (Game game : games)
 		{
-			var gameLevels = levels.stream().filter(x -> x.getGameId() == game.getId()).collect(Collectors.toList());
-			_levelDB.saveAll(gameLevels);
-			_gameDB.save(game);
+			var gameResult = _gameDB.save(game);
+
+			game.getCategories().forEach(i -> i.setGameId(gameResult.getId()));
+			var categoryResults = _categoryDB.saveAll(game.getCategories());
+			
+			game.getLevels().forEach(i -> i.setGameId(gameResult.getId()));
+			var levelResults = _levelDB.saveAll(game.getLevels());
+
+			game.getVariables().forEach(i -> {
+				i.setGameId(gameResult.getId());
+				i.setCategoryId(categoryResults.stream().filter(g ->  g.getCode() == i.getCategoryCode()).map(g -> g.getId()).findFirst().orElse(0));
+				i.setLevelId(levelResults.stream().filter(g ->  g.getCode() == i.getLevelCode()).map(g -> g.getId()).findFirst().orElse(0));
+			});
+			var variableResults = _variableDB.saveAll(game.getVariables());
+
+			game.getVariableValues().forEach(i -> {
+				i.setGameId(gameResult.getId());
+				i.setVariableId(variableResults.stream().filter(g ->  g.getCode() == i.getVariableCode()).map(g -> g.getId()).findFirst().orElse(0));
+			});
+			
+			if (game.getId() == 0) {
+				if (!game.getCategoriesToRemove().isEmpty()) {
+					_categoryDB.deleteAllById(game.getCategoriesToRemove());
+				}
+
+				if (!game.getLevelsToRemove().isEmpty()) {
+					_levelDB.deleteAllById(game.getLevelsToRemove());
+				}	
+	
+				if (!game.getVariablesToRemove().isEmpty()) {
+					_variableDB.deleteAllById(game.getVariablesToRemove());
+				}		
+				
+				if (!game.getVariableValuesToRemove().isEmpty()) {
+					_variableValueDB.deleteAllById(game.getVariableValuesToRemove());
+				}						
+			}
 		}
 	}
 

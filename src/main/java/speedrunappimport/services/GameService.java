@@ -149,354 +149,100 @@ public class GameService extends BaseService implements IGameService {
 				.stream()
 				.collect(Collectors.toList());
 
-		//  var codes = new ArrayList<String>();
-		//  codes.add("yd4o5w1e");
-		//  codes.add("9dowvo1p");
-		//  codes.add("268ery6p");
-		//  codes.add("9d3r70dl");
-		//  codes.add("576rp418");
-		 
-		// var existingGamesVWs = _gameRepo.GetGameViewsByCode(codes);
-
 		var existingGamesVWs = _gameRepo.GetGamesByCode(games.stream().map(x -> x.id()).toList());
 
 		var gameEntities = games.stream().map(i -> {
-			var game = new Game();
+				var game = new Game();
 
-			var existingGame = existingGamesVWs.stream().filter(x -> x.getCode() == i.id()).findFirst().orElse(null);			
-			game.setId(existingGame != null ? existingGame.getId() : 0);
-			game.setName(i.names().international());
-			game.setCode(i.id());
-			game.setAbbr(i.abbreviation());
-			game.setShowMilliseconds(i.ruleset() != null ? i.ruleset().showMilliseconds() : false);
-			game.setReleaseDate(i.releaseDate());
-			game.setImportRefDate(i.created());
+				var existingGame = existingGamesVWs.stream().filter(x -> x.getCode() == i.id()).findFirst().orElse(null);			
+				game.setId(existingGame != null ? existingGame.getId() : 0);
+				game.setName(i.names().international());
+				game.setCode(i.id());
+				game.setAbbr(i.abbreviation());
+				game.setShowMilliseconds(i.ruleset() != null ? i.ruleset().showMilliseconds() : false);
+				game.setReleaseDate(i.releaseDate());
+				game.setImportRefDate(i.created());
 
-			var categoryTypes = i.categories().data().stream()
+				var categoryTypes = i.categories().data().stream()
+										.map(x -> { 
+											var categoryType = new CategoryType();
+											categoryType.setId(Enums.CategoryType.valueOf(StringExtensions.KebabToUpperCamelCase(x.type())).getValue());
+											categoryType.setName(Enums.CategoryType.valueOf(StringExtensions.KebabToUpperCamelCase(x.type())).name());
+											return categoryType;
+										}).collect(Collectors.groupingBy(CategoryType::getId, Collectors.collectingAndThen(
+											Collectors.toList(), 
+											values -> values.get(0)))).values().stream().toList();
+				game.setCategoryTypes(categoryTypes);
+
+				var categories = i.categories().data().stream()
 									.map(x -> { 
-										var categoryType = new CategoryType();
-										categoryType.setId(Enums.CategoryType.valueOf(StringExtensions.KebabToUpperCamelCase(x.type())).getValue());
-										categoryType.setName(Enums.CategoryType.valueOf(StringExtensions.KebabToUpperCamelCase(x.type())).name());
-										return categoryType;
-									}).collect(Collectors.groupingBy(CategoryType::getId, Collectors.collectingAndThen(
-										Collectors.toList(), 
-										values -> values.get(0)))).values().stream().toList();
-			game.setCategoryTypes(categoryTypes);
+										var category = new Category();
+										category.setId(existingGame != null ? existingGame.getCategories().stream().filter(g ->  g.getCode() == x.id()).map(g -> g.getId()).findFirst().orElse(0) : 0);
+										category.setName(x.name());
+										category.setCode(x.id());
+										category.setGameId(game.getId());
+										category.setCategoryTypeId(Enums.CategoryType.valueOf(StringExtensions.KebabToUpperCamelCase(x.type())).getValue());
+										category.setMiscellaneous(x.miscellaneous());
+										category.setIsTimerAscending(false);
+										return category;
+									}).toList();
+				game.setCategories(categories);
 
-			var categories = i.categories().data().stream()
-								.map(x -> { 
-									var category = new Category();
-									category.setId(existingGame != null ? existingGame.getCategories().stream().filter(g ->  g.getCode() == x.id()).map(g -> g.getId()).findFirst().orElse(0) : 0);
-									category.setName(x.name());
-									category.setCode(x.id());
-									category.setGameId(game.getId());
-									category.setCategoryTypeId(Enums.CategoryType.valueOf(StringExtensions.KebabToUpperCamelCase(x.type())).getValue());
-									category.setMiscellaneous(x.miscellaneous());
-									category.setIsTimerAscending(false);
-									return category;
-								}).toList();
-			game.setCategories(categories);
+				var levels = i.levels().data().stream()
+									.map(x -> { 
+										var level = new Level();
+										level.setId(existingGame != null ? existingGame.getLevels().stream().filter(g ->  g.getCode() == x.id()).map(g -> g.getId()).findFirst().orElse(0) : 0);
+										level.setName(x.name());
+										level.setCode(x.id());
+										level.setGameId(game.getId());
+										return level;
+									}).toList();
+				game.setLevels(levels);
 
-			var levels = i.levels().data().stream()
-								.map(x -> { 
-									var level = new Level();
-									level.setId(existingGame != null ? existingGame.getLevels().stream().filter(g ->  g.getCode() == x.id()).map(g -> g.getId()).findFirst().orElse(0) : 0);
-									level.setName(x.name());
-									level.setCode(x.id());
-									level.setGameId(game.getId());
-									return level;
-								}).toList();
-			game.setLevels(levels);
+				var variables = i.variables().data().stream()
+									.map(x -> { 
+										var variable = new Variable();
+										variable.setId(existingGame != null ? existingGame.getVariables().stream().filter(g ->  g.getCode() == x.id()).map(g -> g.getId()).findFirst().orElse(0) : 0);
+										variable.setName(x.name());
+										variable.setCode(x.id());
+										variable.setGameId(game.getId());
+										variable.setVariableScopeTypeId(Enums.VariableScopeType.valueOf(StringExtensions.KebabToUpperCamelCase(x.scope().type())).getValue());
+										variable.setCategoryCode(x.category());
+										variable.setLevelCode(x.scope().level());
+										return variable;
+									}).toList();
+				game.setVariables(variables);			
 
-			var variables = i.variables().data().stream()
-								.map(x -> { 
-									var variable = new Variable();
-									variable.setId(existingGame != null ? existingGame.getVariables().stream().filter(g ->  g.getCode() == x.id()).map(g -> g.getId()).findFirst().orElse(0) : 0);
-									variable.setName(x.name());
-									variable.setCode(x.id());
-									variable.setGameId(game.getId());
-									variable.setVariableScopeTypeId(Enums.VariableScopeType.valueOf(StringExtensions.KebabToUpperCamelCase(x.scope().type())).getValue());
-									return variable;
-								}).toList();
-			game.setVariables(variables);			
+				var variableValues = i.variables().data().stream()
+									.flatMap(x -> x.values().values().entrySet().stream().map(g -> {
+										var variableValue = new VariableValue();
+										variableValue.setId(existingGame != null ? existingGame.getVariableValues().stream().filter(h ->  h.getCode() == g.getKey()).map(h -> h.getId()).findFirst().orElse(0) : 0);
+										variableValue.setName(g.getValue().label());
+										variableValue.setCode(g.getKey());		
+										variableValue.setGameId(game.getId());
+										variableValue.setVariableId(existingGame != null ? existingGame.getVariables().stream().filter(h ->  h.getCode() == x.id()).map(h -> h.getId()).findFirst().orElse(0) : 0);
+										variableValue.setVariableCode(x.id());
+										return variableValue;							
+									})).toList();
+				game.setVariableValues(variableValues);
+				
+				if (existingGame != null) {
+					var removeCategories = existingGame.getCategories().stream().filter(g -> !categories.stream().anyMatch(h -> h.getCode() == g.getCode())).map(g -> g.getId()).toList();
+					game.setCategoriesToRemove(removeCategories);
 
-			var variableValues = i.variables().data().stream()
-								.flatMap(x -> x.values().values().entrySet().stream().map(g -> {
-									var variableValue = new VariableValue();
-									variableValue.setId(existingGame != null ? existingGame.getVariableValues().stream().filter(h ->  h.getCode() == g.getKey()).map(h -> h.getId()).findFirst().orElse(0) : 0);
-									variableValue.setName(g.getValue().label());
-									variableValue.setCode(g.getKey());		
-									variableValue.setGameId(game.getId());
-									variableValue.setVariableId(existingGame != null ? existingGame.getVariables().stream().filter(h ->  h.getCode() == x.id()).map(h -> h.getId()).findFirst().orElse(0) : 0);
-									return variableValue;							
-								})).toList();
-			game.setVariableValues(variableValues);		
-			
-			return game;
-		}).toList();
+					var removeLevels = existingGame.getLevels().stream().filter(g -> !levels.stream().anyMatch(h -> h.getCode() == g.getCode())).map(g -> g.getId()).toList();
+					game.setLevelsToRemove(removeLevels);	
+					
+					var removeVariables = existingGame.getVariables().stream().filter(g -> !levels.stream().anyMatch(h -> h.getCode() == g.getCode())).map(g -> g.getId()).toList();
+					game.setVariablesToRemove(removeVariables);	
+					
+					var removeVariableValues = existingGame.getVariableValues().stream().filter(g -> !levels.stream().anyMatch(h -> h.getCode() == g.getCode())).map(g -> g.getId()).toList();
+					game.setVariableValuesToRemove(removeVariableValues);						
+				}
+				
+				return game;
+			}).toList();
 
-		_logger.info(Integer.toString(existingGamesVWs.size()));
+		_logger.info("Completed SaveGames");
 	}
-
-	/*
-	 * public void SaveGames(IEnumerable<Game> games, bool isBulkReload)
-	 * {
-	 * _logger.Information("Started SaveGames: {@Count}, {@IsBulkReload}",
-	 * games.Count(), isBulkReload);
-	 * 
-	 * _gameRepo.RemoveObsoleteGameSpeedRunComIDs();
-	 * 
-	 * games = games.GroupBy(g => new { g.ID })
-	 * .Select(i => i.First())
-	 * .ToList();
-	 * 
-	 * games = games.OrderBy(i => i.CreationDate).ToList();
-	 * var gameIDs = games.Select(i => i.ID).ToList();
-	 * var gameSpeedRunComIDs = _gameRepo.GetGameSpeedRunComIDs();
-	 * gameSpeedRunComIDs = gameSpeedRunComIDs.Join(gameIDs, o => o.SpeedRunComID,
-	 * id => id, (o, id) => o).ToList();
-	 * 
-	 * var userIDs = games.SelectMany(i => i.ModeratorUsers.Select(i =>
-	 * i.ID)).Distinct().ToList();
-	 * var userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs();
-	 * userSpeedRunComIDs = userSpeedRunComIDs.Join(userIDs, o => o.SpeedRunComID,
-	 * id => id, (o, id) => o).ToList();
-	 * 
-	 * var levelIDs = games.SelectMany(i => i.Levels.Select(i =>
-	 * i.ID)).Distinct().ToList();
-	 * var levelSpeedRunComIDs = _gameRepo.GetLevelSpeedRunComIDs();
-	 * levelSpeedRunComIDs = levelSpeedRunComIDs.Join(levelIDs, o =>
-	 * o.SpeedRunComID, id => id, (o, id) => o).ToList();
-	 * 
-	 * var categoryIDs = games.SelectMany(i => i.Categories.Select(i =>
-	 * i.ID)).Distinct().ToList();
-	 * var categorySpeedRunComIDs = _gameRepo.GetCategorySpeedRunComIDs();
-	 * categorySpeedRunComIDs = categorySpeedRunComIDs.Join(categoryIDs, o =>
-	 * o.SpeedRunComID, id => id, (o, id) => o).ToList();
-	 * 
-	 * var variableIDs = games.SelectMany(i => i.Variables.Select(i =>
-	 * i.ID)).Distinct().ToList();
-	 * var variableSpeedRunComIDs = _gameRepo.GetVaraibleSpeedRunComIDs();
-	 * variableSpeedRunComIDs = variableSpeedRunComIDs.Join(variableIDs, o =>
-	 * o.SpeedRunComID, id => id, (o, id) => o).ToList();
-	 * 
-	 * var variableValueIDs = games.SelectMany(i => i.Variables.SelectMany(g =>
-	 * g.Values.Select(h => h.ID))).Distinct().ToList();
-	 * var variableValueSpeedRunComIDs = _gameRepo.GetVariableValueSpeedRunComIDs();
-	 * variableValueSpeedRunComIDs =
-	 * variableValueSpeedRunComIDs.Join(variableValueIDs, o => o.SpeedRunComID, id
-	 * => id, (o, id) => o).ToList();
-	 * 
-	 * var platformIDs = games.SelectMany(i => i.PlatformIDs).Distinct().ToList();
-	 * var platformSpeedRunComIDs = _platformRepo.GetPlatformSpeedRunComIDs(i =>
-	 * platformIDs.Contains(i.SpeedRunComID)).ToList();
-	 * 
-	 * var regionIDs = games.SelectMany(i => i.RegionIDs).Distinct().ToList();
-	 * var regionSpeedRunComIDs = _gameRepo.GetRegionSpeedRunComIDs(i =>
-	 * regionIDs.Contains(i.SpeedRunComID)).ToList();
-	 * 
-	 * var moderators = games.Where(i => i.ModeratorUsers != null)
-	 * //.SelectMany(i => i.ModeratorUsers.Where(i => !userSpeedRunComIDs.Any(g =>
-	 * g.SpeedRunComID == i.ID)))
-	 * .SelectMany(i => i.ModeratorUsers)
-	 * .GroupBy(g => new { g.ID })
-	 * .Select(i => i.First())
-	 * .ToList();
-	 * if (moderators.Any())
-	 * {
-	 * _userService.SaveUsers(moderators, isBulkReload, userSpeedRunComIDs);
-	 * userSpeedRunComIDs = _userRepo.GetUserSpeedRunComIDs().Where(i =>
-	 * userIDs.Contains(i.SpeedRunComID)).ToList();
-	 * }
-	 * 
-	 * var gameEntities = games.Select(i => new GameEntity()
-	 * {
-	 * ID = gameSpeedRunComIDs.Where(g => g.SpeedRunComID == i.ID).Select(g =>
-	 * g.GameID).FirstOrDefault(),
-	 * SpeedRunComID = i.ID,
-	 * Name = i.Name,
-	 * YearOfRelease = i.YearOfRelease,
-	 * IsRomHack = i.IsRomHack,
-	 * Abbr = i.Abbreviation,
-	 * CreatedDate = i.CreationDate
-	 * }).ToList();
-	 * var gameLinkEntities = games.Select(i => new GameLinkEntity()
-	 * {
-	 * GameSpeedRunComID = i.ID,
-	 * SpeedRunComUrl = i.WebLink.ToString(),
-	 * CoverImageUrl = i.Assets?.CoverLarge?.Uri.ToString()
-	 * }).ToList();
-	 * var levelEntities = games.SelectMany(i => i.Levels.Select(g => new
-	 * LevelEntity
-	 * {
-	 * ID = levelSpeedRunComIDs.Where(h => h.SpeedRunComID == g.ID).Select(o =>
-	 * o.LevelID).FirstOrDefault(),
-	 * SpeedRunComID = g.ID,
-	 * Name = g.Name,
-	 * GameSpeedRunComID = i.ID
-	 * })).ToList();
-	 * var levelRuleEntities = games.SelectMany(i => i.Levels.Select(g => new
-	 * LevelRuleEntity
-	 * {
-	 * LevelSpeedRunComID = g.ID,
-	 * Rules = g.Rules
-	 * })).Where(i => !string.IsNullOrWhiteSpace(i.Rules))
-	 * .ToList();
-	 * var categoryEntities = games.SelectMany(i => i.Categories.Select(g => new
-	 * CategoryEntity
-	 * {
-	 * ID = categorySpeedRunComIDs.Where(h => h.SpeedRunComID == g.ID).Select(o =>
-	 * o.CategoryID).FirstOrDefault(),
-	 * SpeedRunComID = g.ID,
-	 * Name = g.Name,
-	 * GameSpeedRunComID = i.ID,
-	 * CategoryTypeID = (int)g.Type,
-	 * IsMiscellaneous = g.IsMiscellaneous,
-	 * IsTimerAscending = g.IsTimerAscending
-	 * })).ToList();
-	 * var categoryRuleEntities = games.SelectMany(i => i.Categories.Select(g => new
-	 * CategoryRuleEntity
-	 * {
-	 * CategorySpeedRunComID = g.ID,
-	 * Rules = g.Rules
-	 * })).Where(i => !string.IsNullOrWhiteSpace(i.Rules))
-	 * .ToList();
-	 * var variableEntities = games.SelectMany(i => i.Variables.Select(g => new
-	 * VariableEntity
-	 * {
-	 * ID = variableSpeedRunComIDs.Where(h => h.SpeedRunComID == g.ID).Select(o =>
-	 * o.VariableID).FirstOrDefault(),
-	 * SpeedRunComID = g.ID,
-	 * Name = g.Name,
-	 * VariableScopeTypeID = (int)g.Scope.Type,
-	 * GameSpeedRunComID = i.ID,
-	 * CategorySpeedRunComID = g.CategoryID,
-	 * LevelSpeedRunComID = g.Scope.LevelID,
-	 * IsSubCategory = g.IsSubCategory
-	 * })).Where(i => (string.IsNullOrWhiteSpace(i.CategorySpeedRunComID) ||
-	 * categoryEntities.Any(g => g.GameSpeedRunComID == i.GameSpeedRunComID &&
-	 * g.SpeedRunComID == i.CategorySpeedRunComID))
-	 * && (string.IsNullOrWhiteSpace(i.LevelSpeedRunComID) || levelEntities.Any(g =>
-	 * g.GameSpeedRunComID == i.GameSpeedRunComID && g.SpeedRunComID ==
-	 * i.LevelSpeedRunComID)))
-	 * .ToList();
-	 * var variableValueEntities = games.SelectMany(i => i.Variables.SelectMany(g =>
-	 * g.Values.Select(h => new VariableValueEntity
-	 * {
-	 * ID = variableValueSpeedRunComIDs.Where(n => n.SpeedRunComID == h.ID).Select(o
-	 * => o.VariableValueID).FirstOrDefault(),
-	 * SpeedRunComID = h.ID,
-	 * GameSpeedRunComID = g.GameID,
-	 * VariableSpeedRunComID = h.VariableID,
-	 * Value = h.Value,
-	 * IsCustomValue = h.IsCustomValue
-	 * }))).Where(i => variableEntities.Any(g => g.SpeedRunComID ==
-	 * i.VariableSpeedRunComID))
-	 * .ToList();
-	 * var gamePlatformEntities = games.SelectMany(i => i.PlatformIDs.Select(g =>
-	 * new GamePlatformEntity
-	 * {
-	 * GameSpeedRunComID = i.ID,
-	 * PlatformID = platformSpeedRunComIDs.Where(h => h.SpeedRunComID == g).Select(o
-	 * => o.PlatformID).FirstOrDefault(),
-	 * PlatformSpeedRunComID = g
-	 * }))
-	 * .Where(i => i.PlatformID != 0)
-	 * .ToList();
-	 * var gameRegionEntities = games.SelectMany(i => i.RegionIDs.Select(g => new
-	 * GameRegionEntity
-	 * {
-	 * GameSpeedRunComID = i.ID,
-	 * RegionID = regionSpeedRunComIDs.Where(h => h.SpeedRunComID == g).Select(o =>
-	 * o.RegionID).FirstOrDefault()
-	 * }))
-	 * .Where(i => i.RegionID != 0)
-	 * .ToList();
-	 * var gameModeratorEntities = games.SelectMany(i => i.ModeratorUsers.Select(g
-	 * => new GameModeratorEntity
-	 * {
-	 * GameSpeedRunComID = i.ID,
-	 * UserID = userSpeedRunComIDs.Where(h => h.SpeedRunComID == g.ID).Select(o =>
-	 * o.UserID).FirstOrDefault(),
-	 * UserSpeedRunComID = g.ID
-	 * }))
-	 * .Where(i => i.UserID != 0)
-	 * .ToList();
-	 * var gameRulesetEntities = games.Select(i => new GameRulesetEntity
-	 * {
-	 * GameSpeedRunComID = i.ID,
-	 * ShowMilliseconds = i.Ruleset.ShowMilliseconds,
-	 * RequiresVerification = i.Ruleset.RequiresVerification,
-	 * RequiresVideo = i.Ruleset.RequiresVideo,
-	 * DefaultTimingMethodID = (int)i.Ruleset.DefaultTimingMethod,
-	 * EmulatorsAllowed = i.Ruleset.EmulatorsAllowed
-	 * }).ToList();
-	 * var gameTimingMethodEntities = games.SelectMany(i =>
-	 * i.Ruleset.TimingMethods.Select(g => new GameTimingMethodEntity
-	 * {
-	 * GameSpeedRunComID = i.ID,
-	 * TimingMethodID = (int)g
-	 * })).ToList();
-	 * 
-	 * if (isBulkReload)
-	 * {
-	 * _gameRepo.InsertGames(gameEntities, gameLinkEntities, levelEntities,
-	 * levelRuleEntities, categoryEntities, categoryRuleEntities, variableEntities,
-	 * variableValueEntities, gamePlatformEntities, gameRegionEntities,
-	 * gameModeratorEntities, gameRulesetEntities, gameTimingMethodEntities);
-	 * }
-	 * else
-	 * {
-	 * var newGameEntities = gameEntities.Where(i => i.ID == 0).ToList();
-	 * SetChangedGames(gameEntities, gameLinkEntities, categoryEntities,
-	 * levelEntities, variableEntities, variableValueEntities, gamePlatformEntities,
-	 * gameModeratorEntities);
-	 * var changedGameEntities = gameEntities.Where(i => i.IsChanged ==
-	 * true).ToList();
-	 * var totalGames = gameEntities.Count();
-	 * gameEntities = newGameEntities.Concat(changedGameEntities).ToList();
-	 * var saveGameSpeedRunComIDs = gameEntities.Select(i =>
-	 * i.SpeedRunComID).ToList();
-	 * 
-	 * _logger.
-	 * Information("Found NewGames: {@New}, ChangedGames: {@Changed}, TotalGames: {@Total}"
-	 * , newGameEntities.Count(), changedGameEntities.Count(), totalGames);
-	 * 
-	 * gameLinkEntities = gameLinkEntities.Where(i =>
-	 * saveGameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
-	 * levelEntities = levelEntities.Where(i =>
-	 * saveGameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
-	 * levelRuleEntities = levelRuleEntities.Where(i => levelEntities.Any(g =>
-	 * g.SpeedRunComID == i.LevelSpeedRunComID)).ToList();
-	 * categoryEntities = categoryEntities.Where(i =>
-	 * saveGameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
-	 * categoryRuleEntities = categoryRuleEntities.Where(i => categoryEntities.Any(g
-	 * => g.SpeedRunComID == i.CategorySpeedRunComID)).ToList();
-	 * variableEntities = variableEntities.Where(i =>
-	 * saveGameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
-	 * variableValueEntities = variableValueEntities.Where(i =>
-	 * saveGameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
-	 * gamePlatformEntities = gamePlatformEntities.Where(i =>
-	 * saveGameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
-	 * gameModeratorEntities = gameModeratorEntities.Where(i =>
-	 * saveGameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
-	 * gameRulesetEntities = gameRulesetEntities.Where(i =>
-	 * saveGameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
-	 * gameTimingMethodEntities = gameTimingMethodEntities.Where(i =>
-	 * saveGameSpeedRunComIDs.Contains(i.GameSpeedRunComID)).ToList();
-	 * 
-	 * _gameRepo.SaveGames(gameEntities, gameLinkEntities, levelEntities,
-	 * levelRuleEntities, categoryEntities, categoryRuleEntities, variableEntities,
-	 * variableValueEntities, gamePlatformEntities, gameRegionEntities,
-	 * gameModeratorEntities, gameRulesetEntities, gameTimingMethodEntities);
-	 * }
-	 * 
-	 * if (IsProcessGameCoverImages)
-	 * {
-	 * ProcessGameCoverImages(gameLinkEntities, gameEntities, isBulkReload);
-	 * }
-	 * 
-	 * _logger.Information("Completed SaveGames");
-	 * }
-	 */
 }

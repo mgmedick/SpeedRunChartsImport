@@ -39,7 +39,19 @@ public class Game {
     private List<Variable> variables;
 
     @Transient
-    private List<VariableValue> variableValues;    
+    private List<VariableValue> variableValues;  
+    
+    @Transient
+    private List<Integer> categoriesToRemove;    
+
+    @Transient
+    private List<Integer> levelsToRemove;       
+
+    @Transient
+    private List<Integer> variablesToRemove;       
+
+    @Transient
+    private List<Integer> variableValuesToRemove;  
 
     public int getId() {
         return id;
@@ -151,5 +163,37 @@ public class Game {
 
     public void setVariableValues(List<VariableValue> variableValues) {
         this.variableValues = variableValues;
+    }
+
+    public List<Integer> getCategoriesToRemove() {
+        return categoriesToRemove;
+    }
+
+    public void setCategoriesToRemove(List<Integer> categoriesToRemove) {
+        this.categoriesToRemove = categoriesToRemove;
+    }
+
+    public List<Integer> getLevelsToRemove() {
+        return levelsToRemove;
+    }
+
+    public void setLevelsToRemove(List<Integer> levelsToRemove) {
+        this.levelsToRemove = levelsToRemove;
+    }
+
+    public List<Integer> getVariablesToRemove() {
+        return variablesToRemove;
+    }
+
+    public void setVariablesToRemove(List<Integer> variablesToRemove) {
+        this.variablesToRemove = variablesToRemove;
+    }
+
+    public List<Integer> getVariableValuesToRemove() {
+        return variableValuesToRemove;
+    }
+
+    public void setVariableValuesToRemove(List<Integer> variableValuesToRemove) {
+        this.variableValuesToRemove = variableValuesToRemove;
     }
 }

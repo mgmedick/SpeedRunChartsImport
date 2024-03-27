@@ -8,7 +8,7 @@ public class StringExtensions
     {
         String result = text;
         
-        if (result != null && result.isBlank()) {
+        if (result != null && !result.isBlank()) {
             result = result.toLowerCase();
             result = Pattern.compile("-([a-z])")
                         .matcher(result)

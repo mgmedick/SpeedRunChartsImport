@@ -5,6 +5,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 @Entity
 @Table(name = "tbl_variablevalue")
@@ -17,6 +18,9 @@ public class VariableValue {
     private int gameId;
     private int variableId;
     private boolean isMiscellaneous;
+
+    @Transient
+    private String variableCode;
 
     public int getId() {
         return id;
@@ -64,5 +68,13 @@ public class VariableValue {
 
     public void setIsMiscellaneous(boolean isMiscellaneous) {
         this.isMiscellaneous = isMiscellaneous;
+    }
+    
+    public String getVariableCode() {
+        return variableCode;
+    }
+
+    public void setVariableCode(String variableCode) {
+        this.variableCode = variableCode;
     }
 }

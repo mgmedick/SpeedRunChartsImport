@@ -5,6 +5,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 @Entity
 @Table(name = "tbl_variable")
@@ -19,6 +20,12 @@ public class Variable {
     private int categoryId;
     private Integer levelId;
     private boolean isSubCategory;
+
+    @Transient
+    private String categoryCode;
+
+    @Transient
+    private String levelCode;
 
     public int getId() {
         return id;
@@ -83,4 +90,20 @@ public class Variable {
     public void setSubCategory(boolean isSubCategory) {
         this.isSubCategory = isSubCategory;
     }
+
+    public String getCategoryCode() {
+        return categoryCode;
+    }
+
+    public void setCategoryCode(String categoryCode) {
+        this.categoryCode = categoryCode;
+    }
+
+    public String getLevelCode() {
+        return levelCode;
+    }
+
+    public void setLevelCode(String levelCode) {
+        this.levelCode = levelCode;
+    }  
 }

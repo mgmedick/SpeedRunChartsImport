@@ -243,6 +243,8 @@ public class GameService extends BaseService implements IGameService {
 				return game;
 			}).toList();
 
+		_gameRepo.SaveGames(gameEntities);
+		
 		_logger.info("Completed SaveGames");
 	}
 }

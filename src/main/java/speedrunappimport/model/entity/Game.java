@@ -23,8 +23,10 @@ public class Game {
     private boolean showMilliseconds;
     private LocalDate releaseDate;
     private Instant importRefDate;
-    private Instant createdDate;
     private Instant modifiedDate;
+
+    @Transient
+    private Instant createdDate;
 
     @Transient
     private List<CategoryType> categoryTypes;

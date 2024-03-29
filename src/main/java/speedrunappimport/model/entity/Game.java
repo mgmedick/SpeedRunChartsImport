@@ -22,11 +22,12 @@ public class Game {
     private String abbr;
     private boolean showMilliseconds;
     private LocalDate releaseDate;
+    private boolean deleted;
     private Instant importRefDate;
-    private Instant modifiedDate;
-
     @Transient
     private Instant createdDate;
+    private Instant modifiedDate;
+
 
     @Transient
     private List<CategoryType> categoryTypes;
@@ -42,6 +43,9 @@ public class Game {
 
     @Transient
     private List<VariableValue> variableValues;  
+
+    @Transient
+    private List<GamePlatform> gamePlatforms;   
     
     @Transient
     private List<Integer> categoriesToRemove;    
@@ -54,6 +58,9 @@ public class Game {
 
     @Transient
     private List<Integer> variableValuesToRemove;  
+
+    @Transient
+    private List<Integer> gamePlatformsToRemove;     
 
     public int getId() {
         return id;
@@ -102,6 +109,14 @@ public class Game {
     public void setReleaseDate(LocalDate releaseDate) {
         this.releaseDate = releaseDate;
     }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }    
 
     public Instant getImportRefDate() {
         return importRefDate;
@@ -167,6 +182,14 @@ public class Game {
         this.variableValues = variableValues;
     }
 
+    public List<GamePlatform> getGamePlatforms() {
+        return gamePlatforms;
+    }
+
+    public void setGamePlatforms(List<GamePlatform> gamePlatforms) {
+        this.gamePlatforms = gamePlatforms;
+    }
+
     public List<Integer> getCategoriesToRemove() {
         return categoriesToRemove;
     }
@@ -198,4 +221,12 @@ public class Game {
     public void setVariableValuesToRemove(List<Integer> variableValuesToRemove) {
         this.variableValuesToRemove = variableValuesToRemove;
     }
+
+    public List<Integer> getGamePlatformsToRemove() {
+        return gamePlatformsToRemove;
+    }
+
+    public void setGamePlatformsToRemove(List<Integer> gamePlatformsToRemove) {
+        this.gamePlatformsToRemove = gamePlatformsToRemove;
+    }    
 }

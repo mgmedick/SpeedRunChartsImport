@@ -18,6 +18,7 @@ public class VariableValue {
     private int gameId;
     private int variableId;
     private boolean isMiscellaneous;
+    private boolean deleted;
 
     @Transient
     private String variableCode;
@@ -77,4 +78,12 @@ public class VariableValue {
     public void setVariableCode(String variableCode) {
         this.variableCode = variableCode;
     }
+    
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }     
 }

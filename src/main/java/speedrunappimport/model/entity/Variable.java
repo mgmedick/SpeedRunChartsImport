@@ -20,6 +20,7 @@ public class Variable {
     private int categoryId;
     private Integer levelId;
     private boolean isSubCategory;
+    private boolean deleted;
 
     @Transient
     private String categoryCode;
@@ -105,5 +106,13 @@ public class Variable {
 
     public void setLevelCode(String levelCode) {
         this.levelCode = levelCode;
-    }  
+    }
+    
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }        
 }

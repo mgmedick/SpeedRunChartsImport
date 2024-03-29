@@ -33,12 +33,17 @@ public class DIConfiguration
 	}	
 
 	@Bean
-	public IGameRepository getGameRepository(IGameDB gameDB, IGameViewDB gameViewDB, ICategoryDB categoryDB, ILevelDB levelDB, IVariableDB variableDB, IVariableValueDB variableValueDB){
-		return new GameRepository(gameDB, gameViewDB, categoryDB, levelDB, variableDB, variableValueDB);
+	public IPlatformRepository getPlatformRepository(IPlatformDB platformDB, Logger logger){
+		return new PlatformRepository(platformDB, logger);
 	}
 
 	@Bean
-	public IGameService getGameService(IGameRepository gameRepository, Logger logger){
-		return new GameService(gameRepository, logger);
+	public IGameRepository getGameRepository(IGameDB gameDB, IGameViewDB gameViewDB, ICategoryDB categoryDB, ILevelDB levelDB, IVariableDB variableDB, IVariableValueDB variableValueDB, IGamePlatformDB gamePlatformDB, Logger logger){
+		return new GameRepository(gameDB, gameViewDB, categoryDB, levelDB, variableDB, variableValueDB, gamePlatformDB, logger);
+	}
+
+	@Bean
+	public IGameService getGameService(IGameRepository gameRepository, IPlatformRepository platformRepository, Logger logger){
+		return new GameService(gameRepository, platformRepository, logger);
 	}
 }

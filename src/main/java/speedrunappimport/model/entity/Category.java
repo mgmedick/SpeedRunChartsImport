@@ -18,6 +18,7 @@ public class Category {
     private int categoryTypeId;
     private boolean isMiscellaneous;
     private boolean isTimerAscending;
+    private boolean deleted;
 
     public int getId() {
         return id;
@@ -74,4 +75,12 @@ public class Category {
     public void setIsTimerAscending(boolean isTimerAscending) {
         this.isTimerAscending = isTimerAscending;
     }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }    
 }

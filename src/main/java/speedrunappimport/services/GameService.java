@@ -28,10 +28,12 @@ import speedrunappimport.model.Enums;
 
 public class GameService extends BaseService implements IGameService {
 	private IGameRepository _gameRepo;
+	private IPlatformRepository _platformRepo;
 	private Logger _logger;
 
-	public GameService(IGameRepository gameRepo, Logger logger) {
+	public GameService(IGameRepository gameRepo, IPlatformRepository platformRepo, Logger logger) {
 		_gameRepo = gameRepo;
+		_platformRepo = platformRepo;
 		_logger = logger;
 	}
 
@@ -39,7 +41,7 @@ public class GameService extends BaseService implements IGameService {
 		boolean result = true;
 
 		try {
-			_logger.info("Started ProcessGames: {@lastImportRefDateUtc}, {@isReload}", lastImportRefDateUtc, isReload);
+			_logger.info("Started ProcessGames: {}, {}", lastImportRefDateUtc, isReload);
 			var results = new ArrayList<GameResponse>();
 			List<GameResponse> games = new ArrayList<GameResponse>();
 			var prevTotal = 0;
@@ -48,14 +50,13 @@ public class GameService extends BaseService implements IGameService {
 				games = GetGameResponses(isReload, results.size() + prevTotal);
 				results.addAll(games);
 				Thread.sleep(super.getPullDelayMS());
-				_logger.info("Pulled games: {@New}, total games: {@Total}", games.size(), results.size() + prevTotal);
+				_logger.info("Pulled games: {}, total games: {}", games.size(), results.size() + prevTotal);
 
 				var memorySize = Runtime.getRuntime().totalMemory();
 				if (memorySize > super.getMaxMemorySizeBytes()) {
 					prevTotal += results.size();
-					_logger.info("Saving to clear memory, results: {@Count}, size: {@Size}", results.size(),
-							memorySize);
-					SaveGames(results, isReload);
+					_logger.info("Saving to clear memory, results: {}, size: {}", results.size(), memorySize);
+					SaveGameResponses(results, isReload);
 					results.clear();
 					results.trimToSize();
 				}
@@ -69,7 +70,7 @@ public class GameService extends BaseService implements IGameService {
 			}
 
 			if (results.size() > 0) {
-				SaveGames(results, isReload);
+				SaveGameResponses(results, isReload);
 				// var lastUpdateDate = results.stream().map(i -> i.created != null ?
 				// Instant.parse(i.created) :
 				// super.sqlMinDateTime).max(Instant::compareTo).get();
@@ -125,7 +126,7 @@ public class GameService extends BaseService implements IGameService {
 			Thread.sleep(super.getErrorPullDelayMS());
 			retryCount++;
 			if (retryCount <= super.getMaxRetryCount()) {
-				_logger.info("Retrying pull games: {@New}, total games: {@Total}, retry: {@RetryCount}",
+				_logger.info("Retrying pull games: {}, total games: {}, retry: {}",
 						super.getMaxPageLimitSM(), offset, retryCount);
 				data = GetGameResponses(isReload, offset, retryCount);
 			} else {
@@ -136,8 +137,8 @@ public class GameService extends BaseService implements IGameService {
 		return data;
 	}
 
-	public void SaveGames(List<GameResponse> games, boolean isReload) {
-		_logger.info("Started SaveGames: {@count}", games.size());
+	public void SaveGameResponses(List<GameResponse> games, boolean isReload) {
+		_logger.info("Started SaveGameResponses: {}", games.size());
 
 		if (!isReload) {
 			games = games.reversed();
@@ -150,7 +151,8 @@ public class GameService extends BaseService implements IGameService {
 				.collect(Collectors.toList());
 
 		var existingGamesVWs = _gameRepo.GetGamesByCode(games.stream().map(x -> x.id()).toList());
-
+		var platforms = _platformRepo.GetAllPlatforms();
+		
 		var gameEntities = games.stream().map(i -> {
 				var game = new Game();
 
@@ -183,7 +185,7 @@ public class GameService extends BaseService implements IGameService {
 										category.setGameId(game.getId());
 										category.setCategoryTypeId(Enums.CategoryType.valueOf(StringExtensions.KebabToUpperCamelCase(x.type())).getValue());
 										category.setMiscellaneous(x.miscellaneous());
-										category.setIsTimerAscending(false);
+										category.setIsTimerAscending(x.rules() != null && x.rules().contains("long as possible"));
 										return category;
 									}).toList();
 				game.setCategories(categories);
@@ -225,6 +227,17 @@ public class GameService extends BaseService implements IGameService {
 										return variableValue;							
 									})).toList();
 				game.setVariableValues(variableValues);
+
+				var gamePlatforms = platforms.stream()
+									.filter(g -> i.platforms().contains(g.getCode()))
+									.map(x -> { 
+										var gamePlatform = new GamePlatform();
+										gamePlatform.setId(existingGame != null ? existingGame.getGamePlatforms().stream().filter(g ->  g.getPlatformId() == x.getId()).map(g -> g.getId()).findFirst().orElse(0) : 0);
+										gamePlatform.setPlatformId(x.getId());
+										gamePlatform.setGameId(game.getId());
+										return gamePlatform;
+									}).toList();
+				game.setGamePlatforms(gamePlatforms);				
 				
 				if (existingGame != null) {
 					var removeCategories = existingGame.getCategories().stream().filter(g -> !categories.stream().anyMatch(h -> h.getCode() == g.getCode())).map(g -> g.getId()).toList();
@@ -233,11 +246,14 @@ public class GameService extends BaseService implements IGameService {
 					var removeLevels = existingGame.getLevels().stream().filter(g -> !levels.stream().anyMatch(h -> h.getCode() == g.getCode())).map(g -> g.getId()).toList();
 					game.setLevelsToRemove(removeLevels);	
 					
-					var removeVariables = existingGame.getVariables().stream().filter(g -> !levels.stream().anyMatch(h -> h.getCode() == g.getCode())).map(g -> g.getId()).toList();
+					var removeVariables = existingGame.getVariables().stream().filter(g -> !variables.stream().anyMatch(h -> h.getCode() == g.getCode())).map(g -> g.getId()).toList();
 					game.setVariablesToRemove(removeVariables);	
 					
-					var removeVariableValues = existingGame.getVariableValues().stream().filter(g -> !levels.stream().anyMatch(h -> h.getCode() == g.getCode())).map(g -> g.getId()).toList();
-					game.setVariableValuesToRemove(removeVariableValues);						
+					var removeVariableValues = existingGame.getVariableValues().stream().filter(g -> !variableValues.stream().anyMatch(h -> h.getCode() == g.getCode())).map(g -> g.getId()).toList();
+					game.setVariableValuesToRemove(removeVariableValues);			
+					
+					var removeGamePlatforms = existingGame.getGamePlatforms().stream().filter(g -> !gamePlatforms.stream().anyMatch(h -> h.getId() == g.getId())).map(g -> g.getId()).toList();
+					game.setGamePlatformsToRemove(removeGamePlatforms);						
 				}
 				
 				return game;
@@ -245,6 +261,6 @@ public class GameService extends BaseService implements IGameService {
 
 		_gameRepo.SaveGames(gameEntities);
 		
-		_logger.info("Completed SaveGames");
+		_logger.info("Completed SaveGameResponses");
 	}
 }

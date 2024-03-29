@@ -28,9 +28,8 @@ public class Game {
     private Instant createdDate;
     private Instant modifiedDate;
 
-
     @Transient
-    private List<CategoryType> categoryTypes;
+    private List<GameCategoryType> gameCategoryTypes;
 
     @Transient
     private List<Category> categories;    
@@ -47,6 +46,9 @@ public class Game {
     @Transient
     private List<GamePlatform> gamePlatforms;   
     
+    @Transient
+    private List<Integer> gameCategoryTypesToRemove;   
+
     @Transient
     private List<Integer> categoriesToRemove;    
 
@@ -142,12 +144,12 @@ public class Game {
         this.modifiedDate = modifiedDate;
     }
 
-    public List<CategoryType> getCategoryTypes() {
-        return categoryTypes;
+    public List<GameCategoryType> getGameCategoryTypes() {
+        return gameCategoryTypes;
     }
 
-    public void setCategoryTypes(List<CategoryType> categoryTypes) {
-        this.categoryTypes = categoryTypes;
+    public void setGameCategoryTypes(List<GameCategoryType> gameCategoryTypes) {
+        this.gameCategoryTypes = gameCategoryTypes;
     }
 
     public List<Category> getCategories() {
@@ -190,6 +192,14 @@ public class Game {
         this.gamePlatforms = gamePlatforms;
     }
 
+    public List<Integer> getGameCategoryTypesToRemove() {
+        return gameCategoryTypesToRemove;
+    }
+
+    public void setGameCategoryTypesToRemove(List<Integer> gameCategoryTypesToRemove) {
+        this.gameCategoryTypesToRemove = gameCategoryTypesToRemove;
+    }   
+
     public List<Integer> getCategoriesToRemove() {
         return categoriesToRemove;
     }
@@ -228,5 +238,5 @@ public class Game {
 
     public void setGamePlatformsToRemove(List<Integer> gamePlatformsToRemove) {
         this.gamePlatformsToRemove = gamePlatformsToRemove;
-    }    
+    } 
 }

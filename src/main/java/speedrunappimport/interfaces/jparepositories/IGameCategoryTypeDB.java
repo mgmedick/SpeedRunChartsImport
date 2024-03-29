@@ -7,9 +7,9 @@ import org.springframework.data.jpa.repository.Query;
 
 import speedrunappimport.model.entity.*;
 
-public interface IGamePlatformDB extends IBaseDB<GamePlatform, Integer>
+public interface IGameCategoryTypeDB extends IBaseDB<GameCategoryType, Integer>
 {
-    @Query("UPDATE tbl_game_platform gp SET gp.deleted = true WHERE gp.id IN :ids")
+    @Query("UPDATE tbl_game_categorytype gc SET gc.deleted = true WHERE gc.id IN :ids")
     @Modifying
     public void softDeleteAllById(List<Integer> ids);       
 }

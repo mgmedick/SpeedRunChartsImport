@@ -152,7 +152,8 @@ public class GameService extends BaseService implements IGameService {
 
 		var existingGamesVWs = _gameRepo.GetGamesByCode(games.stream().map(x -> x.id()).toList());
 		var platforms = _platformRepo.GetAllPlatforms();
-		
+		var categoryTypes = _gameRepo.GetCategoryTypes();
+
 		var gameEntities = games.stream().map(i -> {
 				var game = new Game();
 
@@ -165,16 +166,16 @@ public class GameService extends BaseService implements IGameService {
 				game.setReleaseDate(i.releaseDate());
 				game.setImportRefDate(i.created());
 
-				var categoryTypes = i.categories().data().stream()
+				var gameCategoryTypes = categoryTypes.stream()
+										.filter(g -> i.categories().data().stream().anyMatch(x -> StringExtensions.KebabToUpperCamelCase(x.type()) == g.getName()))
 										.map(x -> { 
-											var categoryType = new CategoryType();
-											categoryType.setId(Enums.CategoryType.valueOf(StringExtensions.KebabToUpperCamelCase(x.type())).getValue());
-											categoryType.setName(Enums.CategoryType.valueOf(StringExtensions.KebabToUpperCamelCase(x.type())).name());
-											return categoryType;
-										}).collect(Collectors.groupingBy(CategoryType::getId, Collectors.collectingAndThen(
-											Collectors.toList(), 
-											values -> values.get(0)))).values().stream().toList();
-				game.setCategoryTypes(categoryTypes);
+											var gameCategoryType = new GameCategoryType();
+											gameCategoryType.setId(existingGame != null ? existingGame.getGameCategoryTypes().stream().filter(g ->  g.getCategoryTypeId() == x.getId()).map(g -> g.getId()).findFirst().orElse(0) : 0);
+											gameCategoryType.setCategoryTypeId(x.getId());
+											gameCategoryType.setGameId(game.getId());
+											return gameCategoryType;
+								}).toList();
+				game.setGameCategoryTypes(gameCategoryTypes);	
 
 				var categories = i.categories().data().stream()
 									.map(x -> { 
@@ -240,6 +241,9 @@ public class GameService extends BaseService implements IGameService {
 				game.setGamePlatforms(gamePlatforms);				
 				
 				if (existingGame != null) {
+					var removeGameCategoryTypes = existingGame.getGameCategoryTypes().stream().filter(g -> !gameCategoryTypes.stream().anyMatch(h -> h.getId() == g.getId())).map(g -> g.getId()).toList();
+					game.setGameCategoryTypesToRemove(removeGameCategoryTypes);	
+
 					var removeCategories = existingGame.getCategories().stream().filter(g -> !categories.stream().anyMatch(h -> h.getCode() == g.getCode())).map(g -> g.getId()).toList();
 					game.setCategoriesToRemove(removeCategories);
 

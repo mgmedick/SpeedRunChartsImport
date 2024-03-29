@@ -20,9 +20,11 @@ public class GameRepository extends BaseRepository implements IGameRepository {
 	private IVariableDB _variableDB;
 	private IVariableValueDB _variableValueDB;
 	private IGamePlatformDB _gamePlatformDB;
+	private ICategoryTypeDB _categoryTypeDB;
+	private IGameCategoryTypeDB _gameCategoryTypeDB;
 	private Logger _logger;
 
-	public GameRepository(IGameDB gameDB, IGameViewDB gameViewDB, ICategoryDB categoryDB, ILevelDB levelDB, IVariableDB variableDB, IVariableValueDB variableValueDB, IGamePlatformDB gamePlatformDB, Logger logger) {
+	public GameRepository(IGameDB gameDB, IGameViewDB gameViewDB, ICategoryDB categoryDB, ILevelDB levelDB, IVariableDB variableDB, IVariableValueDB variableValueDB, IGamePlatformDB gamePlatformDB, ICategoryTypeDB categoryTypeDB, IGameCategoryTypeDB gameCategoryTypeDB, Logger logger) {
 		_gameDB = gameDB;
 		_gameViewDB = gameViewDB;
 		_categoryDB = categoryDB;
@@ -30,6 +32,8 @@ public class GameRepository extends BaseRepository implements IGameRepository {
 		_variableDB = variableDB;
 		_variableValueDB = variableValueDB;
 		_gamePlatformDB = gamePlatformDB;
+		_categoryTypeDB = categoryTypeDB;
+		_gameCategoryTypeDB = gameCategoryTypeDB;
 		_logger = logger;
 	}
 
@@ -54,30 +58,20 @@ public class GameRepository extends BaseRepository implements IGameRepository {
 		if (game.getId() != 0) {
 			game.setModifiedDate(Instant.now());	
 	
-			_logger.info("Deleting secondary game entities");	
-			if (!game.getCategoriesToRemove().isEmpty()) {
-				_categoryDB.deleteAllById(game.getCategoriesToRemove());
-			}
-	
-			if (!game.getLevelsToRemove().isEmpty()) {
-				_levelDB.deleteAllById(game.getLevelsToRemove());
-			}
-	
-			if (!game.getVariablesToRemove().isEmpty()) {
-				_variableDB.deleteAllById(game.getVariablesToRemove());
-			}
-	
-			if (!game.getVariableValuesToRemove().isEmpty()) {
-				_variableValueDB.deleteAllById(game.getVariableValuesToRemove());
-			}
-
-			if (!game.getGamePlatforms().isEmpty()) {
-				_gamePlatformDB.deleteAllById(game.getGamePlatformsToRemove());
-			}				
+			_logger.info("Deleting secondary game entities");
+			_gameCategoryTypeDB.softDeleteAllById(game.getGameCategoryTypesToRemove());	
+			_categoryDB.softDeleteAllById(game.getCategoriesToRemove());
+			_levelDB.softDeleteAllById(game.getLevelsToRemove());
+			_variableDB.softDeleteAllById(game.getVariablesToRemove());
+			_variableValueDB.softDeleteAllById(game.getVariableValuesToRemove());
+			_gamePlatformDB.softDeleteAllById(game.getGamePlatformsToRemove());			
 		}
 
 		_gameDB.save(game);
 
+		game.getGameCategoryTypes().forEach(i -> i.setGameId(game.getId()));
+		_gameCategoryTypeDB.saveAll(game.getGameCategoryTypes());
+		
 		game.getCategories().forEach(i -> i.setGameId(game.getId()));
 		_categoryDB.saveAll(game.getCategories());
 
@@ -95,6 +89,7 @@ public class GameRepository extends BaseRepository implements IGameRepository {
 			i.setGameId(game.getId());
 			i.setVariableId(game.getVariables().stream().filter(g -> g.getCode() == i.getVariableCode()).map(g -> g.getId()).findFirst().orElse(0));
 		});
+		_variableValueDB.saveAll(game.getVariableValues());
 
 		_logger.info("Completed Saving gameId: {}, code: {}", game.getId(), game.getCode());
 	}
@@ -130,4 +125,9 @@ public class GameRepository extends BaseRepository implements IGameRepository {
 
 		return results;
 	}
+
+	@Transactional(isolation = Isolation.READ_UNCOMMITTED)
+	public List<CategoryType> GetCategoryTypes() {
+		return _categoryTypeDB.findAll();
+	}	
 }

@@ -15,6 +15,7 @@ import speedrunappimport.model.entity.*;
 public class GameRepository extends BaseRepository implements IGameRepository {
 	private IGameDB _gameDB;
 	private IGameViewDB _gameViewDB;
+	private IGameLinkDB _gameLinkDB;
 	private ICategoryDB _categoryDB;
 	private ILevelDB _levelDB;
 	private IVariableDB _variableDB;
@@ -24,9 +25,10 @@ public class GameRepository extends BaseRepository implements IGameRepository {
 	private IGameCategoryTypeDB _gameCategoryTypeDB;
 	private Logger _logger;
 
-	public GameRepository(IGameDB gameDB, IGameViewDB gameViewDB, ICategoryDB categoryDB, ILevelDB levelDB, IVariableDB variableDB, IVariableValueDB variableValueDB, IGamePlatformDB gamePlatformDB, ICategoryTypeDB categoryTypeDB, IGameCategoryTypeDB gameCategoryTypeDB, Logger logger) {
+	public GameRepository(IGameDB gameDB, IGameViewDB gameViewDB, IGameLinkDB gameLinkDB, ICategoryDB categoryDB, ILevelDB levelDB, IVariableDB variableDB, IVariableValueDB variableValueDB, IGamePlatformDB gamePlatformDB, ICategoryTypeDB categoryTypeDB, IGameCategoryTypeDB gameCategoryTypeDB, Logger logger) {
 		_gameDB = gameDB;
 		_gameViewDB = gameViewDB;
+		_gameLinkDB = gameLinkDB;
 		_categoryDB = categoryDB;
 		_levelDB = levelDB;
 		_variableDB = variableDB;
@@ -59,15 +61,18 @@ public class GameRepository extends BaseRepository implements IGameRepository {
 			game.setModifiedDate(Instant.now());	
 	
 			_logger.info("Deleting secondary game entities");
-			_gameCategoryTypeDB.softDeleteAllById(game.getGameCategoryTypesToRemove());	
-			_categoryDB.softDeleteAllById(game.getCategoriesToRemove());
-			_levelDB.softDeleteAllById(game.getLevelsToRemove());
-			_variableDB.softDeleteAllById(game.getVariablesToRemove());
-			_variableValueDB.softDeleteAllById(game.getVariableValuesToRemove());
-			_gamePlatformDB.softDeleteAllById(game.getGamePlatformsToRemove());			
+			_gameCategoryTypeDB.deleteAllById(game.getGameCategoryTypesToRemove());	
+			_categoryDB.deleteAllById(game.getCategoriesToRemove());
+			_levelDB.deleteAllById(game.getLevelsToRemove());
+			_variableDB.deleteAllById(game.getVariablesToRemove());
+			_variableValueDB.deleteAllById(game.getVariableValuesToRemove());
+			_gamePlatformDB.deleteAllById(game.getGamePlatformsToRemove());			
 		}
 
 		_gameDB.save(game);
+
+		game.getGameLink().setGameId(game.getId());
+		_gameLinkDB.save(game.getGameLink());
 
 		game.getGameCategoryTypes().forEach(i -> i.setGameId(game.getId()));
 		_gameCategoryTypeDB.saveAll(game.getGameCategoryTypes());

@@ -6,8 +6,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import org.hibernate.annotations.*;
+
 @Entity
 @Table(name = "tbl_level")
+@SQLDelete(sql = "UPDATE tbl_level SET deleted = true WHERE id=?")
+@SQLRestriction("deleted = false")
 public class Level {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

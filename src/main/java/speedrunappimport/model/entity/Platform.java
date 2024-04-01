@@ -9,8 +9,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 
+import org.hibernate.annotations.*;
+
 @Entity
 @Table(name = "tbl_platform")
+@SQLDelete(sql = "UPDATE tbl_platform SET deleted = true WHERE id=?")
+@SQLRestriction("deleted = false")
 public class Platform {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,7 +22,6 @@ public class Platform {
     private String name;
     private String code;
     private boolean deleted;
-    private Instant importRefDate;
     @Transient
     private Instant createdDate;
     private Instant modifiedDate;
@@ -54,15 +57,7 @@ public class Platform {
     public void setDeleted(boolean deleted) {
         this.deleted = deleted;
     }
-
-    public Instant getImportRefDate() {
-        return importRefDate;
-    }
-
-    public void setImportRefDate(Instant importRefDate) {
-        this.importRefDate = importRefDate;
-    }
-
+    
     public Instant getCreatedDate() {
         return createdDate;
     }

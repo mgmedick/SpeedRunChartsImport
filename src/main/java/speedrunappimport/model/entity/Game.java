@@ -11,8 +11,12 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.hibernate.annotations.*;
+
 @Entity
 @Table(name = "tbl_game")
+@SQLDelete(sql = "UPDATE tbl_game SET deleted = true WHERE id=?")
+@SQLRestriction("deleted = false")
 public class Game {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,6 +31,9 @@ public class Game {
     @Transient
     private Instant createdDate;
     private Instant modifiedDate;
+
+    @Transient
+    private GameLink gameLink;
 
     @Transient
     private List<GameCategoryType> gameCategoryTypes;
@@ -143,6 +150,14 @@ public class Game {
     public void setModifiedDate(Instant modifiedDate) {
         this.modifiedDate = modifiedDate;
     }
+
+    public GameLink getGameLink() {
+        return gameLink;
+    }
+
+    public void setGameLink(GameLink gameLink) {
+        this.gameLink = gameLink;
+    }    
 
     public List<GameCategoryType> getGameCategoryTypes() {
         return gameCategoryTypes;

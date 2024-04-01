@@ -7,8 +7,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 
+import org.hibernate.annotations.*;
+
 @Entity
 @Table(name = "tbl_variablevalue")
+@SQLDelete(sql = "UPDATE tbl_variablevalue SET deleted = true WHERE id=?")
+@SQLRestriction("deleted = false")
 public class VariableValue {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

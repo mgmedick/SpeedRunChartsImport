@@ -6,8 +6,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import org.hibernate.annotations.*;
+
 @Entity
 @Table(name = "tbl_category")
+@SQLDelete(sql = "UPDATE tbl_category SET deleted = true WHERE id=?")
+@SQLRestriction("deleted = false")
 public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

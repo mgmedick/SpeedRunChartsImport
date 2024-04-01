@@ -5,9 +5,16 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+
+import java.util.List;
+
+import org.hibernate.annotations.*;
 
 @Entity
 @Table(name = "tbl_game_categorytype")
+@SQLDelete(sql = "UPDATE tbl_game_categorytype SET deleted = true WHERE id=?")
+@SQLRestriction("deleted = false")
 public class GameCategoryType {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)    

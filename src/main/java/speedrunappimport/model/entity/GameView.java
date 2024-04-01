@@ -9,8 +9,8 @@ import jakarta.persistence.Transient;
 
 import java.time.LocalDate;
 import java.util.Arrays;
-import java.util.Locale.Category;
 import java.util.List;
+import java.util.ArrayList;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,16 +26,17 @@ public class GameView {
     private String name;
     private String code;
     private String abbr;
+    private int gameLinkId;
     private String coverImageUrl;
     private String speedRunComUrl;
     private boolean showMilliseconds;
     private LocalDate releaseDate;
-    private String categoryTypesJson;
+    private String gameCategoryTypesJson;
     private String categoriesJson;
     private String levelsJson;
     private String variablesJson;
     private String variableValuesJson;
-    private String platformsJson;
+    private String gamePlatformsJson;
 
     @Transient
     private ObjectMapper _mapper;
@@ -78,6 +79,14 @@ public class GameView {
         this.abbr = abbr;
     }
 
+    public int getGameLinkId() {
+        return gameLinkId;
+    }
+
+    public void setGameLinkId(int gameLinkId) {
+        this.gameLinkId = gameLinkId;
+    }
+
     public String getCoverImageUrl() {
         return coverImageUrl;
     }
@@ -110,12 +119,12 @@ public class GameView {
         this.releaseDate = releaseDate;
     }
 
-    public String getCategoryTypesJson() {
-        return categoryTypesJson;
+    public String getGameCategoryTypesJson() {
+        return gameCategoryTypesJson;
     }
 
-    public void setCategoryTypesJson(String categoryTypesJson) {
-        this.categoryTypesJson = categoryTypesJson;
+    public void setGameCategoryTypesJson(String gameCategoryTypesJson) {
+        this.gameCategoryTypesJson = gameCategoryTypesJson;
     }
 
     public String getCategoriesJson() {
@@ -150,31 +159,93 @@ public class GameView {
         this.variableValuesJson = variableValuesJson;
     }
 
-    public String getPlatformsJson() {
-        return platformsJson;
+    public String getGamePlatformsJson() {
+        return gamePlatformsJson;
     }
 
-    public void setPlatformsJson(String platformsJson) {
-        this.platformsJson = platformsJson;
+    public void setGamePlatformsJson(String gamePlatformsJson) {
+        this.gamePlatformsJson = gamePlatformsJson;
     }
 
-    public List<CategoryType> getCategoryTypes() throws Exception {
-        return Arrays.asList(_mapper.readValue(this.categoryTypesJson, CategoryType[].class));
+    public List<GameCategoryType> getGameCategoryTypes() {
+        List<GameCategoryType> results = new ArrayList<GameCategoryType>();
+        
+        try {
+            results = Arrays.asList(_mapper.readValue(this.gameCategoryTypesJson, GameCategoryType[].class));
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+        
+        return results;
     }    
 
-    public List<Category> getCategories() throws Exception {
-        return Arrays.asList(_mapper.readValue(this.categoriesJson, Category[].class));
-    }    
+    public List<Category> getCategories() {
+        List<Category> results = new ArrayList<Category>();
+        
+        try {
+            if (this.categoriesJson != null) {
+                results = Arrays.asList(_mapper.readValue(this.categoriesJson, Category[].class));
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+        
+        return results;
+    }  
+
+    public List<Level> getLevels() {
+        List<Level> results = new ArrayList<Level>();
+           
+        try {
+            if (this.levelsJson != null) {
+                results = Arrays.asList(_mapper.readValue(this.levelsJson, Level[].class));
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
     
-    public List<Level> getLevels() throws Exception {
-        return Arrays.asList(_mapper.readValue(this.levelsJson, Level[].class));
-    }    
-    
-    public List<Variable> getVariables() throws Exception {
-        return Arrays.asList(_mapper.readValue(this.variablesJson, Variable[].class));
+        return results;
+    }
+  
+    public List<Variable> getVariables() {
+        List<Variable> results = new ArrayList<Variable>();
+        
+        try {
+            if (this.variablesJson != null) {
+                results = Arrays.asList(_mapper.readValue(this.variablesJson, Variable[].class));
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+        
+        return results;
+    }
+
+    public List<VariableValue> getVariableValues() {
+        List<VariableValue> results = new ArrayList<VariableValue>();
+        
+        try {
+            if (this.variableValuesJson != null) {
+                results = Arrays.asList(_mapper.readValue(this.variableValuesJson, VariableValue[].class));
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+        
+        return results;
+    }
+
+    public List<GamePlatform> getGamePlatforms() {
+        List<GamePlatform> results = new ArrayList<GamePlatform>();
+        
+        try {
+            if (this.gamePlatformsJson != null) {
+                results = Arrays.asList(_mapper.readValue(this.gamePlatformsJson, GamePlatform[].class));
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+        
+        return results;
     }      
-
-    public List<VariableValue> getVariableValues() throws Exception {
-        return Arrays.asList(_mapper.readValue(this.variableValuesJson, VariableValue[].class));
-    }       
 }

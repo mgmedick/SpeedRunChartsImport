@@ -24,6 +24,7 @@ public class Variable {
     private int categoryId;
     private Integer levelId;
     private boolean isSubCategory;
+    private Integer sortOrder;
     private boolean deleted;
 
     @Transient
@@ -96,6 +97,22 @@ public class Variable {
         this.isSubCategory = isSubCategory;
     }
 
+    public Integer getSortOrder() {
+        return sortOrder;
+    }
+
+    public void setSortOrder(Integer sortOrder) {
+        this.sortOrder = sortOrder;
+    }    
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
+     
     public String getCategoryCode() {
         return categoryCode;
     }
@@ -111,12 +128,4 @@ public class Variable {
     public void setLevelCode(String levelCode) {
         this.levelCode = levelCode;
     }
-    
-    public boolean isDeleted() {
-        return deleted;
-    }
-
-    public void setDeleted(boolean deleted) {
-        this.deleted = deleted;
-    }        
 }

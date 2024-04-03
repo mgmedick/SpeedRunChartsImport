@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 
 import org.slf4j.Logger;
 
@@ -137,155 +138,248 @@ public class GameService extends BaseService implements IGameService {
 		return data;
 	}
 
-	public void SaveGameResponses(List<GameResponse> games, boolean isReload) {
-		_logger.info("Started SaveGameResponses: {}", games.size());
+	public void SaveGameResponses(List<GameResponse> gameResponses, boolean isReload) {
+		_logger.info("Started SaveGameResponses: {}", gameResponses.size());
 
 		if (!isReload) {
-			games = games.reversed();
+			gameResponses = gameResponses.reversed();
 		}
 
-		games = games.stream()
+		gameResponses = gameResponses.stream()
 				.collect(Collectors.toMap(GameResponse::id, Function.identity(), (u1, u2) -> u1))
 				.values()
 				.stream()
 				.collect(Collectors.toList());
 
-		var existingGamesVWs = _gameRepo.GetGameViewsByCode(games.stream().map(x -> x.id()).toList());
-		var platforms = _platformRepo.GetAllPlatforms();
-		var categoryTypes = _gameRepo.GetCategoryTypes();
+		var existingGamesVWs = _gameRepo.GetGameViewsByCode(gameResponses.stream().map(x -> x.id()).toList());
+		var games = GetGamesFromResponses(gameResponses, existingGamesVWs);
+		games = GetNewOrChangedGames(games, existingGamesVWs);
 
-		var gameEntities = games.stream().map(i -> {
-				var game = new Game();
-
-				var existingGameVW = existingGamesVWs.stream().filter(x -> x.getCode().equals(i.id())).findFirst().orElse(null);			
-				game.setId(existingGameVW != null ? existingGameVW.getId() : 0);
-				game.setName(i.names().international());
-				game.setCode(i.id());
-				game.setAbbr(i.abbreviation());
-				game.setShowMilliseconds(i.ruleset() != null ? i.ruleset().showMilliseconds() : false);
-				game.setReleaseDate(i.releaseDate());
-				game.setImportRefDate(i.created());
-
-				var gameLink = new GameLink();
-				gameLink.setId(existingGameVW != null ? existingGameVW.getGameLinkId() : 0);
-				gameLink.setGameId(game.getId());
-				gameLink.setCoverImageUrl(i.assets().coverLarge().uri());
-				gameLink.setSpeedRunComUrl(i.weblink());
-				game.setGameLink(gameLink);
-				
-				var gameCategoryTypes = categoryTypes.stream()
-										.filter(g -> i.categories().data().stream().anyMatch(x -> StringExtensions.KebabToUpperCamelCase(x.type()).equals(g.getName())))
-										.map(x -> { 
-											var gameCategoryType = new GameCategoryType();
-											gameCategoryType.setId(existingGameVW != null ? existingGameVW.getGameCategoryTypes().stream().filter(g ->  g.getCategoryTypeId() == x.getId()).map(g -> g.getId()).findFirst().orElse(0) : 0);
-											gameCategoryType.setCategoryTypeId(x.getId());
-											gameCategoryType.setGameId(game.getId());
-											return gameCategoryType;
-								}).toList();
-				game.setGameCategoryTypes(gameCategoryTypes);	
-
-				var categories = i.categories().data().stream()
-									.map(x -> { 
-										var category = new Category();
-										category.setId(existingGameVW != null ? existingGameVW.getCategories().stream().filter(g ->  g.getCode().equals(x.id())).map(g -> g.getId()).findFirst().orElse(0) : 0);
-										category.setName(x.name());
-										category.setCode(x.id());
-										category.setGameId(game.getId());
-										category.setCategoryTypeId(Enums.CategoryType.valueOf(StringExtensions.KebabToUpperCamelCase(x.type())).getValue());
-										category.setMiscellaneous(x.miscellaneous());
-										category.setIsTimerAscending(x.rules() != null && x.rules().contains("long as possible"));
-										return category;
-									}).toList();
-				game.setCategories(categories);
-
-				var levels = i.levels().data().stream()
-									.map(x -> { 
-										var level = new Level();
-										level.setId(existingGameVW != null ? existingGameVW.getLevels().stream().filter(g ->  g.getCode().equals(x.id())).map(g -> g.getId()).findFirst().orElse(0) : 0);
-										level.setName(x.name());
-										level.setCode(x.id());
-										level.setGameId(game.getId());
-										return level;
-									}).toList();
-				game.setLevels(levels);
-
-				var variables = i.variables().data().stream()
-									.map(x -> { 
-										var variable = new Variable();
-										variable.setId(existingGameVW != null ? existingGameVW.getVariables().stream().filter(g ->  g.getCode().equals(x.id())).map(g -> g.getId()).findFirst().orElse(0) : 0);
-										variable.setName(x.name());
-										variable.setCode(x.id());
-										variable.setGameId(game.getId());
-										variable.setVariableScopeTypeId(Enums.VariableScopeType.valueOf(StringExtensions.KebabToUpperCamelCase(x.scope().type())).getValue());
-										variable.setCategoryId(existingGameVW != null ? existingGameVW.getCategories().stream().filter(h ->  h.getCode().equals(x.category())).map(h -> h.getId()).findFirst().orElse(0) : 0);
-										variable.setCategoryCode(x.category());
-										variable.setLevelId(existingGameVW != null ? existingGameVW.getLevels().stream().filter(h ->  h.getCode().equals(x.scope().level())).map(h -> h.getId()).findFirst().orElse(0) : 0);
-										variable.setLevelCode(x.scope().level());
-										return variable;
-									}).toList();
-				game.setVariables(variables);			
-
-				var variableValues = i.variables().data().stream()
-									.flatMap(x -> x.values().values().entrySet().stream().map(g -> {
-										var variableValue = new VariableValue();
-										variableValue.setId(existingGameVW != null ? existingGameVW.getVariableValues().stream().filter(h ->  h.getCode().equals(g.getKey())).map(h -> h.getId()).findFirst().orElse(0) : 0);
-										variableValue.setName(g.getValue().label());
-										variableValue.setCode(g.getKey());		
-										variableValue.setGameId(game.getId());
-										variableValue.setVariableId(existingGameVW != null ? existingGameVW.getVariables().stream().filter(h ->  h.getCode().equals(x.id())).map(h -> h.getId()).findFirst().orElse(0) : 0);
-										variableValue.setVariableCode(x.id());
-										return variableValue;							
-									})).toList();
-				game.setVariableValues(variableValues);
-
-				var gamePlatforms = platforms.stream()
-									.filter(g -> i.platforms().contains(g.getCode()))
-									.map(x -> { 
-										var gamePlatform = new GamePlatform();
-										gamePlatform.setId(existingGameVW != null ? existingGameVW.getGamePlatforms().stream().filter(g ->  g.getPlatformId() == x.getId()).map(g -> g.getId()).findFirst().orElse(0) : 0);
-										gamePlatform.setPlatformId(x.getId());
-										gamePlatform.setGameId(game.getId());
-										return gamePlatform;
-									}).toList();
-				game.setGamePlatforms(gamePlatforms);				
-				
-				if (existingGameVW != null) {
-					if (existingGameVW.getGameCategoryTypes() != null) {
-						var removeGameCategoryTypes = existingGameVW.getGameCategoryTypes().stream().filter(g -> !gameCategoryTypes.stream().anyMatch(h -> h.getId() == g.getId())).map(g -> g.getId()).toList();
-						game.setGameCategoryTypesToRemove(removeGameCategoryTypes);		
-					}
-
-					if (existingGameVW.getCategories() != null) {
-						var removeCategories = existingGameVW.getCategories().stream().filter(g -> !categories.stream().anyMatch(h -> h.getCode().equals(g.getCode()))).map(g -> g.getId()).toList();
-						game.setCategoriesToRemove(removeCategories);
-					}
-
-					if (existingGameVW.getLevels() != null) {
-						var removeLevels = existingGameVW.getLevels().stream().filter(g -> !levels.stream().anyMatch(h -> h.getCode().equals(g.getCode()))).map(g -> g.getId()).toList();
-						game.setLevelsToRemove(removeLevels);	
-					}
-
-					if (existingGameVW.getVariables() != null) {
-						var removeVariables = existingGameVW.getVariables().stream().filter(g -> !variables.stream().anyMatch(h -> h.getCode().equals(g.getCode()))).map(g -> g.getId()).toList();
-						game.setVariablesToRemove(removeVariables);	
-					}
-
-					if (existingGameVW.getVariableValues() != null) {					
-						var removeVariableValues = existingGameVW.getVariableValues().stream().filter(g -> !variableValues.stream().anyMatch(h -> h.getCode().equals(g.getCode()))).map(g -> g.getId()).toList();
-						game.setVariableValuesToRemove(removeVariableValues);		
-					}	
-	
-					if (existingGameVW.getGamePlatforms() != null) {										
-						var removeGamePlatforms = existingGameVW.getGamePlatforms().stream().filter(g -> !gamePlatforms.stream().anyMatch(h -> h.getId() == g.getId())).map(g -> g.getId()).toList();
-						game.setGamePlatformsToRemove(removeGamePlatforms);	
-					}					
-				}
-				
-				return game;
-			}).toList();
-		
-		_gameRepo.SaveGames(gameEntities);
+		_gameRepo.SaveGames(games);
 
 		_logger.info("Completed SaveGameResponses");
 	}
+
+	private List<Game> GetGamesFromResponses(List<GameResponse> games, List<GameView> existingGamesVWs) {
+		var categoryTypes = _gameRepo.GetCategoryTypes();
+		var platforms = _platformRepo.GetAllPlatforms();
+
+		var gameEntities = games.stream().map(i -> {
+			var game = new Game();
+
+			var existingGameVW = existingGamesVWs.stream().filter(x -> x.getCode().equals(i.id())).findFirst().orElse(null);			
+			game.setId(existingGameVW != null ? existingGameVW.getId() : 0);
+			game.setName(i.names().international());
+			game.setCode(i.id());
+			game.setAbbr(i.abbreviation());
+			game.setShowMilliseconds(i.ruleset() != null ? i.ruleset().showMilliseconds() : false);
+			game.setReleaseDate(i.releaseDate());
+			game.setImportRefDate(i.created());
+
+			var gameLink = new GameLink();
+			gameLink.setId(existingGameVW != null ? existingGameVW.getGameLinkId() : 0);
+			gameLink.setGameId(game.getId());
+			gameLink.setCoverImageUrl(i.assets().coverLarge().uri());
+			gameLink.setSpeedRunComUrl(i.weblink());
+			game.setGameLink(gameLink);
+			
+			var gameCategoryTypes = categoryTypes.stream()
+									.filter(g -> i.categories().data().stream().anyMatch(x -> StringExtensions.KebabToUpperCamelCase(x.type()).equals(g.getName())))
+									.map(x -> { 
+										var gameCategoryType = new GameCategoryType();
+										gameCategoryType.setId(existingGameVW != null ? existingGameVW.getGameCategoryTypes().stream().filter(g ->  g.getCategoryTypeId() == x.getId()).map(g -> g.getId()).findFirst().orElse(0) : 0);
+										gameCategoryType.setCategoryTypeId(x.getId());
+										gameCategoryType.setGameId(game.getId());
+										return gameCategoryType;
+							}).toList();
+			game.setGameCategoryTypes(gameCategoryTypes);	
+
+			var categories = i.categories().data().stream()
+								.map(x -> { 
+									var category = new Category();
+									category.setId(existingGameVW != null ? existingGameVW.getCategories().stream().filter(g ->  g.getCode().equals(x.id())).map(g -> g.getId()).findFirst().orElse(0) : 0);
+									category.setName(x.name());
+									category.setCode(x.id());
+									category.setGameId(game.getId());
+									category.setCategoryTypeId(Enums.CategoryType.valueOf(StringExtensions.KebabToUpperCamelCase(x.type())).getValue());
+									category.setMiscellaneous(x.miscellaneous());
+									category.setIsTimerAscending(x.rules() != null && x.rules().contains("long as possible"));
+									return category;
+								}).toList();
+			game.setCategories(categories);
+
+			var levels = i.levels().data().stream()
+								.map(x -> { 
+									var level = new Level();
+									level.setId(existingGameVW != null ? existingGameVW.getLevels().stream().filter(g ->  g.getCode().equals(x.id())).map(g -> g.getId()).findFirst().orElse(0) : 0);
+									level.setName(x.name());
+									level.setCode(x.id());
+									level.setGameId(game.getId());
+									return level;
+								}).toList();
+			game.setLevels(levels);
+
+			var variablesList = i.variables().data();
+			var variables = IntStream.range(0, variablesList.size())
+									.mapToObj(x -> { 
+										var variable = new Variable();
+										variable.setId(existingGameVW != null ? existingGameVW.getVariables().stream().filter(g ->  g.getCode().equals(variablesList.get(x).id())).map(g -> g.getId()).findFirst().orElse(0) : 0);
+										variable.setName(variablesList.get(x).name());
+										variable.setCode(variablesList.get(x).id());
+										variable.setGameId(game.getId());
+										variable.setVariableScopeTypeId(Enums.VariableScopeType.valueOf(StringExtensions.KebabToUpperCamelCase(variablesList.get(x).scope().type())).getValue());
+										variable.setCategoryId(existingGameVW != null ? existingGameVW.getCategories().stream().filter(h ->  h.getCode().equals(variablesList.get(x).category())).map(h -> h.getId()).findFirst().orElse(0) : 0);
+										variable.setCategoryCode(variablesList.get(x).category());
+										variable.setLevelId(existingGameVW != null ? existingGameVW.getLevels().stream().filter(h ->  h.getCode().equals(variablesList.get(x).scope().level())).map(h -> h.getId()).findFirst().orElse(0) : 0);
+										variable.setLevelCode(variablesList.get(x).scope().level());
+										variable.setSortOrder(x);
+										return variable;
+									}).toList();			
+			game.setVariables(variables);			
+
+			var variableValues = i.variables().data().stream()
+								.flatMap(x -> x.values().values().entrySet().stream().map(g -> {
+									var variableValue = new VariableValue();
+									variableValue.setId(existingGameVW != null ? existingGameVW.getVariableValues().stream().filter(h ->  h.getCode().equals(g.getKey())).map(h -> h.getId()).findFirst().orElse(0) : 0);
+									variableValue.setName(g.getValue().label());
+									variableValue.setCode(g.getKey());		
+									variableValue.setGameId(game.getId());
+									variableValue.setVariableId(existingGameVW != null ? existingGameVW.getVariables().stream().filter(h ->  h.getCode().equals(x.id())).map(h -> h.getId()).findFirst().orElse(0) : 0);
+									variableValue.setVariableCode(x.id());
+									return variableValue;							
+								})).toList();
+			game.setVariableValues(variableValues);
+
+			var gamePlatforms = platforms.stream()
+								.filter(g -> i.platforms().contains(g.getCode()))
+								.map(x -> { 
+									var gamePlatform = new GamePlatform();
+									gamePlatform.setId(existingGameVW != null ? existingGameVW.getGamePlatforms().stream().filter(g ->  g.getPlatformId() == x.getId()).map(g -> g.getId()).findFirst().orElse(0) : 0);
+									gamePlatform.setPlatformId(x.getId());
+									gamePlatform.setGameId(game.getId());
+									return gamePlatform;
+								}).toList();
+			game.setGamePlatforms(gamePlatforms);				
+			
+			if (existingGameVW != null) {
+				if (existingGameVW.getGameCategoryTypes() != null) {
+					var removeGameCategoryTypes = existingGameVW.getGameCategoryTypes().stream().filter(g -> !gameCategoryTypes.stream().anyMatch(h -> h.getId() == g.getId())).map(g -> g.getId()).toList();
+					game.setGameCategoryTypesToRemove(removeGameCategoryTypes);		
+				}
+
+				if (existingGameVW.getCategories() != null) {
+					var removeCategories = existingGameVW.getCategories().stream().filter(g -> !categories.stream().anyMatch(h -> h.getCode().equals(g.getCode()))).map(g -> g.getId()).toList();
+					game.setCategoriesToRemove(removeCategories);
+				}
+
+				if (existingGameVW.getLevels() != null) {
+					var removeLevels = existingGameVW.getLevels().stream().filter(g -> !levels.stream().anyMatch(h -> h.getCode().equals(g.getCode()))).map(g -> g.getId()).toList();
+					game.setLevelsToRemove(removeLevels);	
+				}
+
+				if (existingGameVW.getVariables() != null) {
+					var removeVariables = existingGameVW.getVariables().stream().filter(g -> !variables.stream().anyMatch(h -> h.getCode().equals(g.getCode()))).map(g -> g.getId()).toList();
+					game.setVariablesToRemove(removeVariables);	
+				}
+
+				if (existingGameVW.getVariableValues() != null) {					
+					var removeVariableValues = existingGameVW.getVariableValues().stream().filter(g -> !variableValues.stream().anyMatch(h -> h.getCode().equals(g.getCode()))).map(g -> g.getId()).toList();
+					game.setVariableValuesToRemove(removeVariableValues);		
+				}	
+
+				if (existingGameVW.getGamePlatforms() != null) {										
+					var removeGamePlatforms = existingGameVW.getGamePlatforms().stream().filter(g -> !gamePlatforms.stream().anyMatch(h -> h.getId() == g.getId())).map(g -> g.getId()).toList();
+					game.setGamePlatformsToRemove(removeGamePlatforms);	
+				}					
+			}
+			
+			return game;
+		}).toList();
+
+		return gameEntities;
+	}
+
+	private List<Game> GetNewOrChangedGames(List<Game> games, List<GameView> existingGamesVWs) {	
+		var results = new ArrayList<Game>();
+		var newCount = 0;
+		var changedCount = 0;
+
+		for (var game : games) {
+			var isNew = false;	
+			var isChanged = false;
+			var existingGameVW = existingGamesVWs.stream().filter(x -> x.getId() == game.getId()).findFirst().orElse(null);			
+		
+			if (game.getId() == 0) {
+				isNew = true;
+				newCount++;
+			} else if (existingGameVW != null) {
+				isChanged = (game.getName() != existingGameVW.getName()
+					|| game.getAbbr() != existingGameVW.getAbbr()
+					|| game.getReleaseDate() != existingGameVW.getReleaseDate()
+					|| game.getGameLink().getCoverImageUrl() != existingGameVW.getCoverImageUrl()
+					|| game.getGameLink().getSpeedRunComUrl() != existingGameVW.getSpeedRunComUrl());
+
+				if (!isChanged) {
+					var categoryTypeIds = game.getGameCategoryTypes().stream().map(i -> i.getCategoryTypeId()).toList();
+					var existingCategoryTypeIds = existingGameVW.getGameCategoryTypes().stream().map(i -> i.getCategoryTypeId()).toList();
+					isChanged = categoryTypeIds.stream().anyMatch(i -> !existingCategoryTypeIds.contains(i))
+								|| existingCategoryTypeIds.stream().anyMatch(i -> !categoryTypeIds.contains(i));
+				}
+
+				if (!isChanged) {
+					var categoryCodes = game.getCategories().stream().map(i -> i.getCode()).toList();
+					var existingCategoryCodes = existingGameVW.getCategories().stream().map(i -> i.getCode()).toList();
+					isChanged = categoryCodes.stream().anyMatch(i -> !existingCategoryCodes.contains(i))
+								|| existingCategoryCodes.stream().anyMatch(i -> !categoryCodes.contains(i));
+				}
+
+				if (!isChanged) {
+					var levelCodes = game.getLevels().stream().map(i -> i.getCode()).toList();
+					var existingLevelCodes = existingGameVW.getLevels().stream().map(i -> i.getCode()).toList();
+					isChanged = levelCodes.stream().anyMatch(i -> !existingLevelCodes.contains(i))
+								|| existingLevelCodes.stream().anyMatch(i -> !levelCodes.contains(i));
+				}		
+				
+				if (!isChanged) {
+					var variableCodes = game.getVariables().stream().map(i -> i.getCode()).toList();
+					var existingVariableCodes = existingGameVW.getVariables().stream().map(i -> i.getCode()).toList();
+					isChanged = variableCodes.stream().anyMatch(i -> !existingVariableCodes.contains(i))
+								|| existingVariableCodes.stream().anyMatch(i -> !variableCodes.contains(i));
+				}
+				
+				if (!isChanged) {
+					var variableIndex = 0;
+					for (var variable : game.getVariables()) {
+						isChanged = variable.getCode() != existingGameVW.getVariables().get(variableIndex).getCode();
+						variableIndex++;
+					}
+				}
+
+				if (!isChanged) {
+					var variableValueCodes = game.getVariableValues().stream().map(i -> i.getCode()).toList();
+					var existingVariableValueCodes = existingGameVW.getVariableValues().stream().map(i -> i.getCode()).toList();
+					isChanged = variableValueCodes.stream().anyMatch(i -> !existingVariableValueCodes.contains(i))
+								|| existingVariableValueCodes.stream().anyMatch(i -> !variableValueCodes.contains(i));
+				}		
+				
+				if (!isChanged) {
+					var platformIds = game.getGamePlatforms().stream().map(i -> i.getPlatformId()).toList();
+					var existingPlatformIds = existingGameVW.getGamePlatforms().stream().map(i -> i.getPlatformId()).toList();
+					isChanged = platformIds.stream().anyMatch(i -> !existingPlatformIds.contains(i))
+								|| existingPlatformIds.stream().anyMatch(i -> !platformIds.contains(i));
+				}					
+
+				if (isChanged){
+					changedCount++;
+				}	
+			}
+
+			if (isNew || isChanged) {
+				results.add(game);
+			}
+		}
+
+		_logger.info("Found New: {}, Changed: {}, Total: {}", newCount, changedCount, results.size());	
+		return results;
+	}	
 }

@@ -96,6 +96,9 @@ public class GameRepository extends BaseRepository implements IGameRepository {
 		});
 		_variableValueDB.saveAll(game.getVariableValues());
 
+		game.getGamePlatforms().forEach(i -> i.setGameId(game.getId()));
+		_gamePlatformDB.saveAll(game.getGamePlatforms());
+
 		_logger.info("Completed Saving gameId: {}, code: {}", game.getId(), game.getCode());
 	}
 

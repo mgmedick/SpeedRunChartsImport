@@ -307,71 +307,73 @@ public class GameService extends BaseService implements IGameService {
 		for (var game : games) {
 			var isNew = false;	
 			var isChanged = false;
-			var existingGameVW = existingGamesVWs.stream().filter(x -> x.getId() == game.getId()).findFirst().orElse(null);			
 		
 			if (game.getId() == 0) {
 				isNew = true;
 				newCount++;
-			} else if (existingGameVW != null) {
-				isChanged = (game.getName() != existingGameVW.getName()
-					|| game.getAbbr() != existingGameVW.getAbbr()
-					|| game.getReleaseDate() != existingGameVW.getReleaseDate()
-					|| game.getGameLink().getCoverImageUrl() != existingGameVW.getCoverImageUrl()
-					|| game.getGameLink().getSpeedRunComUrl() != existingGameVW.getSpeedRunComUrl());
+			} else {
+				var existingGameVW = existingGamesVWs.stream().filter(x -> x.getId() == game.getId()).findFirst().orElse(null);			
+				if (existingGameVW != null) {
+					isChanged = (!game.getName().equals(existingGameVW.getName())
+						|| !game.getAbbr().equals(existingGameVW.getAbbr())
+						|| !game.getReleaseDate().isEqual(existingGameVW.getReleaseDate())
+						|| !game.getGameLink().getCoverImageUrl().equals(existingGameVW.getCoverImageUrl())
+						|| !game.getGameLink().getSpeedRunComUrl().equals(existingGameVW.getSpeedRunComUrl()));
 
-				if (!isChanged) {
-					var categoryTypeIds = game.getGameCategoryTypes().stream().map(i -> i.getCategoryTypeId()).toList();
-					var existingCategoryTypeIds = existingGameVW.getGameCategoryTypes().stream().map(i -> i.getCategoryTypeId()).toList();
-					isChanged = categoryTypeIds.stream().anyMatch(i -> !existingCategoryTypeIds.contains(i))
-								|| existingCategoryTypeIds.stream().anyMatch(i -> !categoryTypeIds.contains(i));
-				}
+					if (!isChanged) {
+						var categoryTypeIds = game.getGameCategoryTypes().stream().map(i -> i.getCategoryTypeId()).toList();
+						var existingCategoryTypeIds = existingGameVW.getGameCategoryTypes().stream().map(i -> i.getCategoryTypeId()).toList();
+						isChanged = categoryTypeIds.stream().anyMatch(i -> !existingCategoryTypeIds.contains(i))
+									|| existingCategoryTypeIds.stream().anyMatch(i -> !categoryTypeIds.contains(i));
+					}
 
-				if (!isChanged) {
-					var categoryCodes = game.getCategories().stream().map(i -> i.getCode()).toList();
-					var existingCategoryCodes = existingGameVW.getCategories().stream().map(i -> i.getCode()).toList();
-					isChanged = categoryCodes.stream().anyMatch(i -> !existingCategoryCodes.contains(i))
-								|| existingCategoryCodes.stream().anyMatch(i -> !categoryCodes.contains(i));
-				}
+					if (!isChanged) {
+						var categoryCodes = game.getCategories().stream().map(i -> i.getCode()).toList();
+						var existingCategoryCodes = existingGameVW.getCategories().stream().map(i -> i.getCode()).toList();
+						isChanged = categoryCodes.stream().anyMatch(i -> !existingCategoryCodes.contains(i))
+									|| existingCategoryCodes.stream().anyMatch(i -> !categoryCodes.contains(i));
+					}
 
-				if (!isChanged) {
-					var levelCodes = game.getLevels().stream().map(i -> i.getCode()).toList();
-					var existingLevelCodes = existingGameVW.getLevels().stream().map(i -> i.getCode()).toList();
-					isChanged = levelCodes.stream().anyMatch(i -> !existingLevelCodes.contains(i))
-								|| existingLevelCodes.stream().anyMatch(i -> !levelCodes.contains(i));
-				}		
-				
-				if (!isChanged) {
-					var variableCodes = game.getVariables().stream().map(i -> i.getCode()).toList();
-					var existingVariableCodes = existingGameVW.getVariables().stream().map(i -> i.getCode()).toList();
-					isChanged = variableCodes.stream().anyMatch(i -> !existingVariableCodes.contains(i))
-								|| existingVariableCodes.stream().anyMatch(i -> !variableCodes.contains(i));
-				}
-				
-				if (!isChanged) {
-					var variableIndex = 0;
-					for (var variable : game.getVariables()) {
-						isChanged = variable.getCode() != existingGameVW.getVariables().get(variableIndex).getCode();
-						variableIndex++;
+					if (!isChanged) {
+						var levelCodes = game.getLevels().stream().map(i -> i.getCode()).toList();
+						var existingLevelCodes = existingGameVW.getLevels().stream().map(i -> i.getCode()).toList();
+						isChanged = levelCodes.stream().anyMatch(i -> !existingLevelCodes.contains(i))
+									|| existingLevelCodes.stream().anyMatch(i -> !levelCodes.contains(i));
+					}		
+					
+					if (!isChanged) {
+						var variableCodes = game.getVariables().stream().map(i -> i.getCode()).toList();
+						var existingVariableCodes = existingGameVW.getVariables().stream().map(i -> i.getCode()).toList();
+						isChanged = variableCodes.stream().anyMatch(i -> !existingVariableCodes.contains(i))
+									|| existingVariableCodes.stream().anyMatch(i -> !variableCodes.contains(i));
+					}
+					
+					if (!isChanged) {
+						var variableIndex = 0;
+						for (var variable : game.getVariables()) {
+							isChanged = !variable.getCode().equals(existingGameVW.getVariables().get(variableIndex).getCode());
+							variableIndex++;
+						}
+					}
+
+					if (!isChanged) {
+						var variableValueCodes = game.getVariableValues().stream().map(i -> i.getCode()).toList();
+						var existingVariableValueCodes = existingGameVW.getVariableValues().stream().map(i -> i.getCode()).toList();
+						isChanged = variableValueCodes.stream().anyMatch(i -> !existingVariableValueCodes.contains(i))
+									|| existingVariableValueCodes.stream().anyMatch(i -> !variableValueCodes.contains(i));
+					}		
+					
+					if (!isChanged) {
+						var platformIds = game.getGamePlatforms().stream().map(i -> i.getPlatformId()).toList();
+						var existingPlatformIds = existingGameVW.getGamePlatforms().stream().map(i -> i.getPlatformId()).toList();
+						isChanged = platformIds.stream().anyMatch(i -> !existingPlatformIds.contains(i))
+									|| existingPlatformIds.stream().anyMatch(i -> !platformIds.contains(i));
+					}					
+
+					if (isChanged){
+						changedCount++;
 					}
 				}
-
-				if (!isChanged) {
-					var variableValueCodes = game.getVariableValues().stream().map(i -> i.getCode()).toList();
-					var existingVariableValueCodes = existingGameVW.getVariableValues().stream().map(i -> i.getCode()).toList();
-					isChanged = variableValueCodes.stream().anyMatch(i -> !existingVariableValueCodes.contains(i))
-								|| existingVariableValueCodes.stream().anyMatch(i -> !variableValueCodes.contains(i));
-				}		
-				
-				if (!isChanged) {
-					var platformIds = game.getGamePlatforms().stream().map(i -> i.getPlatformId()).toList();
-					var existingPlatformIds = existingGameVW.getGamePlatforms().stream().map(i -> i.getPlatformId()).toList();
-					isChanged = platformIds.stream().anyMatch(i -> !existingPlatformIds.contains(i))
-								|| existingPlatformIds.stream().anyMatch(i -> !platformIds.contains(i));
-				}					
-
-				if (isChanged){
-					changedCount++;
-				}	
 			}
 
 			if (isNew || isChanged) {

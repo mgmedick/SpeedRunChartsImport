@@ -30,11 +30,13 @@ import speedrunappimport.model.Enums;
 public class GameService extends BaseService implements IGameService {
 	private IGameRepository _gameRepo;
 	private IPlatformRepository _platformRepo;
+	private ISettingService _settingService;
 	private Logger _logger;
 
-	public GameService(IGameRepository gameRepo, IPlatformRepository platformRepo, Logger logger) {
+	public GameService(IGameRepository gameRepo, IPlatformRepository platformRepo, ISettingService settingService, Logger logger) {
 		_gameRepo = gameRepo;
 		_platformRepo = platformRepo;
+		_settingService = settingService;
 		_logger = logger;
 	}
 
@@ -43,6 +45,7 @@ public class GameService extends BaseService implements IGameService {
 
 		try {
 			_logger.info("Started ProcessGames: {}, {}", lastImportRefDateUtc, isReload);
+						
 			var results = new ArrayList<GameResponse>();
 			List<GameResponse> games = new ArrayList<GameResponse>();
 			var prevTotal = 0;
@@ -72,10 +75,8 @@ public class GameService extends BaseService implements IGameService {
 
 			if (results.size() > 0) {
 				SaveGameResponses(results, isReload);
-				// var lastUpdateDate = results.stream().map(i -> i.created != null ?
-				// Instant.parse(i.created) :
-				// super.sqlMinDateTime).max(Instant::compareTo).get();
-				// _settingService.UpdateSetting("GameLastImportRefDate", lastUpdateDate);
+				var lastUpdateDate = results.stream().map(i -> i.created() != null ? i.created() : super.getSqlMinDateTime()).max(Instant::compareTo).get();
+				_settingService.UpdateSetting("GameLastImportRefDate", lastUpdateDate);
 				results.clear();
 				results.trimToSize();
 			}

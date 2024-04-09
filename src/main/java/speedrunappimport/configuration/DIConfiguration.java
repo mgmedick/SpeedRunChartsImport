@@ -33,6 +33,11 @@ public class DIConfiguration
 	}	
 
 	@Bean
+	public ISettingRepository getSettingRepository(ISettingDB settingDB, Logger logger){
+		return new SettingRepository(settingDB, logger);
+	}
+
+	@Bean
 	public IPlatformRepository getPlatformRepository(IPlatformDB platformDB, Logger logger){
 		return new PlatformRepository(platformDB, logger);
 	}
@@ -43,7 +48,17 @@ public class DIConfiguration
 	}
 
 	@Bean
-	public IGameService getGameService(IGameRepository gameRepository, IPlatformRepository platformRepository, Logger logger){
-		return new GameService(gameRepository, platformRepository, logger);
+	public ISettingService getSettingService(ISettingRepository settingRepo, Logger logger){
+		return new SettingService(settingRepo, logger);
+	}
+
+	@Bean
+	public IPlatformService getPlatformService(IPlatformRepository platformRepo, Logger logger){
+		return new PlatformService(platformRepo, logger);
+	}
+
+	@Bean
+	public IGameService getGameService(IGameRepository gameRepo, IPlatformRepository platformRepo, ISettingService settingService, Logger logger){
+		return new GameService(gameRepo, platformRepo, settingService, logger);
 	}
 }

@@ -7,6 +7,7 @@ import speedrunappimport.model.entity.*;
 public interface IPlatformRepository {
     void SavePlatforms(List<Platform> platforms);
     List<Platform> GetAllPlatforms();
+    List<Platform> GetPlatformsByCode(List<String> codes);
 }
 
 

@@ -85,14 +85,14 @@ public class GameRepository extends BaseRepository implements IGameRepository {
 
 		game.getVariables().forEach(i -> {
 			i.setGameId(game.getId());
-			i.setCategoryId(game.getCategories().stream().filter(g -> g.getCode() == i.getCategoryCode()).map(g -> g.getId()).findFirst().orElse(0));
-			i.setLevelId(game.getLevels().stream().filter(g -> g.getCode() == i.getLevelCode()).map(g -> g.getId()).findFirst().orElse(0));
+			i.setCategoryId(game.getCategories().stream().filter(g -> g.getCode().equals(i.getCategoryCode())).map(g -> g.getId()).findFirst().orElse(null));
+			i.setLevelId(game.getLevels().stream().filter(g -> g.getCode().equals(i.getLevelCode())).map(g -> g.getId()).findFirst().orElse(null));
 		});
 		_variableDB.saveAll(game.getVariables());
 
 		game.getVariableValues().forEach(i -> {
 			i.setGameId(game.getId());
-			i.setVariableId(game.getVariables().stream().filter(g -> g.getCode() == i.getVariableCode()).map(g -> g.getId()).findFirst().orElse(0));
+			i.setVariableId(game.getVariables().stream().filter(g -> g.getCode().equals(i.getVariableCode())).map(g -> g.getId()).findFirst().orElse(null));
 		});
 		_variableValueDB.saveAll(game.getVariableValues());
 

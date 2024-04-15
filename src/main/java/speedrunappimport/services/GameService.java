@@ -40,12 +40,14 @@ public class GameService extends BaseService implements IGameService {
 		_logger = logger;
 	}
 
-	public boolean ProcessGames(Instant lastImportRefDateUtc, boolean isReload) {
+	public boolean ProcessGames(boolean isReload) {
 		boolean result = true;
 
 		try {
+			var stGameLastImportRefDateUtc = _settingService.GetSetting("GameLastImportRefDate");
+			var lastImportRefDateUtc = stGameLastImportRefDateUtc != null && stGameLastImportRefDateUtc.getDte() != null ? stGameLastImportRefDateUtc.getDte() : this.getSqlMinDateTime();	
 			_logger.info("Started ProcessGames: {}, {}", lastImportRefDateUtc, isReload);
-						
+
 			var results = new ArrayList<GameResponse>();
 			List<GameResponse> games = new ArrayList<GameResponse>();
 			var prevTotal = 0;
@@ -101,7 +103,7 @@ public class GameService extends BaseService implements IGameService {
 			var parameters = new HashMap<String, String>();
 			parameters.put("orderby", "created");
 			parameters.put("embed", "levels,categories,variables");
-			parameters.put("max", Integer.toString(super.getMaxPageLimitSM()));
+			parameters.put("max", Integer.toString(super.getMaxPageLimit()));
 			parameters.put("offset", Integer.toString(offset));
 
 			if (!isReload) {
@@ -129,7 +131,7 @@ public class GameService extends BaseService implements IGameService {
 			retryCount++;
 			if (retryCount <= super.getMaxRetryCount()) {
 				_logger.info("Retrying pull games: {}, total games: {}, retry: {}",
-						super.getMaxPageLimitSM(), offset, retryCount);
+						super.getMaxPageLimit(), offset, retryCount);
 				data = GetGameResponses(isReload, offset, retryCount);
 			} else {
 				throw ex;

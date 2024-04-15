@@ -4,5 +4,5 @@ import java.time.Instant;
 
 public interface IGameService
 {
-	boolean ProcessGames(Instant lastImportDateUtc, boolean isReload);
+	boolean ProcessGames(boolean isReload);
 }

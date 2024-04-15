@@ -83,7 +83,7 @@ public class PlatformService extends BaseService implements IPlatformService {
 
 		try (var client = HttpClient.newHttpClient()) {
 			var parameters = new HashMap<String, String>();
-			parameters.put("max", Integer.toString(super.getMaxPageLimitSM()));
+			parameters.put("max", Integer.toString(super.getMaxPageLimit()));
 			parameters.put("offset", Integer.toString(offset));
 
 			String paramString = String.join("&",
@@ -125,18 +125,59 @@ public class PlatformService extends BaseService implements IPlatformService {
 				.collect(Collectors.toList());
 
 		var existingPlatforms = _platformRepo.GetAllPlatforms();
-		var platforms = platformResponses.stream()
-										.filter(i -> !existingPlatforms.stream().anyMatch(x -> x.getCode().equals(i.id())))
-										.map(i -> {
-													var platform = new Platform();
-													platform.setName(i.name());
-													platform.setCode(i.id());
-
-													return platform;
-										}).toList();
+		var platforms = GetPlatformsFromResponses(platformResponses, existingPlatforms);
+		platforms = GetNewOrChangedPlatforms(platforms, existingPlatforms);
 
 		_platformRepo.SavePlatforms(platforms);
 
 		_logger.info("Completed SavePlatformResponses");
 	}
+
+	private List<Platform> GetPlatformsFromResponses(List<PlatformResponse> platformResponses, List<Platform> existingPlatforms) {
+		var platforms = platformResponses.stream()
+										.map(i -> {
+													var platform = new Platform();
+
+													var existingPlatform = existingPlatforms.stream().filter(x -> x.getCode().equals(i.id())).findFirst().orElse(null);			
+													platform.setId(existingPlatform != null ? existingPlatform.getId() : 0);
+													platform.setName(i.name());
+													platform.setCode(i.id());
+
+													return platform;
+										}).toList();
+										
+		return platforms;
+	}	
+
+	private List<Platform> GetNewOrChangedPlatforms(List<Platform> platforms, List<Platform> existingPlatforms) {	
+		var results = new ArrayList<Platform>();
+		var newCount = 0;
+		var changedCount = 0;
+
+		for (var platform : platforms) {
+			var isNew = false;	
+			var isChanged = false;
+		
+			if (platform.getId() == 0) {
+				isNew = true;
+				newCount++;
+			} else {
+				var existingPlatform = existingPlatforms.stream().filter(x -> x.getId() == platform.getId()).findFirst().orElse(null);			
+				if (existingPlatform != null) {
+					isChanged = !platform.getName().equals(platform.getName());
+
+					if (isChanged){
+						changedCount++;
+					}
+				}
+			}
+
+			if (isNew || isChanged) {
+				results.add(platform);
+			}
+		}
+
+		_logger.info("Found New: {}, Changed: {}, Total: {}", newCount, changedCount, results.size());		
+		return results;
+	}	
 }

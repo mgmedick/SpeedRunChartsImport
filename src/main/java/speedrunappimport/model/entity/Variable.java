@@ -21,7 +21,7 @@ public class Variable {
     private String code;
     private int gameId;
     private int variableScopeTypeId;
-    private int categoryId;
+    private Integer categoryId;
     private Integer levelId;
     private boolean isSubCategory;
     private Integer sortOrder;
@@ -73,11 +73,11 @@ public class Variable {
         this.variableScopeTypeId = variableScopeTypeId;
     }
 
-    public int getCategoryId() {
+    public Integer getCategoryId() {
         return categoryId;
     }
 
-    public void setCategoryId(int categoryId) {
+    public void setCategoryId(Integer categoryId) {
         this.categoryId = categoryId;
     }
 

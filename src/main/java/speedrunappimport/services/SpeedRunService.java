@@ -77,9 +77,9 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 						results.removeIf(i -> i.game().equals(game.getCode()));
 						for (var category : game.getCategories()) {
 							try {
-							runs = GetSpeedRunResponses(limit, ((int)results.stream().filter(i -> i.game().equals(game.getCode()) && i.category().equals(category.getCode())).count()) + prevTotal, game.getCode(), category.getCode(), SpeedRunOrderBy.Game);
+							runs = GetSpeedRunResponses(limit, ((int)results.stream().filter(i -> i.game().equals(game.getCode()) && i.category().equals(category.getCode())).count()) + prevTotal, game.getCode(), category.getCode(), SpeedRunOrderBy.DateSubmitted);
 							} catch (PaginationException ex1) {
-								runs = GetSpeedRunResponses(limit, ((int)results.stream().filter(i -> i.game().equals(game.getCode()) && i.category().equals(category.getCode())).count()) + prevTotal, game.getCode(), category.getCode(), SpeedRunOrderBy.GameDesc);
+								runs = GetSpeedRunResponses(limit, ((int)results.stream().filter(i -> i.game().equals(game.getCode()) && i.category().equals(category.getCode())).count()) + prevTotal, game.getCode(), category.getCode(), SpeedRunOrderBy.DateSubmittedDesc);
 							}
 						}
 					}
@@ -204,10 +204,10 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 				var isDesc = false;
 
 				switch (orderBy) {
-					case SpeedRunOrderBy.Game:
-					case SpeedRunOrderBy.GameDesc:
-						orderByString = "game";
-						isDesc = (orderBy == SpeedRunOrderBy.GameDesc);
+					case SpeedRunOrderBy.DateSubmitted:
+					case SpeedRunOrderBy.DateSubmittedDesc:
+						orderByString = "date-submitted";
+						isDesc = (orderBy == SpeedRunOrderBy.DateSubmittedDesc);
 						break;	
 					case SpeedRunOrderBy.VerifyDate:
 					case SpeedRunOrderBy.VerifyDateDesc:

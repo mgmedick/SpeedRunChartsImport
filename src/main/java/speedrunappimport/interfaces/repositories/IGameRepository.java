@@ -1,5 +1,6 @@
 package speedrunappimport.interfaces.repositories;
 
+import java.time.Instant;
 import java.util.List;
 
 import speedrunappimport.model.entity.*;
@@ -9,6 +10,7 @@ public interface IGameRepository {
     List<Game> GetGamesByCode(List<String> codes);
     List<GameView> GetGameViewsByCode(List<String> codes);
     List<CategoryType> GetCategoryTypes();
+    List<Game> GetGamesModifiedAfter(Instant date);
 }
 
 

@@ -138,4 +138,11 @@ public class GameRepository extends BaseRepository implements IGameRepository {
 	public List<CategoryType> GetCategoryTypes() {
 		return _categoryTypeDB.findAll();
 	}	
+
+	@Transactional(isolation = Isolation.READ_UNCOMMITTED)
+	public List<Game> GetGamesModifiedAfter(Instant date) {
+		var results = _gameDB.findAllWithModifiedDateAfter(date);
+		
+		return results;
+	}	
 }

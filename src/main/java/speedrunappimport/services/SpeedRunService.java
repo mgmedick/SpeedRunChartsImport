@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import speedrunappimport.common.StringExtensions;
@@ -25,116 +26,233 @@ import speedrunappimport.interfaces.repositories.*;
 import speedrunappimport.interfaces.services.*;
 import speedrunappimport.model.entity.*;
 import speedrunappimport.model.json.*;
-import speedrunappimport.model.Enums;
+import speedrunappimport.model.Enums.*;
 
-public class GameService extends BaseService implements IGameService {
+public class SpeedRunService extends BaseService implements ISpeedRunService {
+	private ISpeedRunRepository _speedRunRepo;
 	private IGameRepository _gameRepo;
 	private IPlatformRepository _platformRepo;
 	private ISettingService _settingService;
 	private Logger _logger;
 
-	public GameService(IGameRepository gameRepo, IPlatformRepository platformRepo, ISettingService settingService, Logger logger) {
-		_gameRepo = gameRepo;
+	public SpeedRunService(ISpeedRunRepository speedRunRepo, IGameRepository gameRepo, IPlatformRepository platformRepo, ISettingService settingService, Logger logger) {
+		_speedRunRepo = speedRunRepo;
 		_platformRepo = platformRepo;
+		_gameRepo = gameRepo;
 		_settingService = settingService;
 		_logger = logger;
 	}
 
-	public boolean ProcessGames(boolean isReload) {
+	public boolean ProcessSpeedRuns(boolean isReload) {
 		boolean result = false;
-
-		try {
-			var stGameLastImportRefDateUtc = _settingService.GetSetting("GameLastImportRefDate");
-			var lastImportRefDateUtc = stGameLastImportRefDateUtc != null && stGameLastImportRefDateUtc.getDte() != null ? stGameLastImportRefDateUtc.getDte() : this.getSqlMinDateTime();	
-			_logger.info("Started ProcessGames: {}, {}", lastImportRefDateUtc, isReload);
-
-			var results = new ArrayList<GameResponse>();
-			List<GameResponse> games = new ArrayList<GameResponse>();
-			var prevTotal = 0;
-			var limit = super.getMaxPageLimit();
-
-			do {
-				games = GetGameResponses(isReload, limit, results.size() + prevTotal);
-				results.addAll(games);
-				Thread.sleep(super.getPullDelayMS());
-				_logger.info("Pulled games: {}, total games: {}", games.size(), results.size() + prevTotal);
-
-				var memorySize = Runtime.getRuntime().totalMemory();
-				if (memorySize > super.getMaxMemorySizeBytes()) {
-					prevTotal += results.size();
-					_logger.info("Saving to clear memory, results: {}, size: {}", results.size(), memorySize);
-					SaveGameResponses(results, isReload);
-					results.clear();
-					results.trimToSize();
-				}
-			}
-			//while (games.size() == limit && (isReload || games.stream().map(i -> i.created() != null ? i.created() : super.getSqlMinDateTime()).max(Instant::compareTo).get().compareTo(lastImportRefDateUtc) > 0));
-			while (1 == 0);
-
-			if (!isReload) {
-				results.removeIf(i -> (i.created() != null ? i.created() : super.getSqlMinDateTime())
-						.compareTo(lastImportRefDateUtc) <= 0);
-			}
-
-			if (results.size() > 0) {
-				SaveGameResponses(results, isReload);
-				var lastUpdateDate = results.stream().map(i -> i.created() != null ? i.created() : super.getSqlMinDateTime()).max(Instant::compareTo).get();
-				_settingService.UpdateSetting("GameLastImportRefDate", lastUpdateDate);
-				results.clear();
-				results.trimToSize();
-			}
-
-			result = true;
-			_logger.info("Completed ProcessGames");
-		} catch (Exception ex) {
-			result = false;
-			_logger.error("ProcessGames", ex);
+		
+		if (isReload) {
+			result = ProcessSpeedRunsByGame(isReload);
+		} else {
+			result = ProcessSpeedRunsByDate(isReload);
 		}
 
 		return result;
 	}
 
-	public List<GameResponse> GetGameResponses(Boolean isReload, int limit, int offset) throws Exception {
-		return GetGameResponses(isReload, limit, offset, 0);
+	public boolean ProcessSpeedRunsByGame(boolean isReload) {
+		boolean result = false;
+
+		try {
+			var stLastImportDateUtc = _settingService.GetSetting("LastImportDate");
+			var lastImportDateUtc = stLastImportDateUtc != null && stLastImportDateUtc.getDte() != null ? stLastImportDateUtc.getDte() : this.getSqlMinDateTime();	
+			_logger.info("Started ProcessSpeedRunsByGame: {}, {}", lastImportDateUtc, isReload);
+
+			var results = new ArrayList<SpeedRunResponse>();
+			List<SpeedRunResponse> runs = new ArrayList<SpeedRunResponse>();
+			var prevTotal = 0;
+			var limit = super.getMaxPageLimit();
+			var games = _gameRepo.GetGamesModifiedAfter(lastImportDateUtc);
+
+			for (var game : games) {
+				do {
+					try {
+						runs = GetSpeedRunResponses(limit, ((int)results.stream().filter(i->i.game().equals(game.getCode())).count()) + prevTotal, game.getCode());
+					} catch (PaginationException ex) {
+						results.removeIf(i -> i.game().equals(game.getCode()));
+						for (var category : game.getCategories()) {
+							try {
+							runs = GetSpeedRunResponses(limit, ((int)results.stream().filter(i -> i.game().equals(game.getCode()) && i.category().equals(category.getCode())).count()) + prevTotal, game.getCode(), category.getCode(), SpeedRunOrderBy.Game);
+							} catch (PaginationException ex1) {
+								runs = GetSpeedRunResponses(limit, ((int)results.stream().filter(i -> i.game().equals(game.getCode()) && i.category().equals(category.getCode())).count()) + prevTotal, game.getCode(), category.getCode(), SpeedRunOrderBy.GameDesc);
+							}
+						}
+					}
+					results.addAll(runs);
+					Thread.sleep(super.getPullDelayMS());
+					_logger.info("Pulled games: {}, total games: {}", runs.size(), results.size() + prevTotal);
+				}
+				while (runs.size() == limit);
+				//while (1 == 0);
+
+				var memorySize = Runtime.getRuntime().totalMemory();
+				if (memorySize > super.getMaxMemorySizeBytes()) {
+					prevTotal += results.size();
+					_logger.info("Saving to clear memory, results: {}, size: {}", results.size(), memorySize);
+					//SaveSpeedRunResponses(results, isReload);
+					results.clear();
+					results.trimToSize();
+				}				
+			}
+
+			if (results.size() > 0) {
+				//SaveSpeedRunResponses(results, isReload);
+				results.clear();
+				results.trimToSize();
+			}
+
+			result = true;	
+			_logger.info("Completed ProcessSpeedRunsByGame");
+		} catch (Exception ex) {
+			result = false;
+			_logger.error("ProcessSpeedRunsByGame", ex);
+		}
+
+		return result;
 	}
 
-	public List<GameResponse> GetGameResponses(Boolean isReload, int limit, int offset, int retryCount) throws Exception {
-		List<GameResponse> data = new ArrayList<GameResponse>();
+	public boolean ProcessSpeedRunsByDate(boolean isReload) {
+		boolean result = false;
+
+		try {
+			var stSpeedRunLastImportRefDateUtc = _settingService.GetSetting("SpeedRunLastImportRefDate");
+			var lastImportRefDateUtc = stSpeedRunLastImportRefDateUtc != null && stSpeedRunLastImportRefDateUtc.getDte() != null ? stSpeedRunLastImportRefDateUtc.getDte() : this.getSqlMinDateTime();	
+			_logger.info("Started ProcessSpeedRuns: {}, {}", lastImportRefDateUtc, isReload);
+
+			var results = new ArrayList<SpeedRunResponse>();
+			List<SpeedRunResponse> runs = new ArrayList<SpeedRunResponse>();
+			var prevTotal = 0;
+			var limit = super.getMaxPageLimit();
+
+			do {
+				runs = GetSpeedRunResponses(limit, results.size() + prevTotal, SpeedRunOrderBy.VerifyDateDesc);
+				results.addAll(runs);
+				Thread.sleep(super.getPullDelayMS());
+				_logger.info("Pulled games: {}, total games: {}", runs.size(), results.size() + prevTotal);
+
+				var memorySize = Runtime.getRuntime().totalMemory();
+				if (memorySize > super.getMaxMemorySizeBytes()) {
+					prevTotal += results.size();
+					_logger.info("Saving to clear memory, results: {}, size: {}", results.size(), memorySize);
+					//SaveSpeedRunResponses(results, isReload);
+					results.clear();
+					results.trimToSize();
+				}
+			}
+			while (runs.size() == limit && (isReload || runs.stream().map(i -> i.status().verifyDate() != null ? i.status().verifyDate() : super.getSqlMinDateTime()).max(Instant::compareTo).get().compareTo(lastImportRefDateUtc) > 0));
+			//while (1 == 0);
+
+			if (!isReload) {
+				results.removeIf(i -> (i.status().verifyDate() != null ? i.status().verifyDate() : super.getSqlMinDateTime())
+						.compareTo(lastImportRefDateUtc) <= 0);
+			}
+
+			if (results.size() > 0) {
+				//SaveSpeedRunResponses(results, isReload);
+				var lastUpdateDate = results.stream().map(i -> i.status().verifyDate() != null ? i.status().verifyDate() : super.getSqlMinDateTime()).max(Instant::compareTo).get();
+				_settingService.UpdateSetting("SpeedRunLastImportRefDate", lastUpdateDate);
+				results.clear();
+				results.trimToSize();
+			}
+
+			result = true;	
+			_logger.info("Completed ProcessSpeedRuns");
+		} catch (Exception ex) {
+			result = false;
+			_logger.error("ProcessSpeedRuns", ex);
+		}
+
+		return result;
+	}
+
+	public List<SpeedRunResponse> GetSpeedRunResponses(int limit, int offset, SpeedRunOrderBy orderBy) throws Exception {
+		return GetSpeedRunResponses(limit, offset, null, null, orderBy, 0);
+	}
+
+	public List<SpeedRunResponse> GetSpeedRunResponses(int limit, int offset, String gameCode) throws Exception {
+		return GetSpeedRunResponses(limit, offset, gameCode, null, null, 0);
+	}	
+
+	public List<SpeedRunResponse> GetSpeedRunResponses(int limit, int offset, String gameCode, String categoryCode, SpeedRunOrderBy orderBy) throws Exception {
+		return GetSpeedRunResponses(limit, offset, gameCode, categoryCode, orderBy, 0);
+	}		
+
+	public List<SpeedRunResponse> GetSpeedRunResponses(int limit, int offset, String gameCode, String categoryCode, SpeedRunOrderBy orderBy, int retryCount) throws Exception {
+		List<SpeedRunResponse> data = new ArrayList<SpeedRunResponse>();
 
 		try (var client = HttpClient.newHttpClient()) {
 			var parameters = new HashMap<String, String>();
-			parameters.put("orderby", "created");
-			parameters.put("embed", "levels,categories,variables");
-			// parameters.put("max", Integer.toString(super.getMaxPageLimit()));
+			parameters.put("embed", "players");
 			parameters.put("max", Integer.toString(limit));
 			parameters.put("offset", Integer.toString(offset));
 
-			if (!isReload) {
-				parameters.put("direction", "desc");
+			if (gameCode != null && !gameCode.isEmpty()) {
+				parameters.put("game", gameCode);						
 			}
 
-			String paramString = String.join("&",
-					parameters.entrySet().stream().map(i -> i.getKey() + "=" + i.getValue()).toList());
+			if (categoryCode != null && !categoryCode.isEmpty()) {
+				parameters.put("category", categoryCode);						
+			}
+
+			if (orderBy != null) {
+				var orderByString = "game";
+				var isDesc = false;
+
+				switch (orderBy) {
+					case SpeedRunOrderBy.Game:
+					case SpeedRunOrderBy.GameDesc:
+						orderByString = "game";
+						isDesc = (orderBy == SpeedRunOrderBy.GameDesc);
+						break;	
+					case SpeedRunOrderBy.VerifyDate:
+					case SpeedRunOrderBy.VerifyDateDesc:
+						orderByString = "verify-date";
+						isDesc = (orderBy == SpeedRunOrderBy.VerifyDateDesc);
+						break;										
+				}
+
+				parameters.put("orderby", orderByString);
+				
+				if (isDesc) {
+					parameters.put("direction", "desc");
+				}				
+			}
+
+			String paramString = String.join("&", parameters.entrySet().stream().map(i -> i.getKey() + "=" + i.getValue()).toList());
 
 			var request = HttpRequest.newBuilder()
-					.uri(URI.create("https://www.speedrun.com/api/v1/games?" + paramString))
+					.uri(URI.create("https://www.speedrun.com/api/v1/runs?" + paramString))
 					.build();
 
+			var mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+										.setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE)
+										.registerModule(new JavaTimeModule());					
+
 			var response = client.send(request, BodyHandlers.ofString());
+
 			if (response.statusCode() == 200) {
-				var mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-											.setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE)
-											.registerModule(new JavaTimeModule());
-				var games = Arrays.asList(mapper.readerFor(GameResponse[].class)
-								.readValue(mapper.readTree(response.body()).get("data"), GameResponse[].class));
-				data = new ArrayList<GameResponse>(games);
+				var runs = Arrays.asList(mapper.readerFor(SpeedRunResponse[].class)
+								.readValue(mapper.readTree(response.body()).get("data"), SpeedRunResponse[].class));
+				data = new ArrayList<SpeedRunResponse>(runs);
+			} else {
+				var errorMsg = mapper.readTree(response.body()).get("message").toString();
+				if (errorMsg != null && errorMsg.contains("Invalid pagination values")) {
+					throw new PaginationException();
+				}
 			}
+		} catch (PaginationException ex) {
+			throw ex;
 		} catch (Exception ex) {
 			Thread.sleep(super.getErrorPullDelayMS());
 			retryCount++;
 			if (retryCount <= super.getMaxRetryCount()) {
-				_logger.info("Retrying pull games: {}, total games: {}, retry: {}", limit, offset, retryCount);
-				data = GetGameResponses(isReload, limit, offset, retryCount);
+				_logger.info("Retrying pull runs: {}, total runs: {}, retry: {}", limit, offset, retryCount);
+				data = GetSpeedRunResponses(limit, offset, gameCode, categoryCode, orderBy, retryCount);
 			} else {
 				throw ex;
 			}
@@ -143,6 +261,7 @@ public class GameService extends BaseService implements IGameService {
 		return data;
 	}
 
+	/*
 	public void SaveGameResponses(List<GameResponse> gameResponses, boolean isReload) {
 		_logger.info("Started SaveGameResponses: {}", gameResponses.size());
 
@@ -389,4 +508,5 @@ public class GameService extends BaseService implements IGameService {
 		_logger.info("Found New: {}, Changed: {}, Total: {}", newCount, changedCount, results.size());	
 		return results;
 	}	
+	*/
 }

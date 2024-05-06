@@ -1,0 +1,135 @@
+package speedrunappimport.model.entity;
+
+import java.time.Instant;
+import java.util.List;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+
+import org.hibernate.annotations.*;
+
+@Entity
+@Table(name = "tbl_speedrun")
+@SQLDelete(sql = "UPDATE tbl_speedrun SET deleted = true WHERE id=?")
+@SQLRestriction("deleted = false")
+public class SpeedRun {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
+    private String code;
+    private int gameId;
+    private int categoryId;
+    private Integer levelId;
+    private Integer platformId;
+    private Integer rank;
+    private long primaryTime;
+    private Instant dateSumbitted;
+    private Instant verifyDate;
+    @Transient
+    private Instant createdDate;
+    private Instant modifiedDate;
+
+    @Transient
+    private SpeedRunLink speedRunLink;
+
+    @Transient
+    private List<SpeedRunVariableValue> variableValues;
+
+    @Transient
+    private List<SpeedRunVideo> videos;  
+
+    public int getId() {
+        return id;
+    }
+    public void setId(int id) {
+        this.id = id;
+    }
+    public String getCode() {
+        return code;
+    }
+    public void setCode(String code) {
+        this.code = code;
+    }
+    public int getGameId() {
+        return gameId;
+    }
+    public void setGameId(int gameId) {
+        this.gameId = gameId;
+    }
+    public int getCategoryId() {
+        return categoryId;
+    }
+    public void setCategoryId(int categoryId) {
+        this.categoryId = categoryId;
+    }
+    public Integer getLevelId() {
+        return levelId;
+    }
+    public void setLevelId(Integer levelId) {
+        this.levelId = levelId;
+    }
+    public Integer getPlatformId() {
+        return platformId;
+    }
+    public void setPlatformId(Integer platformId) {
+        this.platformId = platformId;
+    }
+    public Integer getRank() {
+        return rank;
+    }
+    public void setRank(Integer rank) {
+        this.rank = rank;
+    }
+    public long getPrimaryTime() {
+        return primaryTime;
+    }
+    public void setPrimaryTime(long primaryTime) {
+        this.primaryTime = primaryTime;
+    }
+    public Instant getDateSumbitted() {
+        return dateSumbitted;
+    }
+    public void setDateSumbitted(Instant dateSumbitted) {
+        this.dateSumbitted = dateSumbitted;
+    }
+    public Instant getVerifyDate() {
+        return verifyDate;
+    }
+    public void setVerifyDate(Instant verifyDate) {
+        this.verifyDate = verifyDate;
+    }
+    public Instant getCreatedDate() {
+        return createdDate;
+    }
+    public void setCreatedDate(Instant createdDate) {
+        this.createdDate = createdDate;
+    }
+    public Instant getModifiedDate() {
+        return modifiedDate;
+    }
+    public void setModifiedDate(Instant modifiedDate) {
+        this.modifiedDate = modifiedDate;
+    }
+    public SpeedRunLink getSpeedRunLink() {
+        return speedRunLink;
+    }
+    public void setSpeedRunLink(SpeedRunLink speedRunLink) {
+        this.speedRunLink = speedRunLink;
+    }   
+    public List<SpeedRunVariableValue> getVariableValues() {
+        return variableValues;
+    }
+    public void setVariableValues(List<SpeedRunVariableValue> variableValues) {
+        this.variableValues = variableValues;
+    }
+    public List<SpeedRunVideo> getVideos() {
+        return videos;
+    }
+    public void setVideos(List<SpeedRunVideo> videos) {
+        this.videos = videos;
+    } 
+}

@@ -72,14 +72,14 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			for (var game : games) {
 				do {
 					try {
-						runs = GetSpeedRunResponses(limit, ((int)results.stream().filter(i->i.game().equals(game.getCode())).count()) + prevTotal, game.getCode());
+						runs = GetSpeedRunResponses(limit, ((int)results.stream().filter(i->i.game().equals(game.getCode())).count()) + prevTotal, game.getCode(), null, null);
 					} catch (PaginationException ex) {
 						results.removeIf(i -> i.game().equals(game.getCode()));
 						for (var category : game.getCategories()) {
 							try {
-							runs = GetSpeedRunResponses(limit, ((int)results.stream().filter(i -> i.game().equals(game.getCode()) && i.category().equals(category.getCode())).count()) + prevTotal, game.getCode(), category.getCode(), SpeedRunOrderBy.DateSubmitted);
+							runs = GetSpeedRunResponses(limit, ((int)results.stream().filter(i -> i.game().equals(game.getCode()) && i.category().equals(category.getCode())).count()) + prevTotal, game.getCode(), category.getCode(), SpeedRunsOrderBy.DateSubmitted);
 							} catch (PaginationException ex1) {
-								runs = GetSpeedRunResponses(limit, ((int)results.stream().filter(i -> i.game().equals(game.getCode()) && i.category().equals(category.getCode())).count()) + prevTotal, game.getCode(), category.getCode(), SpeedRunOrderBy.DateSubmittedDesc);
+								runs = GetSpeedRunResponses(limit, ((int)results.stream().filter(i -> i.game().equals(game.getCode()) && i.category().equals(category.getCode())).count()) + prevTotal, game.getCode(), category.getCode(), SpeedRunsOrderBy.DateSubmittedDesc);
 							}
 						}
 					}
@@ -130,7 +130,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			var limit = super.getMaxPageLimit();
 
 			do {
-				runs = GetSpeedRunResponses(limit, results.size() + prevTotal, SpeedRunOrderBy.VerifyDateDesc);
+				runs = GetSpeedRunResponses(limit, results.size() + prevTotal, null, null, SpeedRunsOrderBy.VerifyDateDesc);
 				results.addAll(runs);
 				Thread.sleep(super.getPullDelayMS());
 				_logger.info("Pulled games: {}, total games: {}", runs.size(), results.size() + prevTotal);
@@ -170,19 +170,11 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 		return result;
 	}
 
-	public List<SpeedRunResponse> GetSpeedRunResponses(int limit, int offset, SpeedRunOrderBy orderBy) throws Exception {
-		return GetSpeedRunResponses(limit, offset, null, null, orderBy, 0);
-	}
-
-	public List<SpeedRunResponse> GetSpeedRunResponses(int limit, int offset, String gameCode) throws Exception {
-		return GetSpeedRunResponses(limit, offset, gameCode, null, null, 0);
-	}	
-
-	public List<SpeedRunResponse> GetSpeedRunResponses(int limit, int offset, String gameCode, String categoryCode, SpeedRunOrderBy orderBy) throws Exception {
+	public List<SpeedRunResponse> GetSpeedRunResponses(int limit, int offset, String gameCode, String categoryCode, SpeedRunsOrderBy orderBy) throws Exception {
 		return GetSpeedRunResponses(limit, offset, gameCode, categoryCode, orderBy, 0);
 	}		
 
-	public List<SpeedRunResponse> GetSpeedRunResponses(int limit, int offset, String gameCode, String categoryCode, SpeedRunOrderBy orderBy, int retryCount) throws Exception {
+	public List<SpeedRunResponse> GetSpeedRunResponses(int limit, int offset, String gameCode, String categoryCode, SpeedRunsOrderBy orderBy, int retryCount) throws Exception {
 		List<SpeedRunResponse> data = new ArrayList<SpeedRunResponse>();
 
 		try (var client = HttpClient.newHttpClient()) {
@@ -200,20 +192,24 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			}
 
 			if (orderBy != null) {
-				var orderByString = "game";
+				var orderByString = "";
 				var isDesc = false;
 
-				switch (orderBy) {
-					case SpeedRunOrderBy.DateSubmitted:
-					case SpeedRunOrderBy.DateSubmittedDesc:
+				switch (orderBy) {			
+					case SpeedRunsOrderBy.DateSubmitted:
+					case SpeedRunsOrderBy.DateSubmittedDesc:
 						orderByString = "date-submitted";
-						isDesc = (orderBy == SpeedRunOrderBy.DateSubmittedDesc);
+						isDesc = (orderBy == SpeedRunsOrderBy.DateSubmittedDesc);
 						break;	
-					case SpeedRunOrderBy.VerifyDate:
-					case SpeedRunOrderBy.VerifyDateDesc:
+					case SpeedRunsOrderBy.VerifyDate:
+					case SpeedRunsOrderBy.VerifyDateDesc:
 						orderByString = "verify-date";
-						isDesc = (orderBy == SpeedRunOrderBy.VerifyDateDesc);
-						break;										
+						isDesc = (orderBy == SpeedRunsOrderBy.VerifyDateDesc);
+						break;						
+					default:
+						orderByString = "game";
+						isDesc = false;
+						break;																
 				}
 
 				parameters.put("orderby", orderByString);
@@ -259,6 +255,63 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 		}
 
 		return data;
+	}
+
+	public void SaveSpeedRunResponses(List<SpeedRunResponse> runResponses, boolean isReload) {
+		_logger.info("Started SaveSpeedRunResponses: {}", runResponses.size());
+
+		if (!isReload) {
+			runResponses = runResponses.reversed();
+		}
+
+		runResponses = runResponses.stream()
+				.collect(Collectors.toMap(SpeedRunResponse::id, Function.identity(), (u1, u2) -> u1))
+				.values()
+				.stream()
+				.collect(Collectors.toList());		
+
+		var existingRunVWs = _speedRunRepo.GetSpeedRunViewsByCode(runResponses.stream().map(x -> x.id()).toList());
+		var existingGameVWs = _gameRepo.GetGameViewsByCode(runResponses.stream().map(x -> x.game()).toList());
+
+		var runs = GetSpeedRunsFromResponses(runResponses, existingRunVWs, existingGameVWs);
+
+		_logger.info("Completed SaveSpeedRunResponses");	
+	}
+
+	private List<SpeedRun> GetSpeedRunsFromResponses(List<SpeedRunResponse> runs, List<SpeedRunView> existingRunVWs, List<GameView> existingGameVWs) {
+		var platforms = _platformRepo.GetAllPlatforms();
+		var existingCameCodes = existingGameVWs.stream().map(i -> i.getCode()).toList();
+
+		var runEntities = runs.stream().filter(i -> existingCameCodes.contains(i.game())).map(i -> {
+			var run = new SpeedRun();
+
+			var existingGameVW = existingGameVWs.stream().filter(x -> x.getCode().equals(i.game())).findFirst().get();		
+			var existingRunVW = existingRunVWs.stream().filter(x -> x.getCode().equals(i.id())).findFirst().orElse(null);		
+
+			run.setId(existingRunVW != null ? existingRunVW.getId() : 0);
+			run.setCode(i.id());
+			run.setGameId(existingGameVW.getId());
+			run.setCategoryId(existingGameVW.getCategories().stream().filter(g ->  g.getCode().equals(i.category())).map(g -> g.getId()).findFirst().orElse(0));
+			run.setLevelId(i.level() != null ? existingGameVW.getLevels().stream().filter(g ->  g.getCode().equals(i.level())).map(g -> g.getId()).findFirst().orElse(0) : null);
+			run.setPlatformId(platforms.stream().filter(g ->  g.getCode().equals(i.system().platform())).map(g -> g.getId()).findFirst().orElse(null));
+			run.setPrimaryTime(Instant.parse(i.times().primary()).toEpochMilli());
+			run.setDateSumbitted(i.submitted());
+			run.setVerifyDate(i.status().verifyDate());
+
+			var runLink = new SpeedRunLink();
+			runLink.setId(existingRunVW != null ? existingRunVW.getSpeedRunLinkId() : 0);
+			runLink.setSpeedRunId(run.getId());
+			runLink.setSpeedRunComUrl(i.weblink());
+			run.setSpeedRunLink(runLink);
+			
+			if (existingRunVW != null) {
+				//set removals				
+			}
+			
+			return run;
+		}).filter(i -> i.getCategoryId() != 0 && i.getLevelId() != 0).toList();
+
+		return runEntities;
 	}
 
 	/*

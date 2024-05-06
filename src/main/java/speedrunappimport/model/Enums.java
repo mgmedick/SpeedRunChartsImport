@@ -33,7 +33,7 @@ public class Enums {
         }        
     }
 
-    public enum SpeedRunOrderBy {
+    public enum SpeedRunsOrderBy {
         Game(0),
         GameDesc(1),
         Category(2),
@@ -57,7 +57,32 @@ public class Enums {
 
         private final int value;
  
-        private SpeedRunOrderBy(int value) {
+        private SpeedRunsOrderBy(int value) {
+            this.value = value;
+        }
+    
+        public int getValue() {
+            return value;
+        }        
+    }
+
+    public enum GamesOrderBy {
+        Similarity(0),
+        SimilarityDesc(1),
+        Name(2),
+        NameDesc(3),
+        JapaneseName(4),
+        JapaneseNamelDesc(5),
+        Abbreviation(6),
+        AbbreviationDesc(7),
+        YearOfRelease(8),
+        YearOfReleaseDesc(9),
+        CreationDate(10),
+        CreationDateDesc(11);
+
+        private final int value;
+ 
+        private GamesOrderBy(int value) {
             this.value = value;
         }
     

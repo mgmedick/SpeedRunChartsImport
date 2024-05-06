@@ -1,0 +1,153 @@
+package speedrunappimport.model.entity;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.List;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+@Entity
+@Table(name = "vw_speedrun")
+public class SpeedRunView {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
+    private String code;  
+    private int gameId;
+    private int categoryId;
+    private String categoryCode;
+    private Integer levelId;
+    private Integer platformId;
+    private Integer rank;
+    private long primaryTime;
+    private Instant dateSumbitted;
+    private int speedRunLinkId;
+    private String speedRunComUrl;
+    private String splitsUrl;  
+    private String videosJson;    
+    private String playersJson; 
+
+    @Transient
+    private ObjectMapper _mapper;
+
+    public int getId() {
+        return id;
+    }
+    public void setId(int id) {
+        this.id = id;
+    }
+    public String getCode() {
+        return code;
+    }
+    public void setCode(String code) {
+        this.code = code;
+    }
+    public int getGameId() {
+        return gameId;
+    }
+    public void setGameId(int gameId) {
+        this.gameId = gameId;
+    }
+    public int getCategoryId() {
+        return categoryId;
+    }
+    public void setCategoryId(int categoryId) {
+        this.categoryId = categoryId;
+    }
+    public Integer getLevelId() {
+        return levelId;
+    }
+    public void setLevelId(Integer levelId) {
+        this.levelId = levelId;
+    }
+    public Integer getPlatformId() {
+        return platformId;
+    }
+    public void setPlatformId(Integer platformId) {
+        this.platformId = platformId;
+    }
+    public Integer getRank() {
+        return rank;
+    }
+    public void setRank(Integer rank) {
+        this.rank = rank;
+    }
+    public long getPrimaryTime() {
+        return primaryTime;
+    }
+    public void setPrimaryTime(long primaryTime) {
+        this.primaryTime = primaryTime;
+    }
+    public Instant getDateSumbitted() {
+        return dateSumbitted;
+    }
+    public void setDateSumbitted(Instant dateSumbitted) {
+        this.dateSumbitted = dateSumbitted;
+    }
+    public int getSpeedRunLinkId() {
+        return speedRunLinkId;
+    }
+    public void setSpeedRunLinkId(int speedRunLinkId) {
+        this.speedRunLinkId = speedRunLinkId;
+    }
+    public String getSpeedRunComUrl() {
+        return speedRunComUrl;
+    }
+    public void setSpeedRunComUrl(String speedRunComUrl) {
+        this.speedRunComUrl = speedRunComUrl;
+    }
+    public String getSplitsUrl() {
+        return splitsUrl;
+    }
+    public void setSplitsUrl(String splitsUrl) {
+        this.splitsUrl = splitsUrl;
+    }
+    public String getVideosJson() {
+        return videosJson;
+    }
+    public void setVideosJson(String videosJson) {
+        this.videosJson = videosJson;
+    }
+    public String getPlayersJson() {
+        return playersJson;
+    }
+    public void setPlayersJson(String playersJson) {
+        this.playersJson = playersJson;
+    }   
+    public List<SpeedRunVideo> getVideos() {
+        List<SpeedRunVideo> results = new ArrayList<SpeedRunVideo>();
+        
+        try {
+            if (this.videosJson != null) {
+                results = Arrays.asList(_mapper.readValue(this.videosJson, SpeedRunVideo[].class));
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+        
+        return results;
+    }
+    public List<Map.Entry<String, String>> getPlayers() {
+        List<Map.Entry<String, String>> results = new ArrayList<Map.Entry<String, String>>();
+        
+        try {
+            if (this.playersJson != null) {
+                results = _mapper.readValue(this.playersJson, new TypeReference<List<Map.Entry<String, String>>>() {});
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+        
+        return results;
+    }
+}

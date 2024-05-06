@@ -26,8 +26,8 @@ public class Game {
     private String abbr;
     private boolean showMilliseconds;
     private LocalDate releaseDate;
+    private Instant dateCreated;
     private boolean deleted;
-    private Instant importRefDate;
     @Transient
     private Instant createdDate;
     private Instant modifiedDate;
@@ -119,6 +119,14 @@ public class Game {
         this.releaseDate = releaseDate;
     }
 
+    public Instant getDateCreated() {
+        return dateCreated;
+    }
+
+    public void setDateCreated(Instant dateCreated) {
+        this.dateCreated = dateCreated;
+    } 
+
     public boolean isDeleted() {
         return deleted;
     }
@@ -126,14 +134,6 @@ public class Game {
     public void setDeleted(boolean deleted) {
         this.deleted = deleted;
     }    
-
-    public Instant getImportRefDate() {
-        return importRefDate;
-    }
-
-    public void setImportRefDate(Instant importRefDate) {
-        this.importRefDate = importRefDate;
-    }
 
     public Instant getCreatedDate() {
         return createdDate;

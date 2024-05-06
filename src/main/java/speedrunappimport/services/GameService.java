@@ -25,7 +25,7 @@ import speedrunappimport.interfaces.repositories.*;
 import speedrunappimport.interfaces.services.*;
 import speedrunappimport.model.entity.*;
 import speedrunappimport.model.json.*;
-import speedrunappimport.model.Enums;
+import speedrunappimport.model.Enums.*;
 
 public class GameService extends BaseService implements IGameService {
 	private IGameRepository _gameRepo;
@@ -54,7 +54,7 @@ public class GameService extends BaseService implements IGameService {
 			var limit = super.getMaxPageLimit();
 
 			do {
-				games = GetGameResponses(isReload, limit, results.size() + prevTotal);
+				games = GetGameResponses(limit, results.size() + prevTotal, GamesOrderBy.CreationDate);
 				results.addAll(games);
 				Thread.sleep(super.getPullDelayMS());
 				_logger.info("Pulled games: {}, total games: {}", games.size(), results.size() + prevTotal);
@@ -94,23 +94,40 @@ public class GameService extends BaseService implements IGameService {
 		return result;
 	}
 
-	public List<GameResponse> GetGameResponses(Boolean isReload, int limit, int offset) throws Exception {
-		return GetGameResponses(isReload, limit, offset, 0);
+	public List<GameResponse> GetGameResponses(int limit, int offset, GamesOrderBy orderBy) throws Exception {
+		return GetGameResponses(limit, offset, orderBy, 0);
 	}
 
-	public List<GameResponse> GetGameResponses(Boolean isReload, int limit, int offset, int retryCount) throws Exception {
+	public List<GameResponse> GetGameResponses(int limit, int offset, GamesOrderBy orderBy, int retryCount) throws Exception {
 		List<GameResponse> data = new ArrayList<GameResponse>();
 
 		try (var client = HttpClient.newHttpClient()) {
 			var parameters = new HashMap<String, String>();
-			parameters.put("orderby", "created");
 			parameters.put("embed", "levels,categories,variables");
-			// parameters.put("max", Integer.toString(super.getMaxPageLimit()));
 			parameters.put("max", Integer.toString(limit));
 			parameters.put("offset", Integer.toString(offset));
 
-			if (!isReload) {
-				parameters.put("direction", "desc");
+			if (orderBy != null) {
+				var orderByString = "";
+				var isDesc = false;
+
+				switch (orderBy) {
+					case GamesOrderBy.CreationDate:
+					case GamesOrderBy.CreationDateDesc:
+						orderByString = "created";
+						isDesc = (orderBy == GamesOrderBy.CreationDateDesc);
+						break;
+					default:
+						orderByString = "name.int";
+						isDesc = false;
+						break;					
+				}
+
+				parameters.put("orderby", orderByString);
+				
+				if (isDesc) {
+					parameters.put("direction", "desc");
+				}				
 			}
 
 			String paramString = String.join("&",
@@ -134,7 +151,7 @@ public class GameService extends BaseService implements IGameService {
 			retryCount++;
 			if (retryCount <= super.getMaxRetryCount()) {
 				_logger.info("Retrying pull games: {}, total games: {}, retry: {}", limit, offset, retryCount);
-				data = GetGameResponses(isReload, limit, offset, retryCount);
+				data = GetGameResponses(limit, offset, orderBy, retryCount);
 			} else {
 				throw ex;
 			}
@@ -179,7 +196,7 @@ public class GameService extends BaseService implements IGameService {
 			game.setAbbr(i.abbreviation());
 			game.setShowMilliseconds(i.ruleset() != null ? i.ruleset().showMilliseconds() : false);
 			game.setReleaseDate(i.releaseDate());
-			game.setImportRefDate(i.created());
+			game.setDateCreated(i.created());
 
 			var gameLink = new GameLink();
 			gameLink.setId(existingGameVW != null ? existingGameVW.getGameLinkId() : 0);
@@ -206,7 +223,7 @@ public class GameService extends BaseService implements IGameService {
 									category.setName(x.name());
 									category.setCode(x.id());
 									category.setGameId(game.getId());
-									category.setCategoryTypeId(Enums.CategoryType.valueOf(StringExtensions.KebabToUpperCamelCase(x.type())).getValue());
+									category.setCategoryTypeId(speedrunappimport.model.Enums.CategoryType.valueOf(StringExtensions.KebabToUpperCamelCase(x.type())).getValue());
 									category.setMiscellaneous(x.miscellaneous());
 									category.setIsTimerAscending(x.rules() != null && x.rules().contains("long as possible"));
 									return category;
@@ -232,7 +249,7 @@ public class GameService extends BaseService implements IGameService {
 										variable.setName(variablesList.get(x).name());
 										variable.setCode(variablesList.get(x).id());
 										variable.setGameId(game.getId());
-										variable.setVariableScopeTypeId(Enums.VariableScopeType.valueOf(StringExtensions.KebabToUpperCamelCase(variablesList.get(x).scope().type())).getValue());
+										variable.setVariableScopeTypeId(VariableScopeType.valueOf(StringExtensions.KebabToUpperCamelCase(variablesList.get(x).scope().type())).getValue());
 										variable.setCategoryId(existingGameVW != null ? existingGameVW.getCategories().stream().filter(h ->  h.getCode().equals(variablesList.get(x).category())).map(h -> h.getId()).findFirst().orElse(0) : 0);
 										variable.setCategoryCode(variablesList.get(x).category());
 										variable.setLevelId(existingGameVW != null ? existingGameVW.getLevels().stream().filter(h ->  h.getCode().equals(variablesList.get(x).scope().level())).map(h -> h.getId()).findFirst().orElse(0) : 0);

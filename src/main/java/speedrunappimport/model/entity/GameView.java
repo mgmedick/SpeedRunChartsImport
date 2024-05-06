@@ -26,11 +26,11 @@ public class GameView {
     private String name;
     private String code;
     private String abbr;
-    private int gameLinkId;
-    private String coverImageUrl;
-    private String speedRunComUrl;
     private boolean showMilliseconds;
     private LocalDate releaseDate;
+    private int gameLinkId;
+    private String coverImageUrl;
+    private String speedRunComUrl;   
     private String gameCategoryTypesJson;
     private String categoriesJson;
     private String levelsJson;
@@ -79,6 +79,22 @@ public class GameView {
         this.abbr = abbr;
     }
 
+    public Boolean getShowMilliseconds() {
+        return showMilliseconds;
+    }
+
+    public void setShowMilliseconds(Boolean showMilliseconds) {
+        this.showMilliseconds = showMilliseconds;
+    }
+
+    public LocalDate getReleaseDate() {
+        return releaseDate;
+    }
+
+    public void setReleaseDate(LocalDate releaseDate) {
+        this.releaseDate = releaseDate;
+    }
+
     public int getGameLinkId() {
         return gameLinkId;
     }
@@ -101,22 +117,6 @@ public class GameView {
 
     public void setSpeedRunComUrl(String speedRunComUrl) {
         this.speedRunComUrl = speedRunComUrl;
-    }
-
-    public Boolean getShowMilliseconds() {
-        return showMilliseconds;
-    }
-
-    public void setShowMilliseconds(Boolean showMilliseconds) {
-        this.showMilliseconds = showMilliseconds;
-    }
-
-    public LocalDate getReleaseDate() {
-        return releaseDate;
-    }
-
-    public void setReleaseDate(LocalDate releaseDate) {
-        this.releaseDate = releaseDate;
     }
 
     public String getGameCategoryTypesJson() {

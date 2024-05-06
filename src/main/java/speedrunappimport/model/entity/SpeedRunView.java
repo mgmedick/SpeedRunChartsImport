@@ -25,7 +25,6 @@ public class SpeedRunView {
     private String code;  
     private int gameId;
     private int categoryId;
-    private String categoryCode;
     private Integer levelId;
     private Integer platformId;
     private Integer rank;

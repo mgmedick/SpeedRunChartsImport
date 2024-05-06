@@ -271,7 +271,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 				.collect(Collectors.toList());		
 
 		var existingRunVWs = _speedRunRepo.GetSpeedRunViewsByCode(runResponses.stream().map(x -> x.id()).toList());
-		var existingGameVWs = _gameRepo.GetGameViewsByCode(runResponses.stream().map(x -> x.game()).toList());
+		var existingGameVWs = _gameRepo.GetGameViewsByCode(runResponses.stream().map(x -> x.game()).distinct().toList());
 
 		var runs = GetSpeedRunsFromResponses(runResponses, existingRunVWs, existingGameVWs);
 

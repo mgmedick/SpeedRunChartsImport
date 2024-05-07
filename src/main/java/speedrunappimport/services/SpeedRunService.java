@@ -304,17 +304,27 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			runLink.setSpeedRunComUrl(i.weblink());
 			run.setSpeedRunLink(runLink);
 
-			var runVariableValues = i.values().entrySet().stream()
+			var variableValues = i.values().entrySet().stream()
 											.map(x -> { 
 												var runVariableValue = new SpeedRunVariableValue();
 												runVariableValue.setId(existingRunVW != null ? existingRunVW.getVariableValues().stream().filter(g ->  g.getVariableCode().equals(x.getKey()) && g.getVariableValueCode().equals(x.getValue())).map(g -> g.getId()).findFirst().orElse(0) : 0);
-												runVariableValue.setSpeedRunId(existingRunVW != null ? existingRunVW.getId() : 0);
+												runVariableValue.setSpeedRunId(run.getId());
 												runVariableValue.setVariableId(existingGameVW.getVariables().stream().filter(g -> g.getCode().equals(x.getKey())).map(g -> g.getId()).findFirst().orElse(0));			
 												runVariableValue.setVariableValueId(existingGameVW.getVariableValues().stream().filter(g -> g.getVariableCode().equals(x.getKey()) && g.getCode().equals(x.getValue())).map(g -> g.getId()).findFirst().orElse(0));
 												return runVariableValue;
 											}).filter(x -> x.getVariableId() != 0 && x.getVariableValueId() != 0).toList();
-			run.setVariableValues(runVariableValues);			
+			run.setVariableValues(variableValues);			
 			
+			var videos = i.videos().links().stream()
+								.map(x -> { 
+									var video = new SpeedRunVideo();
+									video.setId(existingRunVW != null ? existingRunVW.getVideos().stream().filter(g ->  g.getVideoLinkUrl().equals(x.uri())).map(g -> g.getId()).findFirst().orElse(0) : 0);
+									video.setSpeedRunId(run.getId());
+									video.setVideoLinkUrl(x.uri());
+									return video;
+								}).toList();
+			run.setVideos(videos);
+
 			if (existingRunVW != null) {
 				//set removals				
 			}

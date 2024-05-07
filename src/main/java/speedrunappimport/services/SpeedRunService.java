@@ -303,6 +303,17 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			runLink.setSpeedRunId(run.getId());
 			runLink.setSpeedRunComUrl(i.weblink());
 			run.setSpeedRunLink(runLink);
+
+			var runVariableValues = i.values().entrySet().stream()
+											.map(x -> { 
+												var runVariableValue = new SpeedRunVariableValue();
+												runVariableValue.setId(existingRunVW != null ? existingRunVW.getVariableValues().stream().filter(g ->  g.getVariableCode().equals(x.getKey()) && g.getVariableValueCode().equals(x.getValue())).map(g -> g.getId()).findFirst().orElse(0) : 0);
+												runVariableValue.setSpeedRunId(existingRunVW != null ? existingRunVW.getId() : 0);
+												runVariableValue.setVariableId(existingGameVW.getVariables().stream().filter(g -> g.getCode().equals(x.getKey())).map(g -> g.getId()).findFirst().orElse(0));			
+												runVariableValue.setVariableValueId(existingGameVW.getVariableValues().stream().filter(g -> g.getVariableCode().equals(x.getKey()) && g.getCode().equals(x.getValue())).map(g -> g.getId()).findFirst().orElse(0));
+												return runVariableValue;
+											}).filter(x -> x.getVariableId() != 0 && x.getVariableValueId() != 0).toList();
+			run.setVariableValues(runVariableValues);			
 			
 			if (existingRunVW != null) {
 				//set removals				

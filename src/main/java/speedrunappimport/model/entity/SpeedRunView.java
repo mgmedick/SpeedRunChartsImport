@@ -32,7 +32,7 @@ public class SpeedRunView {
     private Instant dateSumbitted;
     private int speedRunLinkId;
     private String speedRunComUrl;
-    private String splitsUrl;  
+    private String variableValuesJson;    
     private String videosJson;    
     private String playersJson; 
 
@@ -105,12 +105,6 @@ public class SpeedRunView {
     public void setSpeedRunComUrl(String speedRunComUrl) {
         this.speedRunComUrl = speedRunComUrl;
     }
-    public String getSplitsUrl() {
-        return splitsUrl;
-    }
-    public void setSplitsUrl(String splitsUrl) {
-        this.splitsUrl = splitsUrl;
-    }
     public String getVideosJson() {
         return videosJson;
     }
@@ -123,6 +117,19 @@ public class SpeedRunView {
     public void setPlayersJson(String playersJson) {
         this.playersJson = playersJson;
     }   
+    public List<SpeedRunVariableValue> getVariableValues() {
+        List<SpeedRunVariableValue> results = new ArrayList<SpeedRunVariableValue>();
+        
+        try {
+            if (this.variableValuesJson != null) {
+                results = Arrays.asList(_mapper.readValue(this.variableValuesJson, SpeedRunVariableValue[].class));
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+        
+        return results;
+    }    
     public List<SpeedRunVideo> getVideos() {
         List<SpeedRunVideo> results = new ArrayList<SpeedRunVideo>();
         

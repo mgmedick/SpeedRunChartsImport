@@ -5,6 +5,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 import org.hibernate.annotations.*;
 
@@ -20,6 +21,12 @@ public class SpeedRunVariableValue {
     private int VariableId;
     private int VariableValueId;
     private boolean deleted;
+
+    @Transient
+    private String variableCode;
+
+    @Transient
+    private String variableValueCode;
 
     public int getId() {
         return id;
@@ -50,5 +57,17 @@ public class SpeedRunVariableValue {
     }
     public void setDeleted(boolean deleted) {
         this.deleted = deleted;
-    }    
+    }
+    public String getVariableCode() {
+        return variableCode;
+    }
+    public void setVariableCode(String variableCode) {
+        this.variableCode = variableCode;
+    }
+    public String getVariableValueCode() {
+        return variableValueCode;
+    }
+    public void setVariableValueCode(String variableValueCode) {
+        this.variableValueCode = variableValueCode;
+    }   
 }

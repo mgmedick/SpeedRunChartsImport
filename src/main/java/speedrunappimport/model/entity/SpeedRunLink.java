@@ -13,7 +13,7 @@ public class SpeedRunLink {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private int speedRunId;
-    private String speedRunComUrl;
+    private String srcUrl;
 
     public int getId() {
         return id;
@@ -27,10 +27,10 @@ public class SpeedRunLink {
     public void setSpeedRunId(int speedRunId) {
         this.speedRunId = speedRunId;
     }
-    public String getSpeedRunComUrl() {
-        return speedRunComUrl;
+    public String getSrcUrl() {
+        return srcUrl;
     }
-    public void setSpeedRunComUrl(String speedRunComUrl) {
-        this.speedRunComUrl = speedRunComUrl;
+    public void setSrcUrl(String srcUrl) {
+        this.srcUrl = srcUrl;
     }
 }

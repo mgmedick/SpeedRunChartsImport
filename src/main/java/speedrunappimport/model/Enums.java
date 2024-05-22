@@ -89,5 +89,20 @@ public class Enums {
         public int getValue() {
             return value;
         }        
-    } 
+    }
+    
+    public enum PlayerType {
+        User(0),
+        Guest(1);
+
+        private final int value;
+ 
+        private PlayerType(int value) {
+            this.value = value;
+        }
+    
+        public int getValue() {
+            return value;
+        }
+    }    
 }

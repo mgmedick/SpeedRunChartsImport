@@ -37,10 +37,22 @@ public class SpeedRun {
     private SpeedRunLink speedRunLink;
 
     @Transient
+    private List<SpeedRunPlayer> players;   
+
+    @Transient
     private List<SpeedRunVariableValue> variableValues;
 
     @Transient
     private List<SpeedRunVideo> videos;  
+
+    @Transient
+    private List<Integer> playersToRemove;    
+
+    @Transient
+    private List<Integer> variableValuesToRemove;    
+
+    @Transient
+    private List<Integer> videosToRemove;    
 
     public int getId() {
         return id;
@@ -119,7 +131,13 @@ public class SpeedRun {
     }
     public void setSpeedRunLink(SpeedRunLink speedRunLink) {
         this.speedRunLink = speedRunLink;
-    }   
+    }
+    public List<SpeedRunPlayer> getPlayers() {
+        return players;
+    }
+    public void setPlayers(List<SpeedRunPlayer> players) {
+        this.players = players;
+    }
     public List<SpeedRunVariableValue> getVariableValues() {
         return variableValues;
     }
@@ -131,5 +149,23 @@ public class SpeedRun {
     }
     public void setVideos(List<SpeedRunVideo> videos) {
         this.videos = videos;
-    } 
+    }
+    public List<Integer> getPlayersToRemove() {
+        return playersToRemove;
+    }
+    public void setPlayersToRemove(List<Integer> playersToRemove) {
+        this.playersToRemove = playersToRemove;
+    }    
+    public List<Integer> getVariableValuesToRemove() {
+        return variableValuesToRemove;
+    }
+    public void setVariableValuesToRemove(List<Integer> variableValuesToRemove) {
+        this.variableValuesToRemove = variableValuesToRemove;
+    }
+    public List<Integer> getVideosToRemove() {
+        return videosToRemove;
+    }
+    public void setVideosToRemove(List<Integer> videosToRemove) {
+        this.videosToRemove = videosToRemove;
+    }
 }

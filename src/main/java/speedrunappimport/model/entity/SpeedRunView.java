@@ -31,7 +31,7 @@ public class SpeedRunView {
     private long primaryTime;
     private Instant dateSumbitted;
     private int speedRunLinkId;
-    private String speedRunComUrl;
+    private String srcUrl;
     private String variableValuesJson;    
     private String videosJson;    
     private String playersJson; 
@@ -99,11 +99,11 @@ public class SpeedRunView {
     public void setSpeedRunLinkId(int speedRunLinkId) {
         this.speedRunLinkId = speedRunLinkId;
     }
-    public String getSpeedRunComUrl() {
-        return speedRunComUrl;
+    public String getSrcUrl() {
+        return srcUrl;
     }
-    public void setSpeedRunComUrl(String speedRunComUrl) {
-        this.speedRunComUrl = speedRunComUrl;
+    public void setSrcUrl(String srcUrl) {
+        this.srcUrl = srcUrl;
     }
     public String getVideosJson() {
         return videosJson;
@@ -143,17 +143,18 @@ public class SpeedRunView {
         
         return results;
     }
-    public List<Map.Entry<String, String>> getPlayers() {
-        List<Map.Entry<String, String>> results = new ArrayList<Map.Entry<String, String>>();
+    
+    public List<SpeedRunPlayer> getPlayers() {
+        List<SpeedRunPlayer> results = new ArrayList<SpeedRunPlayer>();
         
         try {
             if (this.playersJson != null) {
-                results = _mapper.readValue(this.playersJson, new TypeReference<List<Map.Entry<String, String>>>() {});
+                results = Arrays.asList(_mapper.readValue(this.playersJson, SpeedRunPlayer[].class));
             }
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
         
         return results;
-    }
+    }      
 }

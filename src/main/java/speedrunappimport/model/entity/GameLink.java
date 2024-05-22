@@ -14,7 +14,7 @@ public class GameLink {
     private int id;
     private int gameId;
     private String coverImageUrl;
-    private String speedRunComUrl;
+    private String srcUrl;
 
     public int getId() {
         return id;
@@ -40,11 +40,11 @@ public class GameLink {
         this.coverImageUrl = coverImageUrl;
     }
 
-    public String getSpeedRunComUrl() {
-        return speedRunComUrl;
+    public String getSrcUrl() {
+        return srcUrl;
     }
 
-    public void setSpeedRunComUrl(String speedRunComUrl) {
-        this.speedRunComUrl = speedRunComUrl;
+    public void setSrcUrl(String srcUrl) {
+        this.srcUrl = srcUrl;
     }
 }

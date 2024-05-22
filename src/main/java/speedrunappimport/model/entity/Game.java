@@ -26,7 +26,7 @@ public class Game {
     private String abbr;
     private boolean showMilliseconds;
     private LocalDate releaseDate;
-    private Instant dateCreated;
+    private Instant srcCreatedDate;
     private boolean deleted;
     @Transient
     private Instant createdDate;
@@ -119,12 +119,12 @@ public class Game {
         this.releaseDate = releaseDate;
     }
 
-    public Instant getDateCreated() {
-        return dateCreated;
+    public Instant getSrcCreatedDate() {
+        return srcCreatedDate;
     }
 
-    public void setDateCreated(Instant dateCreated) {
-        this.dateCreated = dateCreated;
+    public void setSrcCreatedDate(Instant srcCreatedDate) {
+        this.srcCreatedDate = srcCreatedDate;
     } 
 
     public boolean isDeleted() {

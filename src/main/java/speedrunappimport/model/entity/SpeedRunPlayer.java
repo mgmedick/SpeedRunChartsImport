@@ -18,7 +18,6 @@ public class SpeedRunPlayer {
     private int id;
     private int speedRunId;
     private int playerId;
-    private int playerTypeId;
     private boolean deleted;
 
     public int getId() {
@@ -38,12 +37,6 @@ public class SpeedRunPlayer {
     }
     public void setPlayerId(int playerId) {
         this.playerId = playerId;
-    }
-    public int getPlayerTypeId() {
-        return playerTypeId;
-    }
-    public void setPlayerTypeId(int playerTypeId) {
-        this.playerTypeId = playerTypeId;
     }
     public boolean isDeleted() {
         return deleted;

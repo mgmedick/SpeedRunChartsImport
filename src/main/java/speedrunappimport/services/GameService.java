@@ -196,13 +196,13 @@ public class GameService extends BaseService implements IGameService {
 			game.setAbbr(i.abbreviation());
 			game.setShowMilliseconds(i.ruleset() != null ? i.ruleset().showMilliseconds() : false);
 			game.setReleaseDate(i.releaseDate());
-			game.setDateCreated(i.created());
+			game.setSrcCreatedDate(i.created());
 
 			var gameLink = new GameLink();
 			gameLink.setId(existingGameVW != null ? existingGameVW.getGameLinkId() : 0);
 			gameLink.setGameId(game.getId());
 			gameLink.setCoverImageUrl(i.assets().coverLarge().uri());
-			gameLink.setSpeedRunComUrl(i.weblink());
+			gameLink.setSrcUrl(i.weblink());
 			game.setGameLink(gameLink);
 			
 			var gameCategoryTypes = categoryTypes.stream()
@@ -340,7 +340,7 @@ public class GameService extends BaseService implements IGameService {
 						|| !game.getAbbr().equals(existingGameVW.getAbbr())
 						|| !game.getReleaseDate().isEqual(existingGameVW.getReleaseDate())
 						|| !game.getGameLink().getCoverImageUrl().equals(existingGameVW.getCoverImageUrl())
-						|| !game.getGameLink().getSpeedRunComUrl().equals(existingGameVW.getSpeedRunComUrl()));
+						|| !game.getGameLink().getSrcUrl().equals(existingGameVW.getSrcUrl()));
 
 					if (!isChanged) {
 						var categoryTypeIds = game.getGameCategoryTypes().stream().map(i -> i.getCategoryTypeId()).toList();

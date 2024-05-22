@@ -30,7 +30,7 @@ public class GameView {
     private LocalDate releaseDate;
     private int gameLinkId;
     private String coverImageUrl;
-    private String speedRunComUrl;   
+    private String srcUrl;   
     private String gameCategoryTypesJson;
     private String categoriesJson;
     private String levelsJson;
@@ -111,12 +111,12 @@ public class GameView {
         this.coverImageUrl = coverImageUrl;
     }
 
-    public String getSpeedRunComUrl() {
-        return speedRunComUrl;
+    public String getSrcUrl() {
+        return srcUrl;
     }
 
-    public void setSpeedRunComUrl(String speedRunComUrl) {
-        this.speedRunComUrl = speedRunComUrl;
+    public void setSrcUrl(String srcUrl) {
+        this.srcUrl = srcUrl;
     }
 
     public String getGameCategoryTypesJson() {

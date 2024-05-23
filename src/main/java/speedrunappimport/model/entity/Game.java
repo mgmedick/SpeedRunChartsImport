@@ -13,7 +13,7 @@ import java.util.List;
 
 import org.hibernate.annotations.*;
 
-@Entity
+@Entity(name = "tbl_game")
 @Table(name = "tbl_game")
 @SQLDelete(sql = "UPDATE tbl_game SET deleted = true WHERE id=?")
 @SQLRestriction("deleted = false")

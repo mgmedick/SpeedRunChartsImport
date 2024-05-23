@@ -285,32 +285,32 @@ public class GameService extends BaseService implements IGameService {
 			
 			if (existingGameVW != null) {
 				if (existingGameVW.getGameCategoryTypes() != null) {
-					var removeGameCategoryTypes = existingGameVW.getGameCategoryTypes().stream().filter(g -> !gameCategoryTypes.stream().anyMatch(h -> h.getId() == g.getId())).map(g -> g.getId()).toList();
+					var removeGameCategoryTypes = existingGameVW.getGameCategoryTypes().stream().filter(g -> !game.getGameCategoryTypes().stream().anyMatch(h -> h.getId() == g.getId())).map(g -> g.getId()).toList();
 					game.setGameCategoryTypesToRemove(removeGameCategoryTypes);		
 				}
 
 				if (existingGameVW.getCategories() != null) {
-					var removeCategories = existingGameVW.getCategories().stream().filter(g -> !categories.stream().anyMatch(h -> h.getCode().equals(g.getCode()))).map(g -> g.getId()).toList();
+					var removeCategories = existingGameVW.getCategories().stream().filter(g -> !game.getCategories().stream().anyMatch(h -> h.getCode().equals(g.getCode()))).map(g -> g.getId()).toList();
 					game.setCategoriesToRemove(removeCategories);
 				}
 
 				if (existingGameVW.getLevels() != null) {
-					var removeLevels = existingGameVW.getLevels().stream().filter(g -> !levels.stream().anyMatch(h -> h.getCode().equals(g.getCode()))).map(g -> g.getId()).toList();
+					var removeLevels = existingGameVW.getLevels().stream().filter(g -> !game.getLevels().stream().anyMatch(h -> h.getCode().equals(g.getCode()))).map(g -> g.getId()).toList();
 					game.setLevelsToRemove(removeLevels);	
 				}
 
 				if (existingGameVW.getVariables() != null) {
-					var removeVariables = existingGameVW.getVariables().stream().filter(g -> !variables.stream().anyMatch(h -> h.getCode().equals(g.getCode()))).map(g -> g.getId()).toList();
+					var removeVariables = existingGameVW.getVariables().stream().filter(g -> !game.getVariables().stream().anyMatch(h -> h.getCode().equals(g.getCode()))).map(g -> g.getId()).toList();
 					game.setVariablesToRemove(removeVariables);	
 				}
 
 				if (existingGameVW.getVariableValues() != null) {					
-					var removeVariableValues = existingGameVW.getVariableValues().stream().filter(g -> !variableValues.stream().anyMatch(h -> h.getCode().equals(g.getCode()))).map(g -> g.getId()).toList();
+					var removeVariableValues = existingGameVW.getVariableValues().stream().filter(g -> !game.getVariableValues().stream().anyMatch(h -> h.getCode().equals(g.getCode()))).map(g -> g.getId()).toList();
 					game.setVariableValuesToRemove(removeVariableValues);		
 				}	
 
 				if (existingGameVW.getGamePlatforms() != null) {										
-					var removeGamePlatforms = existingGameVW.getGamePlatforms().stream().filter(g -> !gamePlatforms.stream().anyMatch(h -> h.getId() == g.getId())).map(g -> g.getId()).toList();
+					var removeGamePlatforms = existingGameVW.getGamePlatforms().stream().filter(g -> !game.getGamePlatforms().stream().anyMatch(h -> h.getId() == g.getId())).map(g -> g.getId()).toList();
 					game.setGamePlatformsToRemove(removeGamePlatforms);	
 				}					
 			}

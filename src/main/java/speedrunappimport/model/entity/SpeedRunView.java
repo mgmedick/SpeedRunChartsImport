@@ -30,11 +30,12 @@ public class SpeedRunView {
     private Integer rank;
     private long primaryTime;
     private Instant dateSumbitted;
+    private Instant verifyDate;   
     private int speedRunLinkId;
     private String srcUrl;
+    private String playersJson;   
     private String variableValuesJson;    
     private String videosJson;    
-    private String playersJson; 
 
     @Transient
     private ObjectMapper _mapper;
@@ -93,6 +94,12 @@ public class SpeedRunView {
     public void setDateSumbitted(Instant dateSumbitted) {
         this.dateSumbitted = dateSumbitted;
     }
+    public Instant getVerifyDate() {
+        return verifyDate;
+    }
+    public void setVerifyDate(Instant verifyDate) {
+        this.verifyDate = verifyDate;
+    }      
     public int getSpeedRunLinkId() {
         return speedRunLinkId;
     }
@@ -105,18 +112,37 @@ public class SpeedRunView {
     public void setSrcUrl(String srcUrl) {
         this.srcUrl = srcUrl;
     }
-    public String getVideosJson() {
-        return videosJson;
-    }
-    public void setVideosJson(String videosJson) {
-        this.videosJson = videosJson;
-    }
     public String getPlayersJson() {
         return playersJson;
     }
     public void setPlayersJson(String playersJson) {
         this.playersJson = playersJson;
-    }   
+    }    
+    public String getVariableValuesJson() {
+        return variableValuesJson;
+    }
+    public void setVariableValuesJson(String variableValuesJson) {
+        this.variableValuesJson = variableValuesJson;
+    }
+    public String getVideosJson() {
+        return videosJson;
+    }
+    public void setVideosJson(String videosJson) {
+        this.videosJson = videosJson;
+    } 
+    public List<SpeedRunPlayer> getPlayers() {
+        List<SpeedRunPlayer> results = new ArrayList<SpeedRunPlayer>();
+        
+        try {
+            if (this.playersJson != null) {
+                results = Arrays.asList(_mapper.readValue(this.playersJson, SpeedRunPlayer[].class));
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+        
+        return results;
+    }       
     public List<SpeedRunVariableValue> getVariableValues() {
         List<SpeedRunVariableValue> results = new ArrayList<SpeedRunVariableValue>();
         
@@ -142,19 +168,5 @@ public class SpeedRunView {
         }
         
         return results;
-    }
-    
-    public List<SpeedRunPlayer> getPlayers() {
-        List<SpeedRunPlayer> results = new ArrayList<SpeedRunPlayer>();
-        
-        try {
-            if (this.playersJson != null) {
-                results = Arrays.asList(_mapper.readValue(this.playersJson, SpeedRunPlayer[].class));
-            }
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        }
-        
-        return results;
-    }      
+    }    
 }

@@ -48,7 +48,7 @@ public class Player {
     public void setCode(String code) {
         this.code = code;
     }
-
+    
     public int getPlayerTypeId() {
         return playerTypeId;
     }

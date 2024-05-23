@@ -38,6 +38,11 @@ public class DIConfiguration
 	}
 
 	@Bean
+	public IPlayerRepository getPlayerRepository(IPlayerDB playerDB, IPlayerViewDB playerViewDB, Logger logger){
+		return new PlayerRepository(playerDB, playerViewDB, logger);
+	}
+
+	@Bean
 	public IPlatformRepository getPlatformRepository(IPlatformDB platformDB, Logger logger){
 		return new PlatformRepository(platformDB, logger);
 	}
@@ -45,6 +50,11 @@ public class DIConfiguration
 	@Bean
 	public IGameRepository getGameRepository(IGameDB gameDB, IGameViewDB gameViewDB, IGameLinkDB gameLinkDB, ICategoryDB categoryDB, ILevelDB levelDB, IVariableDB variableDB, IVariableValueDB variableValueDB, IGamePlatformDB gamePlatformDB, ICategoryTypeDB categoryTypeDB, IGameCategoryTypeDB gameCategoryTypeDB, Logger logger){
 		return new GameRepository(gameDB, gameViewDB, gameLinkDB, categoryDB, levelDB, variableDB, variableValueDB, gamePlatformDB, categoryTypeDB, gameCategoryTypeDB, logger);
+	}
+
+	@Bean
+	public ISpeedRunRepository getSpeedRunRepository(ISpeedRunDB speedRunDB, ISpeedRunViewDB speedRunViewDB, ISpeedRunLinkDB speedRunLinkDB, ISpeedRunVariableValueDB speedRunVariableValueDB, ISpeedRunPlayerDB speedRunPlayerDB, ISpeedRunVideoDB speedRunVideoDB, Logger logger){
+		return new SpeedRunRepository(speedRunDB, speedRunViewDB, speedRunLinkDB, speedRunVariableValueDB, speedRunPlayerDB, speedRunVideoDB, logger);
 	}
 
 	@Bean
@@ -61,4 +71,9 @@ public class DIConfiguration
 	public IGameService getGameService(IGameRepository gameRepo, IPlatformRepository platformRepo, ISettingService settingService, Logger logger){
 		return new GameService(gameRepo, platformRepo, settingService, logger);
 	}
+
+	@Bean
+	public ISpeedRunService getSpeedRunService(ISpeedRunRepository speedRunRepo, IGameRepository gameRepo, IPlatformRepository platformRepo, IPlayerRepository playerRepo, ISettingService settingService, Logger logger){
+		return new SpeedRunService(speedRunRepo, gameRepo, platformRepo, playerRepo, settingService, logger);
+	}	
 }

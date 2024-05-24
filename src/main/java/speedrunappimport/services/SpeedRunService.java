@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import speedrunappimport.common.StringExtensions;
+import speedrunappimport.common.UriExtensions;
 import speedrunappimport.interfaces.repositories.*;
 import speedrunappimport.interfaces.services.*;
 import speedrunappimport.model.entity.*;
@@ -270,18 +271,28 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 				.stream()
 				.collect(Collectors.toList());		
 
-		var playerCodes = runResponses.stream().flatMap(x -> x.players().stream().map(i -> { return i.rel().equals(PlayerType.User.toString().toLowerCase()) ? i.id() : i.name(); })).distinct().toList();
-		var existingPlayerVWs = _playerRepo.GetPlayerViewsByCode(playerCodes);
-		var players = GetPlayersFromResponses(runResponses, existingPlayerVWs);
-		players = GetNewOrChangedPlayers(players, existingPlayerVWs);
-		_playerRepo.SavePlayers(players);		
+		SavePlayers(runResponses);
 
-		existingPlayerVWs = _playerRepo.GetPlayerViewsByCode(playerCodes);
+		var playerCodes = runResponses.stream().flatMap(x -> x.players().stream().map(i -> { return i.rel().equals(PlayerType.User.toString().toLowerCase()) ? i.id() : i.name(); })).distinct().toList();	
+		var existingPlayerVWs = _playerRepo.GetPlayerViewsByCode(playerCodes);
 		var existingRunVWs = _speedRunRepo.GetSpeedRunViewsByCode(runResponses.stream().map(x -> x.id()).toList());
 		var existingGameVWs = _gameRepo.GetGameViewsByCode(runResponses.stream().map(x -> x.game()).distinct().toList());
 		var runs = GetSpeedRunsFromResponses(runResponses, existingRunVWs, existingGameVWs, existingPlayerVWs);
+		_speedRunRepo.SaveSpeedRuns(runs);
 
 		_logger.info("Completed SaveSpeedRunResponses");	
+	}
+
+	private void SavePlayers(List<SpeedRunResponse> runs) {
+		_logger.info("Started SavePlayers: {}", runs.size());
+	
+		var playerCodes = runs.stream().flatMap(x -> x.players().stream().map(i -> { return i.rel().equals(PlayerType.User.toString().toLowerCase()) ? i.id() : i.name(); })).distinct().toList();
+		var existingPlayerVWs = _playerRepo.GetPlayerViewsByCode(playerCodes);
+		var players = GetPlayersFromResponses(runs, existingPlayerVWs);
+		players = GetNewOrChangedPlayers(players, existingPlayerVWs);
+		_playerRepo.SavePlayers(players);	
+		
+		_logger.info("Completed SavePlayers");			
 	}
 
 	private List<Player> GetPlayersFromResponses(List<SpeedRunResponse> runs, List<PlayerView> existingPlayerVWs) {
@@ -403,13 +414,15 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 												return variableValue;
 											}).filter(x -> x.getVariableId() != 0 && x.getVariableValueId() != 0).toList();
 			run.setVariableValues(variableValues);
-					
+
 			var videos = i.videos().links().stream()
 								.map(x -> { 
 									var video = new SpeedRunVideo();
 									video.setId(existingRunVW != null ? existingRunVW.getVideos().stream().filter(g ->  g.getVideoLinkUrl().equals(x.uri())).map(g -> g.getId()).findFirst().orElse(0) : 0);
 									video.setSpeedRunId(run.getId());
 									video.setVideoLinkUrl(x.uri());
+									video.setEmbeddedVideoLinkUrl(UriExtensions.ToEmbeddedURIString(x.uri()));
+									video.setThumbnailLinkUrl(UriExtensions.ToThumbnailURIString(x.uri()));
 									return video;
 								}).toList();
 			run.setVideos(videos);

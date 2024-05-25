@@ -105,5 +105,13 @@ public class SpeedRunRepository extends BaseRepository implements ISpeedRunRepos
 		}
 
 		return results;
+	}
+
+	public void UpdateSpeedRunRanks(Instant lastImportDateUtc) {
+		_logger.info("Started UpdateSpeedRunRanks: {}", lastImportDateUtc);
+	
+		_speedRunDB.updateSpeedRunRanks(lastImportDateUtc);
+
+		_logger.info("Completed UpdateSpeedRunRanks");
 	}	
 }

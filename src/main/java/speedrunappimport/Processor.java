@@ -1,7 +1,6 @@
 package speedrunappimport;
 
 import org.springframework.stereotype.Service;
-
 import org.springframework.core.env.Environment;
 
 import java.time.Instant;
@@ -12,14 +11,16 @@ import speedrunappimport.interfaces.services.*;
 public class Processor {
 	private IPlatformService _platformService;
 	private IGameService _gameService;
+	private ISpeedRunService _speedRunService;
 	private ISettingService _settingService;	
 	private Logger _logger;
 	private Environment _env;
 	// private Logger _logger = LoggerFactory.getLogger(GameService.class);
 
-	public Processor(IPlatformService platformService, IGameService gameService, ISettingService settingService, Environment env, Logger logger) {
+	public Processor(IPlatformService platformService, IGameService gameService, ISpeedRunService speedRunService, ISettingService settingService, Environment env, Logger logger) {
 		this._platformService = platformService;
 		this._gameService = gameService;
+		this._speedRunService = speedRunService;
 		this._settingService = settingService;
 		this._logger = logger;
 		this._env = env;
@@ -39,6 +40,7 @@ public class Processor {
 			_logger.info("Started Init");
 			
 			this.setReload(_env.getProperty("isReload", boolean.class));
+		
 		} catch (Exception ex) {
 			_logger.error("Run", ex);
 		}
@@ -46,14 +48,21 @@ public class Processor {
 
 	public void RunProcesses() {
 		try {
+			var result = false;
 			_logger.info("Started RunProcesses");
-			
+
 			if (this.isReload()) {
-				_platformService.ProcessPlatforms();
+				result = _platformService.ProcessPlatforms();
 			}
 
-			_gameService.ProcessGames(this.isReload());
+			if (result) {
+				result = _gameService.ProcessGames(this.isReload());
+			}
 
+			if (result) {
+				result = _speedRunService.ProcessSpeedRuns(this.isReload());
+			}		
+			
 			_settingService.UpdateSetting("LastImportDate", Instant.now());
 			_logger.info("Completed RunProcesses");
 		} catch (Exception ex) {
@@ -69,5 +78,5 @@ public class Processor {
 
 	public void setReload(boolean isReload) {
 		this.isReload = isReload;
-	}
+	}	
 }

@@ -46,6 +46,7 @@ public class GameService extends BaseService implements IGameService {
 		try {
 			var stGameLastImportRefDateUtc = _settingService.GetSetting("GameLastImportRefDate");
 			var lastImportRefDateUtc = stGameLastImportRefDateUtc != null && stGameLastImportRefDateUtc.getDte() != null ? stGameLastImportRefDateUtc.getDte() : this.getSqlMinDateTime();	
+			var currImportRefDateUtc = lastImportRefDateUtc;
 			_logger.info("Started ProcessGames: {}, {}", lastImportRefDateUtc, isReload);
 
 			var results = new ArrayList<GameResponse>();
@@ -61,28 +62,33 @@ public class GameService extends BaseService implements IGameService {
 
 				var memorySize = Runtime.getRuntime().totalMemory();
 				if (memorySize > super.getMaxMemorySizeBytes()) {
-					prevTotal += results.size();
-					_logger.info("Saving to clear memory, results: {}, size: {}", results.size(), memorySize);
-					SaveGameResponses(results, isReload);
-					results.clear();
-					results.trimToSize();
+					if (!isReload) {
+						results.removeIf(i -> (i.created() != null ? i.created() : super.getSqlMinDateTime()).compareTo(lastImportRefDateUtc) <= 0);
+					}
+					if (results.size() > 0) {
+						_logger.info("Saving to clear memory, results: {}, size: {}", results.size(), memorySize);	
+						currImportRefDateUtc = results.stream().map(i -> i.created() != null ? i.created() : super.getSqlMinDateTime()).max(Instant::compareTo).get();
+						prevTotal += results.size();
+						SaveGameResponses(results, isReload);
+						results.clear();
+						results.trimToSize();
+					}
 				}
 			}
 			//while (games.size() == limit && (isReload || games.stream().map(i -> i.created() != null ? i.created() : super.getSqlMinDateTime()).max(Instant::compareTo).get().compareTo(lastImportRefDateUtc) > 0));
 			while (1 == 0);
 
 			if (!isReload) {
-				results.removeIf(i -> (i.created() != null ? i.created() : super.getSqlMinDateTime())
-						.compareTo(lastImportRefDateUtc) <= 0);
+				results.removeIf(i -> (i.created() != null ? i.created() : super.getSqlMinDateTime()).compareTo(lastImportRefDateUtc) <= 0);
 			}
-
 			if (results.size() > 0) {
+				currImportRefDateUtc = results.stream().map(i -> i.created() != null ? i.created() : super.getSqlMinDateTime()).max(Instant::compareTo).get();
 				SaveGameResponses(results, isReload);
-				var lastUpdateDate = results.stream().map(i -> i.created() != null ? i.created() : super.getSqlMinDateTime()).max(Instant::compareTo).get();
-				_settingService.UpdateSetting("GameLastImportRefDate", lastUpdateDate);
 				results.clear();
 				results.trimToSize();
 			}
+
+			_settingService.UpdateSetting("GameLastImportRefDate", currImportRefDateUtc);			
 
 			result = true;
 			_logger.info("Completed ProcessGames");

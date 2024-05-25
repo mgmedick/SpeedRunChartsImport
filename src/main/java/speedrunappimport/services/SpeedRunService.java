@@ -48,21 +48,21 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 		boolean result = false;
 		
 		if (isReload) {
-			result = ProcessSpeedRunsByGame(isReload);
+			result = ProcessSpeedRunsByGame();
 		} else {
-			result = ProcessSpeedRunsByDate(isReload);
+			result = ProcessSpeedRunsByDate();
 		}
 
 		return result;
 	}
 
-	public boolean ProcessSpeedRunsByGame(boolean isReload) {
+	public boolean ProcessSpeedRunsByGame() {
 		boolean result = false;
 
 		try {
 			var stLastImportDateUtc = _settingService.GetSetting("LastImportDate");
-			var lastImportDateUtc = stLastImportDateUtc != null && stLastImportDateUtc.getDte() != null ? stLastImportDateUtc.getDte() : this.getSqlMinDateTime();	
-			_logger.info("Started ProcessSpeedRunsByGame: {}, {}", lastImportDateUtc, isReload);
+			var lastImportDateUtc = stLastImportDateUtc != null && stLastImportDateUtc.getDte() != null ? stLastImportDateUtc.getDte() : this.getSqlMinDateTime();				
+			_logger.info("Started ProcessSpeedRunsByGame: {}", lastImportDateUtc);
 
 			var results = new ArrayList<SpeedRunResponse>();
 			List<SpeedRunResponse> runs = new ArrayList<SpeedRunResponse>();
@@ -92,20 +92,22 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 				//while (1 == 0);
 
 				var memorySize = Runtime.getRuntime().totalMemory();
-				if (memorySize > super.getMaxMemorySizeBytes()) {
-					prevTotal += results.size();
+				if (results.size() > 0 && memorySize > super.getMaxMemorySizeBytes()) {
 					_logger.info("Saving to clear memory, results: {}, size: {}", results.size(), memorySize);
-					//SaveSpeedRunResponses(results, isReload);
+					prevTotal += results.size();
+					SaveSpeedRunResponses(results, true);
 					results.clear();
 					results.trimToSize();
 				}				
 			}
 
 			if (results.size() > 0) {
-				//SaveSpeedRunResponses(results, isReload);
+				SaveSpeedRunResponses(results, true);
 				results.clear();
-				results.trimToSize();
+				results.trimToSize();				
 			}
+
+			UpdateSpeedRunRanks(true);
 
 			result = true;	
 			_logger.info("Completed ProcessSpeedRunsByGame");
@@ -117,13 +119,14 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 		return result;
 	}
 
-	public boolean ProcessSpeedRunsByDate(boolean isReload) {
+	public boolean ProcessSpeedRunsByDate() {
 		boolean result = false;
 
 		try {
 			var stSpeedRunLastImportRefDateUtc = _settingService.GetSetting("SpeedRunLastImportRefDate");
 			var lastImportRefDateUtc = stSpeedRunLastImportRefDateUtc != null && stSpeedRunLastImportRefDateUtc.getDte() != null ? stSpeedRunLastImportRefDateUtc.getDte() : this.getSqlMinDateTime();	
-			_logger.info("Started ProcessSpeedRuns: {}, {}", lastImportRefDateUtc, isReload);
+			var currImportRefDateUtc = lastImportRefDateUtc;
+			_logger.info("Started ProcessSpeedRunsByDate: {}", lastImportRefDateUtc);
 
 			var results = new ArrayList<SpeedRunResponse>();
 			List<SpeedRunResponse> runs = new ArrayList<SpeedRunResponse>();
@@ -138,27 +141,32 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 
 				var memorySize = Runtime.getRuntime().totalMemory();
 				if (memorySize > super.getMaxMemorySizeBytes()) {
-					prevTotal += results.size();
-					_logger.info("Saving to clear memory, results: {}, size: {}", results.size(), memorySize);
-					//SaveSpeedRunResponses(results, isReload);
-					results.clear();
-					results.trimToSize();
+					results.removeIf(i -> (i.status().verifyDate() != null ? i.status().verifyDate() : super.getSqlMinDateTime()).compareTo(lastImportRefDateUtc) <= 0);
+					if (results.size() > 0) {
+						_logger.info("Saving to clear memory, results: {}, size: {}", results.size(), memorySize);
+						currImportRefDateUtc = results.stream().map(i -> i.status().verifyDate() != null ? i.status().verifyDate() : super.getSqlMinDateTime()).max(Instant::compareTo).get();					
+						prevTotal += results.size();
+						SaveSpeedRunResponses(results, false);
+						results.clear();
+						results.trimToSize();
+					}
 				}
 			}
-			while (runs.size() == limit && (isReload || runs.stream().map(i -> i.status().verifyDate() != null ? i.status().verifyDate() : super.getSqlMinDateTime()).max(Instant::compareTo).get().compareTo(lastImportRefDateUtc) > 0));
+			while (runs.size() == limit && runs.stream().map(i -> i.status().verifyDate() != null ? i.status().verifyDate() : super.getSqlMinDateTime()).max(Instant::compareTo).get().compareTo(lastImportRefDateUtc) > 0);
 			//while (1 == 0);
 
-			if (!isReload) {
-				results.removeIf(i -> (i.status().verifyDate() != null ? i.status().verifyDate() : super.getSqlMinDateTime())
-						.compareTo(lastImportRefDateUtc) <= 0);
-			}
-
-			if (results.size() > 0) {
-				//SaveSpeedRunResponses(results, isReload);
-				var lastUpdateDate = results.stream().map(i -> i.status().verifyDate() != null ? i.status().verifyDate() : super.getSqlMinDateTime()).max(Instant::compareTo).get();
-				_settingService.UpdateSetting("SpeedRunLastImportRefDate", lastUpdateDate);
+			results.removeIf(i -> (i.status().verifyDate() != null ? i.status().verifyDate() : super.getSqlMinDateTime()).compareTo(lastImportRefDateUtc) <= 0);
+			if (results.size() > 0) {			
+				currImportRefDateUtc = results.stream().map(i -> i.status().verifyDate() != null ? i.status().verifyDate() : super.getSqlMinDateTime()).max(Instant::compareTo).get();
+				SaveSpeedRunResponses(results, false);
 				results.clear();
 				results.trimToSize();
+			}
+	
+			_settingService.UpdateSetting("SpeedRunLastImportRefDate", currImportRefDateUtc);			
+
+			if (currImportRefDateUtc.compareTo(lastImportRefDateUtc) > 0) {
+				UpdateSpeedRunRanks(false);
 			}
 
 			result = true;	
@@ -259,28 +267,54 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 	}
 
 	public void SaveSpeedRunResponses(List<SpeedRunResponse> runResponses, boolean isReload) {
-		_logger.info("Started SaveSpeedRunResponses: {}", runResponses.size());
+		_logger.info("Started SaveSpeedRunResponses: {}, {}", runResponses.size(), isReload);
 
-		if (!isReload) {
-			runResponses = runResponses.reversed();
+		if (runResponses.size() > 0) {
+			if (!isReload) {
+				runResponses = runResponses.reversed();
+			}
+
+			runResponses = runResponses.stream()
+					.collect(Collectors.toMap(SpeedRunResponse::id, Function.identity(), (u1, u2) -> u1))
+					.values()
+					.stream()
+					.collect(Collectors.toList());		
+
+			SavePlayers(runResponses);
+
+			var playerCodes = runResponses.stream().flatMap(x -> x.players().stream().map(i -> { return i.rel().equals(PlayerType.User.toString().toLowerCase()) ? i.id() : i.name(); })).distinct().toList();	
+			var existingPlayerVWs = _playerRepo.GetPlayerViewsByCode(playerCodes);
+			var existingRunVWs = _speedRunRepo.GetSpeedRunViewsByCode(runResponses.stream().map(x -> x.id()).toList());
+			var existingGameVWs = _gameRepo.GetGameViewsByCode(runResponses.stream().map(x -> x.game()).distinct().toList());
+			var runs = GetSpeedRunsFromResponses(runResponses, existingRunVWs, existingGameVWs, existingPlayerVWs);
+			_speedRunRepo.SaveSpeedRuns(runs);
 		}
 
-		runResponses = runResponses.stream()
-				.collect(Collectors.toMap(SpeedRunResponse::id, Function.identity(), (u1, u2) -> u1))
-				.values()
-				.stream()
-				.collect(Collectors.toList());		
-
-		SavePlayers(runResponses);
-
-		var playerCodes = runResponses.stream().flatMap(x -> x.players().stream().map(i -> { return i.rel().equals(PlayerType.User.toString().toLowerCase()) ? i.id() : i.name(); })).distinct().toList();	
-		var existingPlayerVWs = _playerRepo.GetPlayerViewsByCode(playerCodes);
-		var existingRunVWs = _speedRunRepo.GetSpeedRunViewsByCode(runResponses.stream().map(x -> x.id()).toList());
-		var existingGameVWs = _gameRepo.GetGameViewsByCode(runResponses.stream().map(x -> x.game()).distinct().toList());
-		var runs = GetSpeedRunsFromResponses(runResponses, existingRunVWs, existingGameVWs, existingPlayerVWs);
-		_speedRunRepo.SaveSpeedRuns(runs);
-
 		_logger.info("Completed SaveSpeedRunResponses");	
+	}
+
+	private boolean UpdateSpeedRunRanks(boolean isReload) {
+		boolean result = false;
+
+		try {
+			_logger.info("Started UpdateSpeedRunRanks: {}", isReload);
+	
+			var stLastImportDateUtc = _settingService.GetSetting("LastImportDate");
+			var lastImportDateUtc = stLastImportDateUtc != null && stLastImportDateUtc.getDte() != null ? stLastImportDateUtc.getDte() : getSqlMinDateTime();	
+			
+			if (isReload) {
+				lastImportDateUtc = null;
+			}					
+			
+			_speedRunRepo.UpdateSpeedRunRanks(lastImportDateUtc);
+			
+			_logger.info("Completed UpdateSpeedRunRanks");
+		} catch (Exception ex) {
+			result = false;
+			_logger.error("UpdateSpeedRunRanks", ex);
+		}
+
+		return result;
 	}
 
 	private void SavePlayers(List<SpeedRunResponse> runs) {
@@ -449,4 +483,6 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 
 		return runEntities;
 	}
+
+
 }

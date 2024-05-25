@@ -16,17 +16,17 @@ public class SpeedRunRepository extends BaseRepository implements ISpeedRunRepos
 	private ISpeedRunDB _speedRunDB;
 	private ISpeedRunViewDB _speedRunViewDB;
 	private ISpeedRunLinkDB _speedRunLinkDB;
-	private ISpeedRunVariableValueDB _speedRunVariableValueDB;
 	private ISpeedRunPlayerDB _speedRunPlayerDB;
+	private ISpeedRunVariableValueDB _speedRunVariableValueDB;
 	private ISpeedRunVideoDB _speedRunVideoDB;
 	private Logger _logger;
 
-	public SpeedRunRepository(ISpeedRunDB speedRunDB, ISpeedRunViewDB speedRunViewDB, ISpeedRunLinkDB speedRunLinkDB, ISpeedRunVariableValueDB speedRunVariableValueDB, ISpeedRunPlayerDB speedRunPlayerDB, ISpeedRunVideoDB speedRunVideoDB, Logger logger) {
+	public SpeedRunRepository(ISpeedRunDB speedRunDB, ISpeedRunViewDB speedRunViewDB, ISpeedRunLinkDB speedRunLinkDB, ISpeedRunPlayerDB speedRunPlayerDB, ISpeedRunVariableValueDB speedRunVariableValueDB, ISpeedRunVideoDB speedRunVideoDB, Logger logger) {
 		_speedRunDB = speedRunDB;
 		_speedRunViewDB = speedRunViewDB;
 		_speedRunLinkDB = speedRunLinkDB;
+		_speedRunPlayerDB = speedRunPlayerDB;	
 		_speedRunVariableValueDB = speedRunVariableValueDB;
-		_speedRunPlayerDB = speedRunPlayerDB;
 		_speedRunVideoDB = speedRunVideoDB;
 		_logger = logger;
 	}
@@ -53,45 +53,26 @@ public class SpeedRunRepository extends BaseRepository implements ISpeedRunRepos
 			run.setModifiedDate(Instant.now());	
 	
 			_logger.info("Deleting secondary run entities");
-			// _gameCategoryTypeDB.deleteAllById(game.getGameCategoryTypesToRemove());	
-			// _categoryDB.deleteAllById(game.getCategoriesToRemove());
-			// _levelDB.deleteAllById(game.getLevelsToRemove());
-			// _variableDB.deleteAllById(game.getVariablesToRemove());
-			// _variableValueDB.deleteAllById(game.getVariableValuesToRemove());
-			// _gamePlatformDB.deleteAllById(game.getGamePlatformsToRemove());			
+			_speedRunPlayerDB.deleteAllById(run.getPlayersToRemove());	
+			_speedRunVariableValueDB.deleteAllById(run.getVariableValuesToRemove());	
+			_speedRunVideoDB.deleteAllById(run.getVideosToRemove());	
 		}
 
 		_speedRunDB.save(run);
 
-		// game.getGameLink().setGameId(game.getId());
-		// _gameLinkDB.save(game.getGameLink());
+		run.getSpeedRunLink().setSpeedRunId(run.getId());
+		_speedRunLinkDB.save(run.getSpeedRunLink());
 
-		// game.getGameCategoryTypes().forEach(i -> i.setGameId(game.getId()));
-		// _gameCategoryTypeDB.saveAll(game.getGameCategoryTypes());
+		run.getPlayers().forEach(i -> i.setSpeedRunId(run.getId()));
+		_speedRunPlayerDB.saveAll(run.getPlayers());
 		
-		// game.getCategories().forEach(i -> i.setGameId(game.getId()));
-		// _categoryDB.saveAll(game.getCategories());
+		run.getVariableValues().forEach(i -> i.setSpeedRunId(run.getId()));
+		_speedRunVariableValueDB.saveAll(run.getVariableValues());
 
-		// game.getLevels().forEach(i -> i.setGameId(game.getId()));
-		// _levelDB.saveAll(game.getLevels());
+		run.getVideos().forEach(i -> i.setSpeedRunId(run.getId()));
+		_speedRunVideoDB.saveAll(run.getVideos());
 
-		// game.getVariables().forEach(i -> {
-		// 	i.setGameId(game.getId());
-		// 	i.setCategoryId(game.getCategories().stream().filter(g -> g.getCode().equals(i.getCategoryCode())).map(g -> g.getId()).findFirst().orElse(null));
-		// 	i.setLevelId(game.getLevels().stream().filter(g -> g.getCode().equals(i.getLevelCode())).map(g -> g.getId()).findFirst().orElse(null));
-		// });
-		// _variableDB.saveAll(game.getVariables());
-
-		// game.getVariableValues().forEach(i -> {
-		// 	i.setGameId(game.getId());
-		// 	i.setVariableId(game.getVariables().stream().filter(g -> g.getCode().equals(i.getVariableCode())).map(g -> g.getId()).findFirst().orElse(null));
-		// });
-		// _variableValueDB.saveAll(game.getVariableValues());
-
-		// game.getGamePlatforms().forEach(i -> i.setGameId(game.getId()));
-		// _gamePlatformDB.saveAll(game.getGamePlatforms());
-
-		// _logger.info("Completed Saving gameId: {}, code: {}", game.getId(), game.getCode());
+		_logger.info("Completed Saving runId: {}, code: {}", run.getId(), run.getCode());
 	}
 
 	@Transactional(isolation = Isolation.READ_UNCOMMITTED)

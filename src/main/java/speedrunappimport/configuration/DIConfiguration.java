@@ -53,8 +53,8 @@ public class DIConfiguration
 	}
 
 	@Bean
-	public ISpeedRunRepository getSpeedRunRepository(ISpeedRunDB speedRunDB, ISpeedRunViewDB speedRunViewDB, ISpeedRunLinkDB speedRunLinkDB, ISpeedRunVariableValueDB speedRunVariableValueDB, ISpeedRunPlayerDB speedRunPlayerDB, ISpeedRunVideoDB speedRunVideoDB, Logger logger){
-		return new SpeedRunRepository(speedRunDB, speedRunViewDB, speedRunLinkDB, speedRunVariableValueDB, speedRunPlayerDB, speedRunVideoDB, logger);
+	public ISpeedRunRepository getSpeedRunRepository(ISpeedRunDB speedRunDB, ISpeedRunViewDB speedRunViewDB, ISpeedRunLinkDB speedRunLinkDB, ISpeedRunPlayerDB speedRunPlayerDB, ISpeedRunVariableValueDB speedRunVariableValueDB, ISpeedRunVideoDB speedRunVideoDB, Logger logger){
+		return new SpeedRunRepository(speedRunDB, speedRunViewDB, speedRunLinkDB, speedRunPlayerDB, speedRunVariableValueDB, speedRunVideoDB, logger);
 	}
 
 	@Bean

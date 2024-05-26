@@ -1,5 +1,6 @@
 package speedrunappimport.model.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -28,7 +29,7 @@ public class Game {
     private LocalDate releaseDate;
     private Instant srcCreatedDate;
     private boolean deleted;
-    @Transient
+    @Column(insertable = false, updatable = false)    
     private Instant createdDate;
     private Instant modifiedDate;
 

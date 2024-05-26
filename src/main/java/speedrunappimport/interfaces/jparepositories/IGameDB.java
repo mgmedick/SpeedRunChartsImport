@@ -12,6 +12,6 @@ public interface IGameDB extends IBaseDB<Game, Integer>
 {
     public List<Game> findByCodeIn(List<String> codes);
 
-    @Query("SELECT g FROM tbl_game g WHERE g.modifiedDate > :compareDate")
+    @Query("SELECT g FROM tbl_game g WHERE COALESCE(g.modifiedDate, g.createdDate) > :compareDate")
     List<Game> findAllWithModifiedDateAfter(Instant compareDate); 
 }

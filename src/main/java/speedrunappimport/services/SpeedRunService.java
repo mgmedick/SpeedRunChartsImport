@@ -88,8 +88,8 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 					Thread.sleep(super.getPullDelayMS());
 					_logger.info("Pulled games: {}, total games: {}", runs.size(), results.size() + prevTotal);
 				}
-				while (runs.size() == limit);
-				//while (1 == 0);
+				//while (runs.size() == limit);
+				while (1 == 0);
 
 				var memorySize = Runtime.getRuntime().totalMemory();
 				if (results.size() > 0 && memorySize > super.getMaxMemorySizeBytes()) {
@@ -157,8 +157,8 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 					}
 				}
 			}
-			while (runs.size() == limit && (isReload || runs.stream().map(i -> i.status().verifyDate() != null ? i.status().verifyDate() : super.getSqlMinDateTime()).max(Instant::compareTo).get().compareTo(lastImportRefDateUtc) > 0));
-			//while (1 == 0);
+			//while (runs.size() == limit && (isReload || runs.stream().map(i -> i.status().verifyDate() != null ? i.status().verifyDate() : super.getSqlMinDateTime()).max(Instant::compareTo).get().compareTo(lastImportRefDateUtc) > 0));
+			while (1 == 0);
 
 			if (!isReload) {
 				results.removeIf(i -> (i.status().verifyDate() != null ? i.status().verifyDate() : super.getSqlMinDateTime()).compareTo(lastImportRefDateUtc) <= 0);
@@ -290,7 +290,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 
 			SavePlayers(runResponses);
 
-			var playerCodes = runResponses.stream().flatMap(x -> x.players().stream().map(i -> { return i.rel().equals(PlayerType.User.toString().toLowerCase()) ? i.id() : i.name(); })).distinct().toList();	
+			var playerCodes = runResponses.stream().flatMap(x -> x.players().data().stream().map(i -> { return i.rel().equals(PlayerType.User.toString().toLowerCase()) ? i.id() : i.name(); })).distinct().toList();	
 			var existingPlayerVWs = _playerRepo.GetPlayerViewsByCode(playerCodes);
 			var existingRunVWs = _speedRunRepo.GetSpeedRunViewsByCode(runResponses.stream().map(x -> x.id()).toList());
 			var existingGameVWs = _gameRepo.GetGameViewsByCode(runResponses.stream().map(x -> x.game()).distinct().toList());
@@ -301,34 +301,25 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 		_logger.info("Completed SaveSpeedRunResponses");	
 	}
 
-	private boolean UpdateSpeedRunRanks(boolean isReload) {
-		boolean result = false;
-
-		try {
-			_logger.info("Started UpdateSpeedRunRanks: {}", isReload);
+	public void UpdateSpeedRunRanks(boolean isReload) {
+		_logger.info("Started UpdateSpeedRunRanks: {}", isReload);
 	
-			var stLastImportDateUtc = _settingService.GetSetting("LastImportDate");
-			var lastImportDateUtc = stLastImportDateUtc != null && stLastImportDateUtc.getDte() != null ? stLastImportDateUtc.getDte() : getSqlMinDateTime();	
-			
-			if (isReload) {
-				lastImportDateUtc = null;
-			}					
-			
-			_speedRunRepo.UpdateSpeedRunRanks(lastImportDateUtc);
-			
-			_logger.info("Completed UpdateSpeedRunRanks");
-		} catch (Exception ex) {
-			result = false;
-			_logger.error("UpdateSpeedRunRanks", ex);
-		}
-
-		return result;
+		var stLastImportDateUtc = _settingService.GetSetting("LastImportDate");
+		var lastImportDateUtc = stLastImportDateUtc != null && stLastImportDateUtc.getDte() != null ? stLastImportDateUtc.getDte() : getSqlMinDateTime();	
+		
+		if (isReload) {
+			lastImportDateUtc = null;
+		}					
+		
+		_speedRunRepo.UpdateSpeedRunRanks(lastImportDateUtc);
+		
+		_logger.info("Completed UpdateSpeedRunRanks");
 	}
 
 	private void SavePlayers(List<SpeedRunResponse> runs) {
 		_logger.info("Started SavePlayers: {}", runs.size());
 	
-		var playerCodes = runs.stream().flatMap(x -> x.players().stream().map(i -> { return i.rel().equals(PlayerType.User.toString().toLowerCase()) ? i.id() : i.name(); })).distinct().toList();
+		var playerCodes = runs.stream().flatMap(x -> x.players().data().stream().map(i -> { return i.rel().equals(PlayerType.User.toString().toLowerCase()) ? i.id() : i.name(); })).distinct().toList();
 		var existingPlayerVWs = _playerRepo.GetPlayerViewsByCode(playerCodes);
 		var players = GetPlayersFromResponses(runs, existingPlayerVWs);
 		players = GetNewOrChangedPlayers(players, existingPlayerVWs);
@@ -338,7 +329,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 	}
 
 	private List<Player> GetPlayersFromResponses(List<SpeedRunResponse> runs, List<PlayerView> existingPlayerVWs) {
-		var playerEntities = runs.stream().flatMap(x -> x.players().stream().map(i -> {
+		var playerEntities = runs.stream().flatMap(x -> x.players().data().stream().map(i -> {
 			var player = new Player();
 			
 			var playerTypeId = PlayerType.valueOf(StringExtensions.KebabToUpperCamelCase(i.rel())).getValue();
@@ -435,7 +426,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			link.setSrcUrl(i.weblink());
 			run.setSpeedRunLink(link);
 
-			var playerCodes = i.players().stream().map(x -> x.rel().equals(PlayerType.User.toString().toLowerCase()) ? x.id() : x.name()).toList();
+			var playerCodes = i.players().data().stream().map(x -> x.rel().equals(PlayerType.User.toString().toLowerCase()) ? x.id() : x.name()).toList();
 			var runPlayers = existingPlayerVWs.stream()
 								.filter(g -> playerCodes.contains(g.getCode()))
 								.map(x -> { 
@@ -491,6 +482,4 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 
 		return runEntities;
 	}
-
-
 }

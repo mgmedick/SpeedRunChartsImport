@@ -53,6 +53,7 @@ public class GameService extends BaseService implements IGameService {
 			List<GameResponse> games = new ArrayList<GameResponse>();
 			var prevTotal = 0;
 			var limit = super.getMaxPageLimit();
+			var isSaved = false;
 
 			do {
 				games = GetGameResponses(limit, results.size() + prevTotal, GamesOrderBy.CreationDate);
@@ -61,7 +62,7 @@ public class GameService extends BaseService implements IGameService {
 				_logger.info("Pulled games: {}, total games: {}", games.size(), results.size() + prevTotal);
 
 				var memorySize = Runtime.getRuntime().totalMemory();
-				if (memorySize > super.getMaxMemorySizeBytes()) {
+				if (results.size() > 0 && memorySize > super.getMaxMemorySizeBytes()) {
 					if (!isReload) {
 						results.removeIf(i -> (i.created() != null ? i.created() : super.getSqlMinDateTime()).compareTo(lastImportRefDateUtc) <= 0);
 					}
@@ -71,6 +72,7 @@ public class GameService extends BaseService implements IGameService {
 						prevTotal += results.size();
 						currImportRefDateUtc = results.stream().map(i -> i.created() != null ? i.created() : super.getSqlMinDateTime()).max(Instant::compareTo).get();
 						SaveGameResponses(results, isReload);
+						isSaved = true;
 						results.clear();
 						results.trimToSize();
 					}
@@ -86,11 +88,14 @@ public class GameService extends BaseService implements IGameService {
 			if (results.size() > 0) {
 				currImportRefDateUtc = results.stream().map(i -> i.created() != null ? i.created() : super.getSqlMinDateTime()).max(Instant::compareTo).get();
 				SaveGameResponses(results, isReload);
+				isSaved = true;
 				results.clear();
 				results.trimToSize();
 			}
 
-			_settingService.UpdateSetting("GameLastImportRefDate", currImportRefDateUtc);		
+			if (isSaved) {
+				_settingService.UpdateSetting("GameLastImportRefDate", currImportRefDateUtc);	
+			}	
 
 			result = true;
 			_logger.info("Completed ProcessGames");

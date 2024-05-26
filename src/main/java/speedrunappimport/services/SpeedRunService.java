@@ -141,7 +141,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 				_logger.info("Pulled games: {}, total games: {}", runs.size(), results.size() + prevTotal);
 
 				var memorySize = Runtime.getRuntime().totalMemory();
-				if (memorySize > super.getMaxMemorySizeBytes()) {
+				if (results.size() > 0 && memorySize > super.getMaxMemorySizeBytes()) {
 					if (!isReload) {
 						results.removeIf(i -> (i.status().verifyDate() != null ? i.status().verifyDate() : super.getSqlMinDateTime()).compareTo(lastImportRefDateUtc) <= 0);
 					}
@@ -171,10 +171,9 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 				results.clear();
 				results.trimToSize();
 			}
-	
-			_settingService.UpdateSetting("SpeedRunLastImportRefDate", currImportRefDateUtc);			
-			
+				
 			if (isSaved) {
+				_settingService.UpdateSetting("SpeedRunLastImportRefDate", currImportRefDateUtc);				
 				UpdateSpeedRunRanks(isReload);
 			}
 

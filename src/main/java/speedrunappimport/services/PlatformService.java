@@ -48,7 +48,7 @@ public class PlatformService extends BaseService implements IPlatformService {
 				_logger.info("Pulled platforms: {}, total platforms: {}", platforms.size(), results.size() + prevTotal);
 
 				var memorySize = Runtime.getRuntime().totalMemory();
-				if (memorySize > super.getMaxMemorySizeBytes()) {
+				if (results.size() > 0 && memorySize > super.getMaxMemorySizeBytes()) {
 					prevTotal += results.size();
 					_logger.info("Saving to clear memory, results: {}, size: {}", results.size(), memorySize);
 					SavePlatformResponses(results);

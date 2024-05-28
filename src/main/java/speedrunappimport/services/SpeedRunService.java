@@ -7,6 +7,7 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.stream.Collectors;
@@ -19,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-import speedrunappimport.common.StringExtensions;
 import speedrunappimport.common.UriExtensions;
 import speedrunappimport.interfaces.repositories.*;
 import speedrunappimport.interfaces.services.*;
@@ -78,9 +78,9 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 						results.removeIf(i -> i.game().equals(game.getCode()));
 						for (var category : game.getCategories()) {
 							try {
-							runs = GetSpeedRunResponses(limit, ((int)results.stream().filter(i -> i.game().equals(game.getCode()) && i.category().equals(category.getCode())).count()) + prevTotal, game.getCode(), category.getCode(), SpeedRunsOrderBy.DateSubmitted);
+							runs = GetSpeedRunResponses(limit, ((int)results.stream().filter(i -> i.game().equals(game.getCode()) && i.category().equals(category.getCode())).count()) + prevTotal, game.getCode(), category.getCode(), SpeedRunsOrderBy.DATESUBMITTED);
 							} catch (PaginationException ex1) {
-								runs = GetSpeedRunResponses(limit, ((int)results.stream().filter(i -> i.game().equals(game.getCode()) && i.category().equals(category.getCode())).count()) + prevTotal, game.getCode(), category.getCode(), SpeedRunsOrderBy.DateSubmittedDesc);
+								runs = GetSpeedRunResponses(limit, ((int)results.stream().filter(i -> i.game().equals(game.getCode()) && i.category().equals(category.getCode())).count()) + prevTotal, game.getCode(), category.getCode(), SpeedRunsOrderBy.DATESUBMITTEDDESC);
 							}
 						}
 					}
@@ -135,7 +135,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			var isSaved = false;
 
 			do {
-				runs = GetSpeedRunResponses(limit, results.size() + prevTotal, null, null, SpeedRunsOrderBy.VerifyDateDesc);
+				runs = GetSpeedRunResponses(limit, results.size() + prevTotal, null, null, SpeedRunsOrderBy.VERIFYDATEDESC);
 				results.addAll(runs);
 				Thread.sleep(super.getPullDelayMS());
 				_logger.info("Pulled games: {}, total games: {}", runs.size(), results.size() + prevTotal);
@@ -213,15 +213,15 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 				var isDesc = false;
 
 				switch (orderBy) {			
-					case SpeedRunsOrderBy.DateSubmitted:
-					case SpeedRunsOrderBy.DateSubmittedDesc:
+					case SpeedRunsOrderBy.DATESUBMITTED:
+					case SpeedRunsOrderBy.DATESUBMITTEDDESC:
 						orderByString = "date-submitted";
-						isDesc = (orderBy == SpeedRunsOrderBy.DateSubmittedDesc);
+						isDesc = (orderBy == SpeedRunsOrderBy.DATESUBMITTEDDESC);
 						break;	
-					case SpeedRunsOrderBy.VerifyDate:
-					case SpeedRunsOrderBy.VerifyDateDesc:
+					case SpeedRunsOrderBy.VERIFYDATE:
+					case SpeedRunsOrderBy.VERIFYDATEDESC:
 						orderByString = "verify-date";
-						isDesc = (orderBy == SpeedRunsOrderBy.VerifyDateDesc);
+						isDesc = (orderBy == SpeedRunsOrderBy.VERIFYDATEDESC);
 						break;						
 					default:
 						orderByString = "game";
@@ -288,13 +288,14 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 					.stream()
 					.collect(Collectors.toList());		
 
-			SavePlayers(runResponses);
+			SavePlayersFromRunResponses(runResponses);
 
-			var playerCodes = runResponses.stream().flatMap(x -> x.players().data().stream().map(i -> { return i.rel().equals(PlayerType.User.toString().toLowerCase()) ? i.id() : i.name(); })).distinct().toList();	
+			var playerCodes = runResponses.stream().flatMap(x -> x.players().data().stream().map(i -> { return i.rel().toUpperCase().equals(PlayerType.USER.toString()) ? i.id() : i.name(); })).distinct().toList();	
 			var existingPlayerVWs = _playerRepo.GetPlayerViewsByCode(playerCodes);
 			var existingRunVWs = _speedRunRepo.GetSpeedRunViewsByCode(runResponses.stream().map(x -> x.id()).toList());
 			var existingGameVWs = _gameRepo.GetGameViewsByCode(runResponses.stream().map(x -> x.game()).distinct().toList());
 			var runs = GetSpeedRunsFromResponses(runResponses, existingRunVWs, existingGameVWs, existingPlayerVWs);
+			runs = GetNewOrChangedSpeedRuns(runs, existingRunVWs);
 			_speedRunRepo.SaveSpeedRuns(runs);
 		}
 
@@ -316,27 +317,27 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 		_logger.info("Completed UpdateSpeedRunRanks");
 	}
 
-	private void SavePlayers(List<SpeedRunResponse> runs) {
-		_logger.info("Started SavePlayers: {}", runs.size());
+	private void SavePlayersFromRunResponses(List<SpeedRunResponse> runs) {
+		_logger.info("Started SavePlayersFromRunResponses: {}", runs.size());
 	
-		var playerCodes = runs.stream().flatMap(x -> x.players().data().stream().map(i -> { return i.rel().equals(PlayerType.User.toString().toLowerCase()) ? i.id() : i.name(); })).distinct().toList();
+		var playerCodes = runs.stream().flatMap(x -> x.players().data().stream().map(i -> { return i.rel().toUpperCase().equals(PlayerType.USER.toString()) ? i.id() : i.name(); })).distinct().toList();
 		var existingPlayerVWs = _playerRepo.GetPlayerViewsByCode(playerCodes);
 		var players = GetPlayersFromResponses(runs, existingPlayerVWs);
 		players = GetNewOrChangedPlayers(players, existingPlayerVWs);
 		_playerRepo.SavePlayers(players);	
 		
-		_logger.info("Completed SavePlayers");			
+		_logger.info("Completed SavePlayersFromRunResponses");			
 	}
 
 	private List<Player> GetPlayersFromResponses(List<SpeedRunResponse> runs, List<PlayerView> existingPlayerVWs) {
 		var playerEntities = runs.stream().flatMap(x -> x.players().data().stream().map(i -> {
 			var player = new Player();
 			
-			var playerTypeId = PlayerType.valueOf(StringExtensions.KebabToUpperCamelCase(i.rel())).getValue();
-			var playerCode = playerTypeId == PlayerType.User.getValue() ? i.id() : i.name();
-			var playerName = playerTypeId == PlayerType.User.getValue() ? i.names().international() : i.name();
-			var playerSrcUrl = playerTypeId == PlayerType.User.getValue() ? i.weblink() : i.links().stream().filter(g -> g.rel().equals("self")).map(g -> g.uri()).findFirst().orElse(null);
-			var existingPlayerVW = existingPlayerVWs.stream().filter(g -> g.getCode().equals(playerCode)).findFirst().get();
+			var playerTypeId = PlayerType.valueOf(i.rel().toUpperCase()).getValue();
+			var playerCode = playerTypeId == PlayerType.USER.getValue() ? i.id() : i.name();
+			var playerName = playerTypeId == PlayerType.USER.getValue() ? i.names().international() : i.name();
+			var playerSrcUrl = playerTypeId == PlayerType.USER.getValue() ? i.weblink() : i.links().stream().filter(g -> g.rel().equals("self")).map(g -> g.uri()).findFirst().orElse(null);
+			var existingPlayerVW = existingPlayerVWs.stream().filter(g -> g.getCode().equals(playerCode)).findFirst().orElse(null);
 
 			player.setId(existingPlayerVW != null ? existingPlayerVW.getId() : 0);
 			player.setName(playerName);			
@@ -360,7 +361,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 
 		return playerEntities;
 	}
-
+	
 	private List<Player> GetNewOrChangedPlayers(List<Player> players, List<PlayerView> existingPlayerVWs) {	
 		var results = new ArrayList<Player>();
 		var newCount = 0;
@@ -377,13 +378,13 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 				var existingPlayerVW = existingPlayerVWs.stream().filter(g -> g.getCode().equals(player.getCode())).findFirst().get();
 				
 				if (existingPlayerVW != null) {
-					isChanged = (!player.getName().equals(existingPlayerVW.getName())
-						|| !player.getPlayerLink().getProfileImageUrl().equals(existingPlayerVW.getProfileImageUrl())
-						|| !player.getPlayerLink().getSrcUrl().equals(existingPlayerVW.getSrcUrl())
-						|| !player.getPlayerLink().getHitboxUrl().equals(existingPlayerVW.getHitboxUrl())
-						|| !player.getPlayerLink().getTwitchUrl().equals(existingPlayerVW.getTwitchUrl())
-						|| !player.getPlayerLink().getTwitterUrl().equals(existingPlayerVW.getTwitterUrl())
-						|| !player.getPlayerLink().getYoutubeUrl().equals(existingPlayerVW.getYoutubeUrl()));
+					isChanged = (!player.getName().equalsIgnoreCase(existingPlayerVW.getName())
+						|| !Objects.equals(player.getPlayerLink().getProfileImageUrl(), existingPlayerVW.getProfileImageUrl())
+						|| !Objects.equals(player.getPlayerLink().getSrcUrl(), existingPlayerVW.getSrcUrl())
+						|| !Objects.equals(player.getPlayerLink().getHitboxUrl(), existingPlayerVW.getHitboxUrl())
+						|| !Objects.equals(player.getPlayerLink().getTwitchUrl(), existingPlayerVW.getTwitchUrl())
+						|| !Objects.equals(player.getPlayerLink().getTwitterUrl(), existingPlayerVW.getTwitterUrl())
+						|| !Objects.equals(player.getPlayerLink().getYoutubeUrl(), existingPlayerVW.getYoutubeUrl()));
 						
 					if (isChanged){
 						changedCount++;
@@ -426,7 +427,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			link.setSrcUrl(i.weblink());
 			run.setSpeedRunLink(link);
 
-			var playerCodes = i.players().data().stream().map(x -> x.rel().equals(PlayerType.User.toString().toLowerCase()) ? x.id() : x.name()).toList();
+			var playerCodes = i.players().data().stream().map(x -> x.rel().toUpperCase().equals(PlayerType.USER.toString()) ? x.id() : x.name()).toList();
 			var runPlayers = existingPlayerVWs.stream()
 								.filter(g -> playerCodes.contains(g.getCode()))
 								.map(x -> { 
@@ -482,4 +483,68 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 
 		return runEntities;
 	}
+
+	private List<SpeedRun> GetNewOrChangedSpeedRuns(List<SpeedRun> runs, List<SpeedRunView> existingRunVWs) {	
+		var results = new ArrayList<SpeedRun>();
+		var newCount = 0;
+		var changedCount = 0;
+
+		for (var run : runs) {
+			var isNew = false;	
+			var isChanged = false;
+		
+			if (run.getId() == 0) {
+				isNew = true;
+				newCount++;
+			} else {
+				var existingRunVW = existingRunVWs.stream().filter(g -> g.getCode().equals(run.getCode())).findFirst().get();
+				
+				if (existingRunVW != null) {
+					isChanged = (!Objects.equals(run.getCategoryId(), existingRunVW.getCategoryId())
+						|| !Objects.equals(run.getGameId(), existingRunVW.getGameId())
+						|| !Objects.equals(run.getLevelId(), existingRunVW.getLevelId())
+						|| !Objects.equals(run.getPlatformId(), existingRunVW.getPlatformId())
+						|| !Objects.equals(run.getPrimaryTime(), existingRunVW.getPrimaryTime())
+						|| !Objects.equals(run.getDateSubmitted(), existingRunVW.getDateSubmitted())
+						|| !Objects.equals(run.getVerifyDate(), existingRunVW.getVerifyDate())
+						|| !Objects.equals(run.getSpeedRunLink().getSrcUrl(), existingRunVW.getSrcUrl()));
+					
+					if (!isChanged) {
+						var variableCodes = run.getVariableValues().stream().map(i -> i.getVariableCode()).toList();
+						var existingVariableCodes = existingRunVW.getVariableValues().stream().map(i -> i.getVariableCode()).toList();
+						isChanged = variableCodes.stream().anyMatch(i -> !existingVariableCodes.contains(i))
+									|| existingVariableCodes.stream().anyMatch(i -> !variableCodes.contains(i));
+					}					
+
+					if (!isChanged) {
+						var variableValueIndex = 0;		
+						var existingVaraibleValues = existingRunVW.getVariableValues();					
+						for (var variableValue : run.getVariableValues()) {
+							var existingVariable = variableValueIndex < existingVaraibleValues.size() ? existingVaraibleValues.get(variableValueIndex) : null;
+							isChanged = (existingVariable == null 
+								|| !variableValue.getVariableCode().equals(existingVariable.getVariableCode())
+								|| !variableValue.getVariableValueCode().equals(existingVariable.getVariableValueCode()));
+
+							if (isChanged) {
+								break;
+							}
+
+							variableValueIndex++;
+						}
+					}
+
+					if (isChanged){
+						changedCount++;
+					}
+				}
+			}
+
+			if (isNew || isChanged) {
+				results.add(run);
+			}
+		}
+
+		_logger.info("Found New: {}, Changed: {}, Total: {}", newCount, changedCount, results.size());	
+		return results;
+	}		
 }

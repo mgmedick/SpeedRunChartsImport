@@ -38,8 +38,8 @@ public class DIConfiguration
 	}
 
 	@Bean
-	public IPlayerRepository getPlayerRepository(IPlayerDB playerDB, IPlayerViewDB playerViewDB, Logger logger){
-		return new PlayerRepository(playerDB, playerViewDB, logger);
+	public IPlayerRepository getPlayerRepository(IPlayerDB playerDB, IPlayerViewDB playerViewDB, IPlayerLinkDB playerLinkDB, Logger logger){
+		return new PlayerRepository(playerDB, playerViewDB, playerLinkDB, logger);
 	}
 
 	@Bean

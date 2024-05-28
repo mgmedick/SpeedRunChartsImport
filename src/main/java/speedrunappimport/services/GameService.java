@@ -7,6 +7,7 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.stream.Collectors;
@@ -20,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-import speedrunappimport.common.StringExtensions;
 import speedrunappimport.interfaces.repositories.*;
 import speedrunappimport.interfaces.services.*;
 import speedrunappimport.model.entity.*;
@@ -56,7 +56,7 @@ public class GameService extends BaseService implements IGameService {
 			var isSaved = false;
 
 			do {
-				games = GetGameResponses(limit, results.size() + prevTotal, GamesOrderBy.CreationDate);
+				games = GetGameResponses(limit, results.size() + prevTotal, GamesOrderBy.CREATIONDATE);
 				results.addAll(games);
 				Thread.sleep(super.getPullDelayMS());
 				_logger.info("Pulled games: {}, total games: {}", games.size(), results.size() + prevTotal);
@@ -125,10 +125,10 @@ public class GameService extends BaseService implements IGameService {
 				var isDesc = false;
 
 				switch (orderBy) {
-					case GamesOrderBy.CreationDate:
-					case GamesOrderBy.CreationDateDesc:
+					case GamesOrderBy.CREATIONDATE:
+					case GamesOrderBy.CREATIONDATEDESC:
 						orderByString = "created";
-						isDesc = (orderBy == GamesOrderBy.CreationDateDesc);
+						isDesc = (orderBy == GamesOrderBy.CREATIONDATEDESC);
 						break;
 					default:
 						orderByString = "name.int";
@@ -196,7 +196,6 @@ public class GameService extends BaseService implements IGameService {
 	}
 
 	private List<Game> GetGamesFromResponses(List<GameResponse> games, List<GameView> existingGamesVWs) {
-		var categoryTypes = _gameRepo.GetCategoryTypes();
 		var platforms = _platformRepo.GetAllPlatforms();
 
 		var gameEntities = games.stream().map(i -> {
@@ -218,17 +217,17 @@ public class GameService extends BaseService implements IGameService {
 			gameLink.setSrcUrl(i.weblink());
 			game.setGameLink(gameLink);
 			
-			var gameCategoryTypes = categoryTypes.stream()
-									.filter(g -> i.categories().data().stream().anyMatch(x -> StringExtensions.KebabToUpperCamelCase(x.type()).equals(g.getName())))
+			var gameCategoryTypes = Arrays.stream(CategoryTypes.values())
+									.filter(g -> i.categories().data().stream().anyMatch(x -> x.type().toUpperCase().equals(g.name())))
 									.map(x -> { 
 										var gameCategoryType = new GameCategoryType();
-										gameCategoryType.setId(existingGameVW != null ? existingGameVW.getGameCategoryTypes().stream().filter(g ->  g.getCategoryTypeId() == x.getId()).map(g -> g.getId()).findFirst().orElse(0) : 0);
-										gameCategoryType.setCategoryTypeId(x.getId());
+										gameCategoryType.setId(existingGameVW != null ? existingGameVW.getGameCategoryTypes().stream().filter(g ->  g.getCategoryTypeId() == x.getValue()).map(g -> g.getId()).findFirst().orElse(0) : 0);
+										gameCategoryType.setCategoryTypeId(x.getValue());
 										gameCategoryType.setGameId(game.getId());
 										return gameCategoryType;
 							}).toList();
 			game.setGameCategoryTypes(gameCategoryTypes);	
-
+			
 			var categories = i.categories().data().stream()
 								.map(x -> { 
 									var category = new Category();
@@ -236,7 +235,7 @@ public class GameService extends BaseService implements IGameService {
 									category.setName(x.name());
 									category.setCode(x.id());
 									category.setGameId(game.getId());
-									category.setCategoryTypeId(speedrunappimport.model.Enums.CategoryType.valueOf(StringExtensions.KebabToUpperCamelCase(x.type())).getValue());
+									category.setCategoryTypeId(CategoryTypes.valueOf(x.type().toUpperCase()).getValue());
 									category.setMiscellaneous(x.miscellaneous());
 									category.setIsTimerAscending(x.rules() != null && x.rules().contains("long as possible"));
 									return category;
@@ -262,7 +261,7 @@ public class GameService extends BaseService implements IGameService {
 										variable.setName(variablesList.get(x).name());
 										variable.setCode(variablesList.get(x).id());
 										variable.setGameId(game.getId());
-										variable.setVariableScopeTypeId(VariableScopeType.valueOf(StringExtensions.KebabToUpperCamelCase(variablesList.get(x).scope().type())).getValue());
+										variable.setVariableScopeTypeId(VariableScopeType.valueOf(variablesList.get(x).scope().type().toUpperCase()).getValue());
 										variable.setCategoryId(existingGameVW != null ? existingGameVW.getCategories().stream().filter(h ->  h.getCode().equals(variablesList.get(x).category())).map(h -> h.getId()).findFirst().orElse(0) : 0);
 										variable.setCategoryCode(variablesList.get(x).category());
 										variable.setLevelId(existingGameVW != null ? existingGameVW.getLevels().stream().filter(h ->  h.getCode().equals(variablesList.get(x).scope().level())).map(h -> h.getId()).findFirst().orElse(0) : 0);
@@ -349,11 +348,11 @@ public class GameService extends BaseService implements IGameService {
 			} else {
 				var existingGameVW = existingGamesVWs.stream().filter(x -> x.getId() == game.getId()).findFirst().orElse(null);			
 				if (existingGameVW != null) {
-					isChanged = (!game.getName().equals(existingGameVW.getName())
-						|| !game.getAbbr().equals(existingGameVW.getAbbr())
-						|| !game.getReleaseDate().isEqual(existingGameVW.getReleaseDate())
-						|| !game.getGameLink().getCoverImageUrl().equals(existingGameVW.getCoverImageUrl())
-						|| !game.getGameLink().getSrcUrl().equals(existingGameVW.getSrcUrl()));
+					isChanged = (!game.getName().equalsIgnoreCase(existingGameVW.getName())
+						|| !Objects.equals(game.getAbbr(), existingGameVW.getAbbr())
+						|| !Objects.equals(game.getReleaseDate(), existingGameVW.getReleaseDate())
+						|| !Objects.equals(game.getGameLink().getCoverImageUrl(), existingGameVW.getCoverImageUrl())
+						|| !Objects.equals(game.getGameLink().getSrcUrl(), existingGameVW.getSrcUrl()));
 
 					if (!isChanged) {
 						var categoryTypeIds = game.getGameCategoryTypes().stream().map(i -> i.getCategoryTypeId()).toList();
@@ -385,8 +384,15 @@ public class GameService extends BaseService implements IGameService {
 					
 					if (!isChanged) {
 						var variableIndex = 0;
+						var existingVariables = existingGameVW.getVariables();
 						for (var variable : game.getVariables()) {
-							isChanged = !variable.getCode().equals(existingGameVW.getVariables().get(variableIndex).getCode());
+							var existingVariable = variableIndex < existingVariables.size() ? existingVariables.get(variableIndex) : null;
+							isChanged = existingVariable == null || !variable.getCode().equals(existingVariable.getCode());
+
+							if (isChanged) {
+								break;
+							}
+
 							variableIndex++;
 						}
 					}

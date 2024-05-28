@@ -1,26 +1,26 @@
 package speedrunappimport.model;
 
 public class Enums {
-    public enum CategoryType {
-        PerGame(0),
-        PerLevel(1);
+    public enum CategoryTypes {
+        PERGAME(0),
+        PERLEVEL(1);
 
         private final int value;
  
-        private CategoryType(int value) {
+        private CategoryTypes(int value) {
             this.value = value;
         }
     
         public int getValue() {
             return value;
-        }
+        }  
     }
     
     public enum VariableScopeType {
-        Global(0),
-        FullGame(1),
-        AllLevels(2),
-        SingleLevel(3);
+        GLOBAL(0),
+        FULLGAME(1),
+        ALLLEVELS(2),
+        SINGLELEVEL(3);
 
         private final int value;
  
@@ -34,26 +34,26 @@ public class Enums {
     }
 
     public enum SpeedRunsOrderBy {
-        Game(0),
-        GameDesc(1),
-        Category(2),
-        CategoryDesc(3),
-        Level(4),
-        LevelDesc(5),
-        Platform(6),
-        PlatformDesc(7),
-        Region(8),
-        RegionDesc(9),
-        Emulated(10),
-        EmulatedDesc(11),
-        Date(12),
-        DateDesc(13),
-        DateSubmitted(14),
-        DateSubmittedDesc(15),
-        Status(16),
-        StatusDesc(17),
-        VerifyDate(18),
-        VerifyDateDesc(19);
+        GAME(0),
+        GAMEDESC(1),
+        CATEGORY(2),
+        CATEGORYDESC(3),
+        LEVEL(4),
+        LEVELDESC(5),
+        PLATFORM(6),
+        PLATFORMDESC(7),
+        REGION(8),
+        REGIONDESC(9),
+        EMULATED(10),
+        EMULATEDDESC(11),
+        DATE(12),
+        DATEDESC(13),
+        DATESUBMITTED(14),
+        DATESUBMITTEDDESC(15),
+        STATUS(16),
+        STATUSDESC(17),
+        VERIFYDATE(18),
+        VERIFYDATEDESC(19);
 
         private final int value;
  
@@ -67,18 +67,18 @@ public class Enums {
     }
 
     public enum GamesOrderBy {
-        Similarity(0),
-        SimilarityDesc(1),
-        Name(2),
-        NameDesc(3),
-        JapaneseName(4),
-        JapaneseNamelDesc(5),
-        Abbreviation(6),
-        AbbreviationDesc(7),
-        YearOfRelease(8),
-        YearOfReleaseDesc(9),
-        CreationDate(10),
-        CreationDateDesc(11);
+        SIMILARITY(0),
+        SIMILARITYDESC(1),
+        NAME(2),
+        NAMEDESC(3),
+        JAPANESENAME(4),
+        JAPANESENAMEDESC(5),
+        ABBREVIATION(6),
+        ABBREVIATIONDESC(7),
+        YEAROFRELEASE(8),
+        YEAROFRELEASEDESC(9),
+        CREATIONDATE(10),
+        CREATIONDATEDESC(11);
 
         private final int value;
  
@@ -92,8 +92,8 @@ public class Enums {
     }
     
     public enum PlayerType {
-        User(0),
-        Guest(1);
+        USER(0),
+        GUEST(1);
 
         private final int value;
  

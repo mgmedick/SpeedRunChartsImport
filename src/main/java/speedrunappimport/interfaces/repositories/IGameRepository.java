@@ -9,7 +9,6 @@ public interface IGameRepository {
     void SaveGames(List<Game> games);
     List<Game> GetGamesByCode(List<String> codes);
     List<GameView> GetGameViewsByCode(List<String> codes);
-    List<CategoryType> GetCategoryTypes();
     List<Game> GetGamesModifiedAfter(Instant date);
 }
 

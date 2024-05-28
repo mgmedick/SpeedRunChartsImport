@@ -21,11 +21,10 @@ public class GameRepository extends BaseRepository implements IGameRepository {
 	private IVariableDB _variableDB;
 	private IVariableValueDB _variableValueDB;
 	private IGamePlatformDB _gamePlatformDB;
-	private ICategoryTypeDB _categoryTypeDB;
 	private IGameCategoryTypeDB _gameCategoryTypeDB;
 	private Logger _logger;
 
-	public GameRepository(IGameDB gameDB, IGameViewDB gameViewDB, IGameLinkDB gameLinkDB, ICategoryDB categoryDB, ILevelDB levelDB, IVariableDB variableDB, IVariableValueDB variableValueDB, IGamePlatformDB gamePlatformDB, ICategoryTypeDB categoryTypeDB, IGameCategoryTypeDB gameCategoryTypeDB, Logger logger) {
+	public GameRepository(IGameDB gameDB, IGameViewDB gameViewDB, IGameLinkDB gameLinkDB, ICategoryDB categoryDB, ILevelDB levelDB, IVariableDB variableDB, IVariableValueDB variableValueDB, IGamePlatformDB gamePlatformDB, IGameCategoryTypeDB gameCategoryTypeDB, Logger logger) {
 		_gameDB = gameDB;
 		_gameViewDB = gameViewDB;
 		_gameLinkDB = gameLinkDB;
@@ -34,7 +33,6 @@ public class GameRepository extends BaseRepository implements IGameRepository {
 		_variableDB = variableDB;
 		_variableValueDB = variableValueDB;
 		_gamePlatformDB = gamePlatformDB;
-		_categoryTypeDB = categoryTypeDB;
 		_gameCategoryTypeDB = gameCategoryTypeDB;
 		_logger = logger;
 	}
@@ -133,11 +131,6 @@ public class GameRepository extends BaseRepository implements IGameRepository {
 
 		return results;
 	}
-
-	@Transactional(isolation = Isolation.READ_UNCOMMITTED)
-	public List<CategoryType> GetCategoryTypes() {
-		return _categoryTypeDB.findAll();
-	}	
 
 	@Transactional(isolation = Isolation.READ_UNCOMMITTED)
 	public List<Game> GetGamesModifiedAfter(Instant date) {

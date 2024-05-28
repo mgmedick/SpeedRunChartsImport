@@ -27,7 +27,7 @@ public class SpeedRun {
     private Integer platformId;
     private Integer rank;
     private long primaryTime;
-    private Instant dateSumbitted;
+    private Instant dateSubmitted;
     private Instant verifyDate;
     @Transient
     private Instant createdDate;
@@ -102,11 +102,11 @@ public class SpeedRun {
     public void setPrimaryTime(long primaryTime) {
         this.primaryTime = primaryTime;
     }
-    public Instant getDateSumbitted() {
-        return dateSumbitted;
+    public Instant getDateSubmitted() {
+        return dateSubmitted;
     }
-    public void setDateSumbitted(Instant dateSumbitted) {
-        this.dateSumbitted = dateSumbitted;
+    public void setDateSumbitted(Instant dateSubmitted) {
+        this.dateSubmitted = dateSubmitted;
     }
     public Instant getVerifyDate() {
         return verifyDate;

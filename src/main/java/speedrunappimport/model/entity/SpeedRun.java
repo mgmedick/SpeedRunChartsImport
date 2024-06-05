@@ -3,6 +3,7 @@ package speedrunappimport.model.entity;
 import java.time.Instant;
 import java.util.List;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -25,6 +26,7 @@ public class SpeedRun {
     private int categoryId;
     private Integer levelId;
     private Integer platformId;
+    @Column(name="`rank`")
     private Integer rank;
     private long primaryTime;
     private Instant dateSubmitted;

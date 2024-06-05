@@ -4,6 +4,17 @@ import java.util.regex.Pattern;
 
 public class StringExtensions
 {
+    public static String KebabToUpperSnakeCase(String text)
+    {
+        String result = text;
+        
+        if (result != null && !result.isBlank()) {
+            result = result.toUpperCase().replace("-", "_");         
+        }
+
+        return result;
+    }
+
     public static String KebabToUpperCamelCase(String text)
     {
         String result = text;

@@ -120,12 +120,14 @@ public class UriExtensions
     public static Map<String, String> splitQuery(URI uri) {
         Map<String, String> query_pairs = new LinkedHashMap<String, String>();
         String query = uri.getQuery();
-        String[] pairs = query.split("&");
-        for (String pair : pairs) {
-            int idx = pair.indexOf("=");
-            var key = idx > 0 ? URLDecoder.decode(pair.substring(0, idx), StandardCharsets.UTF_8) : pair;
-            var value = idx > 0 && pair.length() > idx + 1 ? URLDecoder.decode(pair.substring(idx + 1), StandardCharsets.UTF_8) : null;
-            query_pairs.put(key, value);
+        if (query != null && !query.isBlank()) {
+            String[] pairs = query.split("&");
+            for (String pair : pairs) {
+                int idx = pair.indexOf("=");
+                var key = idx > 0 ? URLDecoder.decode(pair.substring(0, idx), StandardCharsets.UTF_8) : pair;
+                var value = idx > 0 && pair.length() > idx + 1 ? URLDecoder.decode(pair.substring(idx + 1), StandardCharsets.UTF_8) : null;
+                query_pairs.put(key, value);
+            }
         }
 
         return query_pairs;

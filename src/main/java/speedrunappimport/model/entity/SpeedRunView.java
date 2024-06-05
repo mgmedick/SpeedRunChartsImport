@@ -13,8 +13,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @Entity
 @Table(name = "vw_speedrun")
@@ -39,6 +41,13 @@ public class SpeedRunView {
 
     @Transient
     private ObjectMapper _mapper;
+
+    public SpeedRunView() {
+        _mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .setPropertyNamingStrategy(PropertyNamingStrategies.UPPER_CAMEL_CASE)
+                .registerModule(new JavaTimeModule());
+    }
+
 
     public int getId() {
         return id;

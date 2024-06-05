@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+import speedrunappimport.common.StringExtensions;
 import speedrunappimport.interfaces.repositories.*;
 import speedrunappimport.interfaces.services.*;
 import speedrunappimport.model.entity.*;
@@ -56,7 +57,7 @@ public class GameService extends BaseService implements IGameService {
 			var isSaved = false;
 
 			do {
-				games = GetGameResponses(limit, results.size() + prevTotal, GamesOrderBy.CREATIONDATE);
+				games = GetGameResponses(limit, results.size() + prevTotal, GamesOrderBy.CREATION_DATE);
 				results.addAll(games);
 				Thread.sleep(super.getPullDelayMS());
 				_logger.info("Pulled games: {}, total games: {}", games.size(), results.size() + prevTotal);
@@ -125,10 +126,10 @@ public class GameService extends BaseService implements IGameService {
 				var isDesc = false;
 
 				switch (orderBy) {
-					case GamesOrderBy.CREATIONDATE:
-					case GamesOrderBy.CREATIONDATEDESC:
+					case GamesOrderBy.CREATION_DATE:
+					case GamesOrderBy.CREATION_DATE_DESC:
 						orderByString = "created";
-						isDesc = (orderBy == GamesOrderBy.CREATIONDATEDESC);
+						isDesc = (orderBy == GamesOrderBy.CREATION_DATE_DESC);
 						break;
 					default:
 						orderByString = "name.int";
@@ -218,7 +219,7 @@ public class GameService extends BaseService implements IGameService {
 			game.setGameLink(gameLink);
 			
 			var gameCategoryTypes = Arrays.stream(CategoryTypes.values())
-									.filter(g -> i.categories().data().stream().anyMatch(x -> x.type().toUpperCase().equals(g.name())))
+									.filter(g -> i.categories().data().stream().anyMatch(x -> StringExtensions.KebabToUpperSnakeCase(x.type()).equals(g.name())))
 									.map(x -> { 
 										var gameCategoryType = new GameCategoryType();
 										gameCategoryType.setId(existingGameVW != null ? existingGameVW.getGameCategoryTypes().stream().filter(g ->  g.getCategoryTypeId() == x.getValue()).map(g -> g.getId()).findFirst().orElse(0) : 0);
@@ -235,7 +236,7 @@ public class GameService extends BaseService implements IGameService {
 									category.setName(x.name());
 									category.setCode(x.id());
 									category.setGameId(game.getId());
-									category.setCategoryTypeId(CategoryTypes.valueOf(x.type().toUpperCase()).getValue());
+									category.setCategoryTypeId(CategoryTypes.valueOf(StringExtensions.KebabToUpperSnakeCase(x.type())).getValue());
 									category.setMiscellaneous(x.miscellaneous());
 									category.setIsTimerAscending(x.rules() != null && x.rules().contains("long as possible"));
 									return category;
@@ -261,7 +262,7 @@ public class GameService extends BaseService implements IGameService {
 										variable.setName(variablesList.get(x).name());
 										variable.setCode(variablesList.get(x).id());
 										variable.setGameId(game.getId());
-										variable.setVariableScopeTypeId(VariableScopeType.valueOf(variablesList.get(x).scope().type().toUpperCase()).getValue());
+										variable.setVariableScopeTypeId(VariableScopeType.valueOf(StringExtensions.KebabToUpperSnakeCase(variablesList.get(x).scope().type())).getValue());
 										variable.setCategoryId(existingGameVW != null ? existingGameVW.getCategories().stream().filter(h ->  h.getCode().equals(variablesList.get(x).category())).map(h -> h.getId()).findFirst().orElse(0) : 0);
 										variable.setCategoryCode(variablesList.get(x).category());
 										variable.setLevelId(existingGameVW != null ? existingGameVW.getLevels().stream().filter(h ->  h.getCode().equals(variablesList.get(x).scope().level())).map(h -> h.getId()).findFirst().orElse(0) : 0);

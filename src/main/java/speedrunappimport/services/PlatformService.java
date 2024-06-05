@@ -37,7 +37,7 @@ public class PlatformService extends BaseService implements IPlatformService {
 
 		try {
 			_logger.info("Started ProcessPlatforms");
-			var results = new ArrayList<PlatformResponse>();
+			List<PlatformResponse> results = new ArrayList<PlatformResponse>();
 			List<PlatformResponse> platforms = new ArrayList<PlatformResponse>();
 			var prevTotal = 0;
 
@@ -47,13 +47,13 @@ public class PlatformService extends BaseService implements IPlatformService {
 				Thread.sleep(super.getPullDelayMS());
 				_logger.info("Pulled platforms: {}, total platforms: {}", platforms.size(), results.size() + prevTotal);
 
-				var memorySize = Runtime.getRuntime().totalMemory();
+				var memorySize = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 				if (results.size() > 0 && memorySize > super.getMaxMemorySizeBytes()) {
 					prevTotal += results.size();
 					_logger.info("Saving to clear memory, results: {}, size: {}", results.size(), memorySize);
 					SavePlatformResponses(results);
-					results.clear();
-					results.trimToSize();
+					results = new ArrayList<PlatformResponse>();
+					System.gc();
 				}
 			}
 			while (platforms.size() == super.getMaxPageLimit());
@@ -61,8 +61,8 @@ public class PlatformService extends BaseService implements IPlatformService {
 
 			if (results.size() > 0) {
 				SavePlatformResponses(results);
-				results.clear();
-				results.trimToSize();
+				results = new ArrayList<PlatformResponse>();
+				System.gc();
 			}
 
 			_logger.info("Completed ProcessPlatforms");

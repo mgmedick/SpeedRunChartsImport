@@ -50,7 +50,7 @@ public class GameService extends BaseService implements IGameService {
 			var currImportRefDateUtc = lastImportRefDateUtc;
 			_logger.info("Started ProcessGames: {}, {}", lastImportRefDateUtc, isReload);
 
-			var results = new ArrayList<GameResponse>();
+			List<GameResponse> results = new ArrayList<GameResponse>();
 			List<GameResponse> games = new ArrayList<GameResponse>();
 			var prevTotal = 0;
 			var limit = super.getMaxPageLimit();
@@ -62,10 +62,11 @@ public class GameService extends BaseService implements IGameService {
 				Thread.sleep(super.getPullDelayMS());
 				_logger.info("Pulled games: {}, total games: {}", games.size(), results.size() + prevTotal);
 
-				var memorySize = Runtime.getRuntime().totalMemory();
+				var memorySize = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 				if (results.size() > 0 && memorySize > super.getMaxMemorySizeBytes()) {
 					if (!isReload) {
 						results.removeIf(i -> (i.created() != null ? i.created() : super.getSqlMinDateTime()).compareTo(lastImportRefDateUtc) <= 0);
+						results = results.reversed();
 					}
 
 					if (results.size() > 0) {
@@ -74,8 +75,8 @@ public class GameService extends BaseService implements IGameService {
 						currImportRefDateUtc = results.stream().map(i -> i.created() != null ? i.created() : super.getSqlMinDateTime()).max(Instant::compareTo).get();
 						SaveGameResponses(results, isReload);
 						isSaved = true;
-						results.clear();
-						results.trimToSize();
+						results = new ArrayList<GameResponse>();
+						System.gc();
 					}
 				}
 			}
@@ -83,6 +84,7 @@ public class GameService extends BaseService implements IGameService {
 			while (1 == 0);
 
 			if (!isReload) {
+				results = results.reversed();	
 				results.removeIf(i -> (i.created() != null ? i.created() : super.getSqlMinDateTime()).compareTo(lastImportRefDateUtc) <= 0);
 			}
 
@@ -90,8 +92,8 @@ public class GameService extends BaseService implements IGameService {
 				currImportRefDateUtc = results.stream().map(i -> i.created() != null ? i.created() : super.getSqlMinDateTime()).max(Instant::compareTo).get();
 				SaveGameResponses(results, isReload);
 				isSaved = true;
-				results.clear();
-				results.trimToSize();
+				results = new ArrayList<GameResponse>();
+				System.gc();
 			}
 
 			if (isSaved) {

@@ -310,15 +310,6 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 	public void FinalizeSavedSpeedRuns(boolean isReload) {
 		_logger.info("Started FinalizeSavedSpeedRuns: {}", isReload);
 
-		UpdateSpeedRunRanks(isReload);
-		// UpdateSpeedRunOrdered(isReload);
-
-		_logger.info("Completed FinalizeSavedSpeedRuns");
-	}
-
-	public void UpdateSpeedRunRanks(boolean isReload) {
-		_logger.info("Started UpdateSpeedRunRanks: {}", isReload);
-	
 		var stLastImportDateUtc = _settingService.GetSetting("LastImportDate");
 		var lastImportDateUtc = stLastImportDateUtc != null && stLastImportDateUtc.getDte() != null ? stLastImportDateUtc.getDte() : getSqlMinDateTime();	
 		
@@ -327,25 +318,11 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 		}					
 		
 		_speedRunRepo.UpdateSpeedRunRanks(lastImportDateUtc);
-		
-		_logger.info("Completed UpdateSpeedRunRanks");
+		_speedRunRepo.UpdateSpeedRunOrdered(lastImportDateUtc);
+
+		_logger.info("Completed FinalizeSavedSpeedRuns");
 	}
-
-	public void UpdateSpeedRunOrdered(boolean isReload) {
-		_logger.info("Started UpdateSpeedRunOrdered: {}", isReload);
 	
-		var stSpeedRunLastImportRefDateUtc = _settingService.GetSetting("SpeedRunLastImportRefDate");
-		var lastImportRefDateUtc = stSpeedRunLastImportRefDateUtc != null && stSpeedRunLastImportRefDateUtc.getDte() != null ? stSpeedRunLastImportRefDateUtc.getDte() : this.getSqlMinDateTime();	
-		
-		if (isReload) {
-			lastImportRefDateUtc = null;
-		}					
-		
-		//_speedRunRepo.UpdateSpeedRunOrdered(lastImportRefDateUtc);
-		
-		_logger.info("Completed UpdateSpeedRunOrdered");
-	}	
-
 	private void SavePlayersFromRunResponses(List<SpeedRunResponse> runs) {
 		_logger.info("Started SavePlayersFromRunResponses: {}", runs.size());
 	

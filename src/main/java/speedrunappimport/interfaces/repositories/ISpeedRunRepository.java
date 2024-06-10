@@ -10,6 +10,7 @@ public interface ISpeedRunRepository {
     List<SpeedRun> GetSpeedRunsByCode(List<String> codes);
     List<SpeedRunView> GetSpeedRunViewsByCode(List<String> codes);
     void UpdateSpeedRunRanks(Instant lastImportDateUtc);
+    void UpdateSpeedRunOrdered(Instant lastImportDateUtc);
 }
 
 

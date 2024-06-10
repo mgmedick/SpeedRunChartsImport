@@ -16,4 +16,8 @@ public interface ISpeedRunDB extends IBaseDB<SpeedRun, Integer>
     @Procedure("ImportUpdateSpeedRunRanks")
     // @Transactional(timeout = 32767) 
     void updateSpeedRunRanks(@Param("LastImportDate") Instant lastImportDateUtc);    
+
+    @Procedure("ImportUpdateSpeedRunOrdered")
+    // @Transactional(timeout = 32767) 
+    void updateSpeedRunOrdered(@Param("LastImportDate") Instant lastImportDateUtc);       
 }

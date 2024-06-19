@@ -9,7 +9,7 @@ public interface IGameRepository {
     void SaveGames(List<Game> games);
     List<Game> GetGamesByCode(List<String> codes);
     List<GameView> GetGameViewsByCode(List<String> codes);
-    List<Game> GetGamesModifiedAfter(Instant date);
+    List<GameView> GetGameViewsModifiedAfter(Instant date);
 }
 
 

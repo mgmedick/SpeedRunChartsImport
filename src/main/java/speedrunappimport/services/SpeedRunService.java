@@ -70,7 +70,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			List<SpeedRunResponse> runs = new ArrayList<SpeedRunResponse>();
 			var prevTotal = 0;
 			var limit = super.getMaxPageLimit();
-			var games = _gameRepo.GetGamesModifiedAfter(lastImportDateUtc);
+			var games = _gameRepo.GetGameViewsModifiedAfter(lastImportDateUtc);
 			var isSaved = false;
 
 			for (var game : games) {

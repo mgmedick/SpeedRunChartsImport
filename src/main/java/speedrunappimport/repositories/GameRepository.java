@@ -133,8 +133,8 @@ public class GameRepository extends BaseRepository implements IGameRepository {
 	}
 
 	@Transactional(isolation = Isolation.READ_UNCOMMITTED)
-	public List<Game> GetGamesModifiedAfter(Instant date) {
-		var results = _gameDB.findAllWithModifiedDateAfter(date);
+	public List<GameView> GetGameViewsModifiedAfter(Instant date) {
+		var results = _gameViewDB.findAllWithModifiedDateAfter(date);
 			
 		return results;
 	}	

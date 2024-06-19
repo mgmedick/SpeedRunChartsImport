@@ -18,7 +18,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-@Entity
+@Entity(name = "vw_game")
 @Table(name = "vw_game")
 public class GameView {
     @Id

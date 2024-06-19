@@ -7,6 +7,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
@@ -28,6 +29,8 @@ public class GameView {
     private String abbr;
     private boolean showMilliseconds;
     private LocalDate releaseDate;
+    private Instant createdDate;
+    private Instant modifiedDate;   
     private int gameLinkId;
     private String coverImageUrl;
     private String srcUrl;   
@@ -94,6 +97,22 @@ public class GameView {
     public void setReleaseDate(LocalDate releaseDate) {
         this.releaseDate = releaseDate;
     }
+
+    public Instant getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(Instant createdDate) {
+        this.createdDate = createdDate;
+    }
+
+    public Instant getModifiedDate() {
+        return modifiedDate;
+    }
+
+    public void setModifiedDate(Instant modifiedDate) {
+        this.modifiedDate = modifiedDate;
+    }   
 
     public int getGameLinkId() {
         return gameLinkId;

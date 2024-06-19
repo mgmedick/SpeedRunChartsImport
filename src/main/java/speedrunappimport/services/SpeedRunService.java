@@ -81,7 +81,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 						results.removeIf(i -> i.game().equals(game.getCode()));
 						for (var category : game.getCategories()) {
 							try {
-							runs = GetSpeedRunResponses(limit, ((int)results.stream().filter(i -> i.game().equals(game.getCode()) && i.category().equals(category.getCode())).count()) + prevTotal, game.getCode(), category.getCode(), SpeedRunsOrderBy.SUBMITTED);
+								runs = GetSpeedRunResponses(limit, ((int)results.stream().filter(i -> i.game().equals(game.getCode()) && i.category().equals(category.getCode())).count()) + prevTotal, game.getCode(), category.getCode(), SpeedRunsOrderBy.SUBMITTED);
 							} catch (PaginationException ex1) {
 								runs = GetSpeedRunResponses(limit, ((int)results.stream().filter(i -> i.game().equals(game.getCode()) && i.category().equals(category.getCode())).count()) + prevTotal, game.getCode(), category.getCode(), SpeedRunsOrderBy.SUBMITTED_DESC);
 							}

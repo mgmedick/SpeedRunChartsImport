@@ -80,8 +80,8 @@ public class GameService extends BaseService implements IGameService {
 					}
 				}
 			}
-			//while (games.size() == limit && (isReload || games.stream().map(i -> i.created() != null ? i.created() : super.getSqlMinDateTime()).max(Instant::compareTo).get().compareTo(lastImportRefDateUtc) > 0));
-			while (1 == 0);
+			while (games.size() == limit && (isReload || games.stream().map(i -> i.created() != null ? i.created() : super.getSqlMinDateTime()).max(Instant::compareTo).get().compareTo(lastImportRefDateUtc) > 0));
+			//while (1 == 0);
 
 			if (!isReload) {
 				results = results.reversed();	

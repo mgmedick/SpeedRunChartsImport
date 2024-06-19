@@ -91,8 +91,8 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 					Thread.sleep(super.getPullDelayMS());
 					_logger.info("Pulled runs: {}, total runs: {}", runs.size(), results.size() + prevTotal);
 				}
-				//while (runs.size() == limit);
-				while (1 == 0);
+				while (runs.size() == limit);
+				//while (1 == 0);
 
 				var memorySize = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 				if (results.size() > 0 && memorySize > super.getMaxMemorySizeBytes()) {
@@ -163,8 +163,8 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 					}
 				}
 			}
-			//while (runs.size() == limit && (isReload || runs.stream().map(i -> i.status().verifyDate() != null ? i.status().verifyDate() : super.getSqlMinDateTime()).max(Instant::compareTo).get().compareTo(lastImportRefDateUtc) > 0));
-			while (1 == 0);
+			while (runs.size() == limit && runs.stream().map(i -> i.status().verifyDate() != null ? i.status().verifyDate() : super.getSqlMinDateTime()).max(Instant::compareTo).get().compareTo(lastImportRefDateUtc) > 0);
+			//while (1 == 0);
 
 			results = results.reversed();
 			results.removeIf(i -> (i.status().verifyDate() != null ? i.status().verifyDate() : super.getSqlMinDateTime()).compareTo(lastImportRefDateUtc) <= 0);
@@ -322,7 +322,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 
 		_logger.info("Completed FinalizeSavedSpeedRuns");
 	}
-	
+
 	private void SavePlayersFromRunResponses(List<SpeedRunResponse> runs) {
 		_logger.info("Started SavePlayersFromRunResponses: {}", runs.size());
 	

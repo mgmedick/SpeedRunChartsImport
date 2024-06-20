@@ -466,8 +466,19 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 										video.setId(existingRunVW != null ? existingRunVW.getVideos().stream().filter(g ->  g.getVideoLinkUrl().equals(x.uri())).map(g -> g.getId()).findFirst().orElse(0) : 0);
 										video.setSpeedRunId(run.getId());
 										video.setVideoLinkUrl(x.uri());
-										video.setEmbeddedVideoLinkUrl(UriExtensions.ToEmbeddedURIString(x.uri()));
-										video.setThumbnailLinkUrl(UriExtensions.ToThumbnailURIString(x.uri()));
+
+										try {
+											video.setThumbnailLinkUrl(UriExtensions.ToThumbnailURIString(x.uri()));
+										} catch (IllegalArgumentException ex) {
+											_logger.error(ex.getMessage());
+										}
+
+										try {
+											video.setEmbeddedVideoLinkUrl(UriExtensions.ToEmbeddedURIString(x.uri()));
+										} catch (IllegalArgumentException ex) {
+											_logger.error(ex.getMessage());
+										}
+
 										return video;
 									}).toList();
 			}

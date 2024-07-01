@@ -76,20 +76,16 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			for (var game : games) {
 				do {
 					try {
-						runs = GetSpeedRunResponses(limit, ((int)results.stream().filter(i->i.game().equals(game.getCode())).count()) + prevTotal, game.getCode(), null, null);
+						runs = GetSpeedRunResponses(limit, ((int)results.stream().filter(i->i.game().equals(game.getCode())).count()), game.getCode(), null, null);
+						results.addAll(runs);
+						_logger.info("GameCode: {}, pulled runs: {}, game total: {}, total runs: {}", game.getCode(), runs.size(), ((int)results.stream().filter(i->i.game().equals(game.getCode())).count()), results.size() + prevTotal);						
+						Thread.sleep(super.getPullDelayMS());
 					} catch (PaginationException ex) {
 						results.removeIf(i -> i.game().equals(game.getCode()));
-						for (var category : game.getCategories()) {
-							try {
-								runs = GetSpeedRunResponses(limit, ((int)results.stream().filter(i -> i.game().equals(game.getCode()) && i.category().equals(category.getCode())).count()) + prevTotal, game.getCode(), category.getCode(), SpeedRunsOrderBy.SUBMITTED);
-							} catch (PaginationException ex1) {
-								runs = GetSpeedRunResponses(limit, ((int)results.stream().filter(i -> i.game().equals(game.getCode()) && i.category().equals(category.getCode())).count()) + prevTotal, game.getCode(), category.getCode(), SpeedRunsOrderBy.SUBMITTED_DESC);
-							}
-						}
+						runs = ProcessSpeedRunsByCategory(game, results.size() + prevTotal);
+						results.addAll(runs);
+						break;
 					}
-					results.addAll(runs);
-					Thread.sleep(super.getPullDelayMS());
-					_logger.info("Pulled runs: {}, total runs: {}", runs.size(), results.size() + prevTotal);
 				}
 				while (runs.size() == limit);
 				//while (1 == 0);
@@ -102,7 +98,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 					isSaved = true;
 					results = new ArrayList<SpeedRunResponse>();
 					System.gc();
-				}				
+				}
 			}
 
 			if (results.size() > 0) {
@@ -125,6 +121,51 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 
 		return result;
 	}
+
+	public List<SpeedRunResponse> ProcessSpeedRunsByCategory(GameView game, int prevTotal) throws Exception {
+		var limit = super.getMaxPageLimit();
+		var results = new ArrayList<SpeedRunResponse>();	
+		List<SpeedRunResponse> runs = new ArrayList<SpeedRunResponse>();
+	
+		for (var category : game.getCategories()) {							
+				do {
+					try {
+						runs = GetSpeedRunResponses(limit, ((int)results.stream().filter(i -> i.game().equals(game.getCode()) && i.category().equals(category.getCode())).count()), game.getCode(), category.getCode(), SpeedRunsOrderBy.SUBMITTED);
+						results.addAll(runs);	
+						_logger.info("GameCode: {}, CategoryCode: {}, pulled runs: {}, order: asc, category total: {}, total runs: {}", game.getCode(), category.getCode(), runs.size(), ((int)results.stream().filter(i -> i.game().equals(game.getCode()) && i.category().equals(category.getCode())).count()), results.size() + prevTotal);
+						Thread.sleep(super.getPullDelayMS());
+					} catch (PaginationException ex) {
+						runs = ProcessSpeedRunsByCategoryDesc(game, category, results.size() + prevTotal);
+						results.addAll(runs);	
+						break;
+					}
+				}
+				while (runs.size() == limit);
+		}
+
+		return results;
+	}
+
+	public List<SpeedRunResponse> ProcessSpeedRunsByCategoryDesc(GameView game, Category category, int prevTotal) throws Exception {
+		var limit = super.getMaxPageLimit();
+		var results = new ArrayList<SpeedRunResponse>();	
+		List<SpeedRunResponse> runs = new ArrayList<SpeedRunResponse>();
+
+		do {
+			try {
+				runs = GetSpeedRunResponses(limit, ((int)results.stream().filter(i -> i.game().equals(game.getCode()) && i.category().equals(category.getCode())).count()), game.getCode(), category.getCode(), SpeedRunsOrderBy.SUBMITTED_DESC);
+				results.addAll(runs);	
+				_logger.info("GameCode: {}, CategoryCode: {}, pulled runs: {}, order: desc, category total: {}, total runs: {}", game.getCode(), category.getCode(), runs.size(), ((int)results.stream().filter(i -> i.game().equals(game.getCode()) && i.category().equals(category.getCode())).count()), results.size() + prevTotal);
+				Thread.sleep(super.getPullDelayMS());
+			} catch (PaginationException ex) {
+				_logger.error("ProcessSpeedRunsByCategoryDesc", ex);
+				break;
+			}
+		}
+		while (runs.size() == limit);
+
+		return results;
+	}	
 
 	public boolean ProcessSpeedRunsByDate() {
 		boolean result = false;

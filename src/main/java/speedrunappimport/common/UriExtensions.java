@@ -104,7 +104,12 @@ public class UriExtensions
             if (domain.contains("youtube.com") || domain.contains("youtu.be"))
             {
                 var queryDictionary = splitQuery(uri);
-                videoIDString = queryDictionary.containsKey("v") ? queryDictionary.get("v") : segments[segments.length-1];
+                if (queryDictionary.containsKey("v")) {
+                    videoIDString = queryDictionary.get("v");
+                } else if (segments.length > 0) {
+                    videoIDString = segments[segments.length - 1];
+                }
+                
                 uriString = String.format("https://img.youtube.com/vi/%s/hqdefault.jpg", videoIDString);
             }
 

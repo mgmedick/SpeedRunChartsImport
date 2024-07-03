@@ -38,32 +38,45 @@ public class UriExtensions
             {
                 if (path.startsWith("/videos/"))
                 {
-                    videoIDString = segments[segments.length-1];
+                    if (segments.length > 0) {
+                        videoIDString = segments[segments.length - 1];
+                    } 
                     uriString = String.format("https://player.twitch.tv/?video=%s&parent=localhost&parent=speedruncharts.com&parent=www.speedruncharts.com&autoplay=false&muted=true", videoIDString);
                 }
             }
             else if (domain.contains("youtube.com") || domain.contains("youtu.be"))
             {
                 var queryDictionary = splitQuery(uri);
-                videoIDString = queryDictionary.containsKey("v") ? queryDictionary.get("v") : segments[segments.length-1];
+                if (queryDictionary.containsKey("v")) {
+                    videoIDString = queryDictionary.get("v");
+                } else if (segments.length > 0) {
+                    videoIDString = segments[segments.length - 1];
+                }
+
                 uriString = String.format("https://www.youtube.com/embed/%s?autoplay=0&mute=1", videoIDString);
             }
             else if (domain.contains("vimeo.com"))
             {
                 if (path.startsWith("/video/"))
                 {
-                    videoIDString = segments[segments.length-1];
+                    if (segments.length > 0) {
+                        videoIDString = segments[segments.length - 1];
+                    }
                     uriString = String.format("https://player.vimeo.com/video/%s?autoplay=0&muted=1", videoIDString);
                 }
             }
             else if (domain.contains("streamable.com"))
             {
-                videoIDString = segments[segments.length-1];
+                if (segments.length > 0) {
+                    videoIDString = segments[segments.length - 1];
+                }
                 uriString = String.format("https://streamable.com/o/%s", videoIDString);
             }
             else if (domain.contains("medal.tv"))
             {
-                uriString = String.format("https://medal.tv/clip/%s/%s?autoplay=0&muted=1&loop=0", segments[segments.length-2], segments[segments.length-1]);
+                if (segments.length > 1) {
+                    uriString = String.format("https://medal.tv/clip/%s/%s?autoplay=0&muted=1&loop=0", segments[segments.length-2], segments[segments.length-1]);
+                } 
             }
 
             if (uriString != null && !uriString.isBlank())
@@ -109,7 +122,7 @@ public class UriExtensions
                 } else if (segments.length > 0) {
                     videoIDString = segments[segments.length - 1];
                 }
-                
+
                 uriString = String.format("https://img.youtube.com/vi/%s/hqdefault.jpg", videoIDString);
             }
 

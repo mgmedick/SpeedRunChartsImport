@@ -30,53 +30,56 @@ public class UriExtensions
         {
             var domain = uri.getHost();
             var path = uri.getPath();
-            var segments = path.split("/");
+            var segments = path != null ? path.split("/") : new String[0];
             String videoIDString = null;
             String uriString = null;
 
-            if (domain.contains("twitch.tv"))
+            if (domain != null)
             {
-                if (path.startsWith("/videos/"))
+                if (domain.contains("twitch.tv"))
                 {
-                    if (segments.length > 0) {
+                    if (path != null && path.startsWith("/videos/"))
+                    {
+                        if (segments.length > 0) {
+                            videoIDString = segments[segments.length - 1];
+                        } 
+                        uriString = String.format("https://player.twitch.tv/?video=%s&parent=localhost&parent=speedruncharts.com&parent=www.speedruncharts.com&autoplay=false&muted=true", videoIDString);
+                    }
+                }
+                else if (domain.contains("youtube.com") || domain.contains("youtu.be"))
+                {
+                    var queryDictionary = splitQuery(uri);
+                    if (queryDictionary.containsKey("v")) {
+                        videoIDString = queryDictionary.get("v");
+                    } else if (segments.length > 0) {
                         videoIDString = segments[segments.length - 1];
-                    } 
-                    uriString = String.format("https://player.twitch.tv/?video=%s&parent=localhost&parent=speedruncharts.com&parent=www.speedruncharts.com&autoplay=false&muted=true", videoIDString);
-                }
-            }
-            else if (domain.contains("youtube.com") || domain.contains("youtu.be"))
-            {
-                var queryDictionary = splitQuery(uri);
-                if (queryDictionary.containsKey("v")) {
-                    videoIDString = queryDictionary.get("v");
-                } else if (segments.length > 0) {
-                    videoIDString = segments[segments.length - 1];
-                }
+                    }
 
-                uriString = String.format("https://www.youtube.com/embed/%s?autoplay=0&mute=1", videoIDString);
-            }
-            else if (domain.contains("vimeo.com"))
-            {
-                if (path.startsWith("/video/"))
+                    uriString = String.format("https://www.youtube.com/embed/%s?autoplay=0&mute=1", videoIDString);
+                }
+                else if (domain.contains("vimeo.com"))
+                {
+                    if (path != null && path.startsWith("/video/"))
+                    {
+                        if (segments.length > 0) {
+                            videoIDString = segments[segments.length - 1];
+                        }
+                        uriString = String.format("https://player.vimeo.com/video/%s?autoplay=0&muted=1", videoIDString);
+                    }
+                }
+                else if (domain.contains("streamable.com"))
                 {
                     if (segments.length > 0) {
                         videoIDString = segments[segments.length - 1];
                     }
-                    uriString = String.format("https://player.vimeo.com/video/%s?autoplay=0&muted=1", videoIDString);
+                    uriString = String.format("https://streamable.com/o/%s", videoIDString);
                 }
-            }
-            else if (domain.contains("streamable.com"))
-            {
-                if (segments.length > 0) {
-                    videoIDString = segments[segments.length - 1];
+                else if (domain.contains("medal.tv"))
+                {
+                    if (segments.length > 1) {
+                        uriString = String.format("https://medal.tv/clip/%s/%s?autoplay=0&muted=1&loop=0", segments[segments.length-2], segments[segments.length-1]);
+                    } 
                 }
-                uriString = String.format("https://streamable.com/o/%s", videoIDString);
-            }
-            else if (domain.contains("medal.tv"))
-            {
-                if (segments.length > 1) {
-                    uriString = String.format("https://medal.tv/clip/%s/%s?autoplay=0&muted=1&loop=0", segments[segments.length-2], segments[segments.length-1]);
-                } 
             }
 
             if (uriString != null && !uriString.isBlank())
@@ -110,14 +113,14 @@ public class UriExtensions
         {
             var domain = uri.getHost();
             var path = uri.getPath();
-            var segments = path.split("/");
+            var segments = path != null ? path.split("/") : new String[0];
             String videoIDString = null;
             String uriString = null;
 
-            if (domain.contains("youtube.com") || domain.contains("youtu.be"))
+            if (domain != null && (domain.contains("youtube.com") || domain.contains("youtu.be")))
             {
                 var queryDictionary = splitQuery(uri);
-                if (queryDictionary.containsKey("v")) {
+                if (queryDictionary != null && queryDictionary.containsKey("v")) {
                     videoIDString = queryDictionary.get("v");
                 } else if (segments.length > 0) {
                     videoIDString = segments[segments.length - 1];

@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-import speedrunappimport.common.UriExtensions;
 import speedrunappimport.interfaces.repositories.*;
 import speedrunappimport.interfaces.services.*;
 import speedrunappimport.model.entity.*;
@@ -313,6 +312,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 				_logger.info("Retrying pull runs: {}, total runs: {}, retry: {}", limit, offset, retryCount);
 				data = GetSpeedRunResponses(limit, offset, gameCode, categoryCode, orderBy, retryCount);
 			} else {
+				_logger.info("Retry max reached");
 				throw ex;
 			}
 		}
@@ -511,13 +511,13 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 										try {
 											video.setThumbnailLinkUrl(UriExtensions.ToThumbnailURIString(x.uri()));
 										} catch (IllegalArgumentException ex) {
-											_logger.error(ex.getMessage());
+											_logger.info(ex.getMessage());
 										}
 
 										try {
 											video.setEmbeddedVideoLinkUrl(UriExtensions.ToEmbeddedURIString(x.uri()));
 										} catch (IllegalArgumentException ex) {
-											_logger.error(ex.getMessage());
+											_logger.info(ex.getMessage());
 										}
 
 										return video;

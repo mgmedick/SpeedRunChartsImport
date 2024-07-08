@@ -108,6 +108,7 @@ public class PlatformService extends BaseService implements IPlatformService {
 				_logger.info("Retrying pull platforms: {}, total platforms: {}, retry: {}", super.getMaxPageLimitSM(), offset, retryCount);
 				data = GetPlatformResponses(offset, retryCount);
 			} else {
+				_logger.info("Retry max reached");
 				throw ex;
 			}
 		}

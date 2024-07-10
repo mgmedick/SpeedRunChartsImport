@@ -241,6 +241,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 
 		try (var client = HttpClient.newHttpClient()) {
 			var parameters = new HashMap<String, String>();
+			parameters.put("status", "verified");
 			parameters.put("embed", "players");
 			parameters.put("max", Integer.toString(limit));
 			parameters.put("offset", Integer.toString(offset));

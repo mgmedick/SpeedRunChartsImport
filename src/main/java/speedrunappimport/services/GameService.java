@@ -166,7 +166,11 @@ public class GameService extends BaseService implements IGameService {
 			Thread.sleep(super.getErrorPullDelayMS());
 			retryCount++;
 			if (retryCount <= super.getMaxRetryCount()) {
-				_logger.info("Retrying pull games: {}, total games: {}, retry: {}", limit, offset, retryCount);
+				if (retryCount == super.getMaxRetryCount()) {
+					_logger.info("Pausing application");
+					Thread.sleep(super.getPauseDelayMS());					
+				}				
+				_logger.info("Retrying pull games: {}, total games: {}, retry: {}", limit, offset, retryCount);				
 				data = GetGameResponses(limit, offset, orderBy, retryCount);
 			} else {
 				_logger.info("Retry max reached");

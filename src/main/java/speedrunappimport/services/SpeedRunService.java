@@ -310,6 +310,10 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			Thread.sleep(super.getErrorPullDelayMS());
 			retryCount++;
 			if (retryCount <= super.getMaxRetryCount()) {
+				if (retryCount == super.getMaxRetryCount()) {
+					_logger.info("Pausing application");
+					Thread.sleep(super.getPauseDelayMS());					
+				}
 				_logger.info("Retrying pull runs: {}, total runs: {}, retry: {}", limit, offset, retryCount);
 				data = GetSpeedRunResponses(limit, offset, gameCode, categoryCode, orderBy, retryCount);
 			} else {

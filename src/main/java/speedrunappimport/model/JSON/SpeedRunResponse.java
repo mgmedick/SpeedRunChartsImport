@@ -16,7 +16,7 @@ LocalDate date,
 Instant submitted,
 SpeedRunTimeResponse times,
 SpeedRunSystemResponse system,
-LinkResponse splits,
+// LinkResponse splits,
 HashMap<String, String> values) {
 }
 

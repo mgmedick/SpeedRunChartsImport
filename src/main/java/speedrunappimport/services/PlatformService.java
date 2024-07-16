@@ -104,11 +104,7 @@ public class PlatformService extends BaseService implements IPlatformService {
 		} catch (Exception ex) {
 			Thread.sleep(super.getErrorPullDelayMS());
 			retryCount++;
-			if (retryCount <= super.getMaxRetryCount()) {
-				if (retryCount == super.getMaxRetryCount()) {
-					_logger.info("Pausing application");
-					Thread.sleep(super.getPauseDelayMS());					
-				}				
+			if (retryCount <= super.getMaxRetryCount()) {		
 				_logger.info("Retrying pull platforms: {}, total platforms: {}, retry: {}", super.getMaxPageLimitSM(), offset, retryCount);
 				data = GetPlatformResponses(offset, retryCount);
 			} else {

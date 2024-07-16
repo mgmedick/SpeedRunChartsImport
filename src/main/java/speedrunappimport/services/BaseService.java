@@ -12,9 +12,6 @@ public abstract class BaseService
 	@Value("${settings.errorPullDelayMS}")
 	private int errorPullDelayMS;	
 
-	@Value("${settings.pauseDelayMS}")
-	private int pauseDelayMS;		
-
 	@Value("${settings.maxMemorySizeBytes}")
 	private long maxMemorySizeBytes;		
 
@@ -37,11 +34,7 @@ public abstract class BaseService
 	public int getErrorPullDelayMS() {
 		return errorPullDelayMS;
 	}
-
-	public int getPauseDelayMS() {
-		return pauseDelayMS;
-	}	
-
+	
 	public long getMaxMemorySizeBytes() {
 		return maxMemorySizeBytes;
 	}

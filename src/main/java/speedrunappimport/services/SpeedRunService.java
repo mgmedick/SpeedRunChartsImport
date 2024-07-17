@@ -157,7 +157,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 				_logger.info("GameCode: {}, CategoryCode: {}, pulled runs: {}, order: desc, category total: {}, total runs: {}", game.getCode(), category.getCode(), runs.size(), ((int)results.stream().filter(i -> i.game().equals(game.getCode()) && i.category().equals(category.getCode())).count()), results.size() + prevTotal);
 				Thread.sleep(super.getPullDelayMS());
 			} catch (PaginationException ex) {
-				_logger.error("ProcessSpeedRunsByCategoryDesc", ex);
+				_logger.info(ex.getMessage());
 				break;
 			}
 		}
@@ -507,7 +507,13 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 										var video = new SpeedRunVideo();
 										video.setId(existingRunVW != null ? existingRunVW.getVideos().stream().filter(g ->  g.getVideoLinkUrl().equals(x.uri())).map(g -> g.getId()).findFirst().orElse(0) : 0);
 										video.setSpeedRunId(run.getId());
-										video.setVideoLinkUrl(x.uri());
+
+										try {
+											var uri = URI.create(x.uri());
+											video.setVideoLinkUrl(uri.toString());
+										} catch (IllegalArgumentException ex) {
+											_logger.info(ex.getMessage());
+										}
 
 										try {
 											video.setThumbnailLinkUrl(UriExtensions.ToThumbnailURIString(x.uri()));

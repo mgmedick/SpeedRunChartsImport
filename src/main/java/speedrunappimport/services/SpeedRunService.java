@@ -502,33 +502,23 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 
 			List<SpeedRunVideo> videos = new ArrayList<SpeedRunVideo>();
 			if (i.videos() != null && i.videos().links() != null) {
-				videos = i.videos().links().stream()
-									.map(x -> { 
-										var video = new SpeedRunVideo();
-										video.setId(existingRunVW != null ? existingRunVW.getVideos().stream().filter(g ->  g.getVideoLinkUrl().equals(x.uri())).map(g -> g.getId()).findFirst().orElse(0) : 0);
-										video.setSpeedRunId(run.getId());
-
-										try {
-											var uri = URI.create(x.uri());
-											video.setVideoLinkUrl(uri.toString());
-										} catch (IllegalArgumentException ex) {
-											_logger.info(ex.getMessage());
-										}
-
-										try {
-											video.setThumbnailLinkUrl(UriExtensions.ToThumbnailURIString(x.uri()));
-										} catch (IllegalArgumentException ex) {
-											_logger.info(ex.getMessage());
-										}
-
-										try {
-											video.setEmbeddedVideoLinkUrl(UriExtensions.ToEmbeddedURIString(x.uri()));
-										} catch (IllegalArgumentException ex) {
-											_logger.info(ex.getMessage());
-										}
-
-										return video;
-									}).toList();
+				for (var videoLink : i.videos().links()) {			
+					try {
+						var uri = URI.create(videoLink.uri());						
+						if (uri != null && !uri.toString().isBlank()) {
+							var video = new SpeedRunVideo();
+							video.setId(existingRunVW != null ? existingRunVW.getVideos().stream().filter(g ->  g.getVideoLinkUrl().equals(x.uri())).map(g -> g.getId()).findFirst().orElse(0) : 0);
+							video.setSpeedRunId(run.getId());	
+							video.setVideoLinkUrl(uri.toString());
+							video.setThumbnailLinkUrl(UriExtensions.ToThumbnailURIString(videoLink.uri()));
+							video.setEmbeddedVideoLinkUrl(UriExtensions.ToEmbeddedURIString(videoLink.uri()));
+							
+							videos.add(video);
+						}
+					} catch (IllegalArgumentException ex) {
+						_logger.info(ex.getMessage());
+					}
+				}
 			}
 			run.setVideos(videos);
 

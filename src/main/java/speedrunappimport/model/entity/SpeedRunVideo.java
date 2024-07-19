@@ -40,19 +40,19 @@ public class SpeedRunVideo {
         return videoLinkUrl;
     }
     public void setVideoLinkUrl(String videoLinkUrl) {
-        this.videoLinkUrl = videoLinkUrl;
+        this.videoLinkUrl = videoLinkUrl != null && videoLinkUrl.length() > 500 ? videoLinkUrl.substring(0,500) : videoLinkUrl;
     }
     public String getEmbeddedVideoLinkUrl() {
         return embeddedVideoLinkUrl;
     }
     public void setEmbeddedVideoLinkUrl(String embeddedVideoLinkUrl) {
-        this.embeddedVideoLinkUrl = embeddedVideoLinkUrl;
+        this.embeddedVideoLinkUrl = embeddedVideoLinkUrl != null && embeddedVideoLinkUrl.length() > 500 ? embeddedVideoLinkUrl.substring(0,500) : embeddedVideoLinkUrl;
     }
     public String getThumbnailLinkUrl() {
         return thumbnailLinkUrl;
     }
     public void setThumbnailLinkUrl(String thumbnailLinkUrl) {
-        this.thumbnailLinkUrl = thumbnailLinkUrl;
+        this.thumbnailLinkUrl = thumbnailLinkUrl != null && thumbnailLinkUrl.length() > 500 ? thumbnailLinkUrl.substring(0,500) : thumbnailLinkUrl;
     }
     public String getChannelCode() {
         return channelCode;

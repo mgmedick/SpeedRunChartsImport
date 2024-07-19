@@ -504,14 +504,14 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			if (i.videos() != null && i.videos().links() != null) {
 				for (var videoLink : i.videos().links()) {			
 					try {
-						var uri = URI.create(videoLink.uri());						
-						if (uri != null && !uri.toString().isBlank()) {
+						if (videoLink.uri() != null && !videoLink.uri().isBlank()) {
+							var uri = URI.create(videoLink.uri());
 							var video = new SpeedRunVideo();
 							video.setId(existingRunVW != null ? existingRunVW.getVideos().stream().filter(g ->  g.getVideoLinkUrl().equals(videoLink.uri())).map(g -> g.getId()).findFirst().orElse(0) : 0);
-							video.setSpeedRunId(run.getId());	
+							video.setSpeedRunId(run.getId());								
 							video.setVideoLinkUrl(uri.toString());
-							video.setThumbnailLinkUrl(UriExtensions.ToThumbnailURIString(videoLink.uri()));
-							video.setEmbeddedVideoLinkUrl(UriExtensions.ToEmbeddedURIString(videoLink.uri()));
+							video.setThumbnailLinkUrl(UriExtensions.ToThumbnailURIString(uri.toString()));
+							video.setEmbeddedVideoLinkUrl(UriExtensions.ToEmbeddedURIString(uri.toString()));
 							
 							videos.add(video);
 						}

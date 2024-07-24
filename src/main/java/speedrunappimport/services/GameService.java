@@ -62,22 +62,19 @@ public class GameService extends BaseService implements IGameService {
 				Thread.sleep(super.getPullDelayMS());
 				_logger.info("Pulled games: {}, total games: {}", games.size(), results.size() + prevTotal);
 
-				var memorySize = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-				if (results.size() > 0 && memorySize > super.getMaxMemorySizeBytes()) {
+				if (results.size() > super.getMaxRecordCount()) {
 					if (!isReload) {
 						results.removeIf(i -> (i.created() != null ? i.created() : super.getSqlMinDateTime()).compareTo(lastImportRefDateUtc) <= 0);
 						results = results.reversed();
 					}
 
-					if (results.size() > 0) {
-						_logger.info("Saving to clear memory, results: {}, size: {}", results.size(), memorySize);	
-						prevTotal += results.size();
-						currImportRefDateUtc = results.stream().map(i -> i.created() != null ? i.created() : super.getSqlMinDateTime()).max(Instant::compareTo).get();
-						SaveGameResponses(results, isReload);
-						isSaved = true;
-						results = new ArrayList<GameResponse>();
-						System.gc();
-					}
+					var memorySize = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+					_logger.info("Saving to clear memory, results: {}, size: {}", results.size(), memorySize);	
+					prevTotal += results.size();
+					currImportRefDateUtc = results.stream().map(i -> i.created() != null ? i.created() : super.getSqlMinDateTime()).max(Instant::compareTo).get();
+					SaveGameResponses(results, isReload);
+					isSaved = true;
+					results = new ArrayList<GameResponse>();
 				}
 			}
 			while (games.size() == limit && (isReload || games.stream().map(i -> i.created() != null ? i.created() : super.getSqlMinDateTime()).max(Instant::compareTo).get().compareTo(lastImportRefDateUtc) > 0));

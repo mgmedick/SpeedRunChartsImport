@@ -11,9 +11,9 @@ public abstract class BaseService
 
 	@Value("${settings.errorPullDelayMS}")
 	private int errorPullDelayMS;	
-
-	@Value("${settings.maxMemorySizeBytes}")
-	private long maxMemorySizeBytes;		
+	
+	@Value("${settings.maxRecordCount}")
+	private long maxRecordCount;		
 
 	@Value("${settings.maxPageLimit}")
 	private int maxPageLimit;	
@@ -35,8 +35,8 @@ public abstract class BaseService
 		return errorPullDelayMS;
 	}
 	
-	public long getMaxMemorySizeBytes() {
-		return maxMemorySizeBytes;
+	public long getMaxRecordCount() {
+		return maxRecordCount;
 	}
 
 	public int getMaxPageLimit() {

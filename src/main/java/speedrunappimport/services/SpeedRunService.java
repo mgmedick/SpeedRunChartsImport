@@ -89,14 +89,13 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 				while (runs.size() == limit);
 				//while (1 == 0);
 
-				var memorySize = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-				if (results.size() > 0 && memorySize > super.getMaxMemorySizeBytes()) {
+				if (results.size() > super.getMaxRecordCount()) {
+					var memorySize = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 					_logger.info("Saving to clear memory, results: {}, size: {}", results.size(), memorySize);
 					prevTotal += results.size();
 					SaveSpeedRunResponses(results, true);
 					isSaved = true;
 					results = new ArrayList<SpeedRunResponse>();
-					System.gc();
 				}
 			}
 
@@ -187,20 +186,17 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 				Thread.sleep(super.getPullDelayMS());
 				_logger.info("Pulled runs: {}, total runs: {}", runs.size(), results.size() + prevTotal);
 
-				var memorySize = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-				if (results.size() > 0 && memorySize > super.getMaxMemorySizeBytes()) {
+				if (results.size() > super.getMaxRecordCount()) {
 					results = results.reversed();
 					results.removeIf(i -> (i.status().verifyDate() != null ? i.status().verifyDate() : super.getSqlMinDateTime()).compareTo(lastImportRefDateUtc) <= 0);
-					
-					if (results.size() > 0) {
-						_logger.info("Saving to clear memory, results: {}, size: {}", results.size(), memorySize);
-						prevTotal += results.size();
-						currImportRefDateUtc = results.stream().map(i -> i.status().verifyDate() != null ? i.status().verifyDate() : super.getSqlMinDateTime()).max(Instant::compareTo).get();					
-						SaveSpeedRunResponses(results, false);
-						isSaved = true;
-						results = new ArrayList<SpeedRunResponse>();
-						System.gc();
-					}
+	
+					var memorySize = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();					
+					_logger.info("Saving to clear memory, results: {}, size: {}", results.size(), memorySize);
+					prevTotal += results.size();
+					currImportRefDateUtc = results.stream().map(i -> i.status().verifyDate() != null ? i.status().verifyDate() : super.getSqlMinDateTime()).max(Instant::compareTo).get();					
+					SaveSpeedRunResponses(results, false);
+					isSaved = true;
+					results = new ArrayList<SpeedRunResponse>();						
 				}
 			}
 			while (runs.size() == limit && runs.stream().map(i -> i.status().verifyDate() != null ? i.status().verifyDate() : super.getSqlMinDateTime()).max(Instant::compareTo).get().compareTo(lastImportRefDateUtc) > 0);

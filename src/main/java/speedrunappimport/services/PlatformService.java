@@ -47,10 +47,10 @@ public class PlatformService extends BaseService implements IPlatformService {
 				Thread.sleep(super.getPullDelayMS());
 				_logger.info("Pulled platforms: {}, total platforms: {}", platforms.size(), results.size() + prevTotal);
 
-				var memorySize = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-				if (results.size() > 0 && memorySize > super.getMaxMemorySizeBytes()) {
-					prevTotal += results.size();
+				if (results.size() > super.getMaxRecordCount()) {
+					var memorySize = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 					_logger.info("Saving to clear memory, results: {}, size: {}", results.size(), memorySize);
+					prevTotal += results.size();
 					SavePlatformResponses(results);
 					results = new ArrayList<PlatformResponse>();
 					System.gc();

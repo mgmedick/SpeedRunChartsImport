@@ -53,7 +53,6 @@ public class PlatformService extends BaseService implements IPlatformService {
 					prevTotal += results.size();
 					SavePlatformResponses(results);
 					results = new ArrayList<PlatformResponse>();
-					System.gc();
 				}
 			}
 			while (platforms.size() == super.getMaxPageLimit());
@@ -61,8 +60,6 @@ public class PlatformService extends BaseService implements IPlatformService {
 
 			if (results.size() > 0) {
 				SavePlatformResponses(results);
-				results = new ArrayList<PlatformResponse>();
-				System.gc();
 			}
 
 			_logger.info("Completed ProcessPlatforms");

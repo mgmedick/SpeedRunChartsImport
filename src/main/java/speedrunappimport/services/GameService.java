@@ -89,8 +89,6 @@ public class GameService extends BaseService implements IGameService {
 				currImportRefDateUtc = results.stream().map(i -> i.created() != null ? i.created() : super.getSqlMinDateTime()).max(Instant::compareTo).get();
 				SaveGameResponses(results, isReload);
 				isSaved = true;
-				results = new ArrayList<GameResponse>();
-				System.gc();
 			}
 
 			if (isSaved) {

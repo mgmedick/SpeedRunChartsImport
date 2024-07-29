@@ -38,7 +38,7 @@ public class PlayerRepository extends BaseRepository implements IPlayerRepositor
 			count++;			
 		}
 
-		_logger.info("Completed SaveSpeedRuns");
+		_logger.info("Completed SavePlayers");
 	}
 
 	@Transactional(rollbackFor = { Exception.class })

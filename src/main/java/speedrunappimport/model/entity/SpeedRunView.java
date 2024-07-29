@@ -16,7 +16,8 @@ import jakarta.persistence.Transient;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @Entity
@@ -44,10 +45,12 @@ public class SpeedRunView {
     private ObjectMapper _mapper;
 
     public SpeedRunView() {
-        _mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                .configure(JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS.mappedFeature(), true)
-                .setPropertyNamingStrategy(PropertyNamingStrategies.UPPER_CAMEL_CASE)
-                .registerModule(new JavaTimeModule());
+        _mapper = JsonMapper.builder()
+                            .enable(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES)
+                            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                            .configure(JsonReadFeature.ALLOW_UNESCAPED_CONTROL_CHARS.mappedFeature(), true)
+                            .addModule(new JavaTimeModule())
+                            .build();
     }
 
 

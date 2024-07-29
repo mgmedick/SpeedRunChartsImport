@@ -101,9 +101,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 
 			if (results.size() > 0) {
 				SaveSpeedRunResponses(results, true);
-				isSaved = true;
-				results = new ArrayList<SpeedRunResponse>();
-				System.gc();			
+				isSaved = true;		
 			}
 
 			if (isSaved) {
@@ -209,8 +207,6 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 				currImportRefDateUtc = results.stream().map(i -> i.status().verifyDate() != null ? i.status().verifyDate() : super.getSqlMinDateTime()).max(Instant::compareTo).get();
 				SaveSpeedRunResponses(results, false);
 				isSaved = true;
-				results = new ArrayList<SpeedRunResponse>();
-				System.gc();
 			}
 
 			if (isSaved) {

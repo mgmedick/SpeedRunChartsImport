@@ -28,6 +28,7 @@ public class SpeedRunView {
     private int id;
     private String code;  
     private int gameId;
+    private int categoryTypeId;
     private int categoryId;
     private Integer levelId;
     private Integer platformId;
@@ -72,6 +73,12 @@ public class SpeedRunView {
     public void setGameId(int gameId) {
         this.gameId = gameId;
     }
+    public int getCategoryTypeId() {
+        return categoryTypeId;
+    }
+    public void setCategoryTypeId(int categoryTypeId) {
+        this.categoryTypeId = categoryTypeId;
+    }    
     public int getCategoryId() {
         return categoryId;
     }

@@ -69,7 +69,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			List<SpeedRunResponse> runs = new ArrayList<SpeedRunResponse>();
 			var prevTotal = 0;
 			var limit = super.getMaxPageLimit();
-			var games = _gameRepo.GetGameViewsModifiedAfter(lastImportDateUtc);
+			var games = _gameRepo.GetGameViewsModifiedAfter(lastImportDateUtc);		
 			var isSaved = false;
 
 			for (var game : games) {
@@ -440,7 +440,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			}
 		}
 
-		_logger.info("Found New: {}, Changed: {}, Total: {}", newCount, changedCount, results.size());	
+		_logger.info("Found New: {}, Changed: {}, Total: {}", newCount, changedCount, players.size());	
 		return results;
 	}	
 
@@ -451,13 +451,15 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 		var runEntities = runs.stream().filter(i -> existingCameCodes.contains(i.game())).map(i -> {
 			var run = new SpeedRun();
 
-			var existingGameVW = existingGameVWs.stream().filter(x -> x.getCode().equals(i.game())).findFirst().orElse(null);		
+			var existingGameVW = existingGameVWs.stream().filter(x -> x.getCode().equals(i.game())).findFirst().orElse(null);	
 			var existingRunVW = existingRunVWs.stream().filter(x -> x.getCode().equals(i.id())).findFirst().orElse(null);		
 
 			run.setId(existingRunVW != null ? existingRunVW.getId() : 0);
 			run.setCode(i.id());
 			run.setGameId(existingGameVW.getId());
-			run.setCategoryId(existingGameVW.getCategories().stream().filter(g ->  g.getCode().equals(i.category())).map(g -> g.getId()).findFirst().orElse(0));
+			var category = existingGameVW.getCategories().stream().filter(g ->  g.getCode().equals(i.category())).findFirst().orElse(null);
+			run.setCategoryTypeId(category != null ? category.getCategoryTypeId() : 0);
+			run.setCategoryId(category != null ? category.getId() : 0);
 			run.setLevelId(i.level() != null ? existingGameVW.getLevels().stream().filter(g ->  g.getCode().equals(i.level())).map(g -> g.getId()).findFirst().orElse(0) : null);
 			run.setPlatformId(platforms.stream().filter(g ->  g.getCode().equals(i.system().platform())).map(g -> g.getId()).findFirst().orElse(null));
 			run.setPrimaryTime(Duration.parse(i.times().primary()).toMillis());
@@ -597,7 +599,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			}
 		}
 
-		_logger.info("Found New: {}, Changed: {}, Total: {}", newCount, changedCount, results.size());	
+		_logger.info("Found New: {}, Changed: {}, Total: {}", newCount, changedCount, runs.size());	
 		return results;
 	}		
 }

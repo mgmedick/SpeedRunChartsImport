@@ -421,7 +421,7 @@ public class GameService extends BaseService implements IGameService {
 			}
 		}
 
-		_logger.info("Found New: {}, Changed: {}, Total: {}", newCount, changedCount, results.size());	
+		_logger.info("Found New: {}, Changed: {}, Total: {}", newCount, changedCount, games.size());	
 		return results;
 	}	
 }

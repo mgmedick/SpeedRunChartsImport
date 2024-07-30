@@ -396,20 +396,22 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			playerLink.setSpeedRunsLiveUrl(i.speedrunslive() != null ? i.speedrunslive().uri() : null);
 			player.setPlayerLink(playerLink);
 
-			var playerNameStyle = new PlayerNameStyle();
-			playerNameStyle.setId(existingPlayerVW != null ? existingPlayerVW.getPlayerLinkId() : 0);
-			playerNameStyle.setPlayerId(player.getId());
-			playerNameStyle.setIsGradient(i.nameStyle().style().equals("gradient"));
-			if (i.nameStyle().color() != null) {
-				playerNameStyle.setColorLight(i.nameStyle().color().light());
-				playerNameStyle.setColorDark(i.nameStyle().color().dark());
-			} else {
-				playerNameStyle.setColorLight(i.nameStyle().colorFrom().light());
-				playerNameStyle.setColorToDark(i.nameStyle().colorTo().dark());
-				playerNameStyle.setColorDark(i.nameStyle().colorFrom().dark());
-				playerNameStyle.setColorToDark(i.nameStyle().colorTo().dark());
+			if (i.nameStyle() != null) {
+				var playerNameStyle = new PlayerNameStyle();
+				playerNameStyle.setId(existingPlayerVW != null ? existingPlayerVW.getPlayerLinkId() : 0);
+				playerNameStyle.setPlayerId(player.getId());
+				playerNameStyle.setIsGradient(i.nameStyle().style().equals("gradient"));
+				if (i.nameStyle().color() != null) {
+					playerNameStyle.setColorLight(i.nameStyle().color().light());
+					playerNameStyle.setColorDark(i.nameStyle().color().dark());
+				} else {
+					playerNameStyle.setColorLight(i.nameStyle().colorFrom().light());
+					playerNameStyle.setColorToDark(i.nameStyle().colorTo().dark());
+					playerNameStyle.setColorDark(i.nameStyle().colorFrom().dark());
+					playerNameStyle.setColorToDark(i.nameStyle().colorTo().dark());
+				}
+				player.setPlayerNameStyle(playerNameStyle);
 			}
-			player.setPlayerNameStyle(playerNameStyle);
 
 			return player;
 		})).collect(Collectors.toMap(Player::getCode, Function.identity(), (u1, u2) -> u1))

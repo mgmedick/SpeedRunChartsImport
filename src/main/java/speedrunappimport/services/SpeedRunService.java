@@ -398,7 +398,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 
 			if (i.nameStyle() != null) {
 				var playerNameStyle = new PlayerNameStyle();
-				playerNameStyle.setId(existingPlayerVW != null ? existingPlayerVW.getPlayerLinkId() : 0);
+				playerNameStyle.setId(existingPlayerVW != null ? existingPlayerVW.getPlayerNameStyleId() : 0);
 				playerNameStyle.setPlayerId(player.getId());
 				playerNameStyle.setIsGradient(i.nameStyle().style().equals("gradient"));
 				if (i.nameStyle().color() != null) {
@@ -572,8 +572,9 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 				var existingRunVW = existingRunVWs.stream().filter(g -> g.getCode().equals(run.getCode())).findFirst().orElse(null);
 				
 				if (existingRunVW != null) {
-					isChanged = (!Objects.equals(run.getCategoryId(), existingRunVW.getCategoryId())
-						|| !Objects.equals(run.getGameId(), existingRunVW.getGameId())
+					isChanged = (!Objects.equals(run.getGameId(), existingRunVW.getGameId())
+						|| !Objects.equals(run.getCategoryTypeId(), existingRunVW.getCategoryTypeId())
+						|| !Objects.equals(run.getCategoryId(), existingRunVW.getCategoryId())
 						|| !Objects.equals(run.getLevelId(), existingRunVW.getLevelId())
 						|| !Objects.equals(run.getPlatformId(), existingRunVW.getPlatformId())
 						|| !Objects.equals(run.getPrimaryTime(), existingRunVW.getPrimaryTime())

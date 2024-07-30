@@ -17,13 +17,15 @@ public class PlayerRepository extends BaseRepository implements IPlayerRepositor
 	private IPlayerDB _playerDB;
 	private IPlayerViewDB _playerViewDB;
 	private IPlayerLinkDB _playerLinkDB;
+	private IPlayerNameStyleDB _playerNameStyleDB;
 
 	private Logger _logger;
 
-	public PlayerRepository(IPlayerDB playerDB, IPlayerViewDB playerViewDB, IPlayerLinkDB playerLinkDB, Logger logger) {
+	public PlayerRepository(IPlayerDB playerDB, IPlayerViewDB playerViewDB, IPlayerLinkDB playerLinkDB, IPlayerNameStyleDB playerNameStyleDB, Logger logger) {
 		_playerDB = playerDB;
 		_playerViewDB = playerViewDB;
 		_playerLinkDB = playerLinkDB;
+		_playerNameStyleDB = playerNameStyleDB;
 		_logger = logger;
 	}
 	
@@ -53,6 +55,9 @@ public class PlayerRepository extends BaseRepository implements IPlayerRepositor
 
 		player.getPlayerLink().setPlayerId(player.getId());
 		_playerLinkDB.save(player.getPlayerLink());
+
+		player.getPlayerNameStyle().setPlayerId(player.getId());
+		_playerNameStyleDB.save(player.getPlayerNameStyle());		
 
 		_logger.info("Completed Saving playerId: {}, code: {}", player.getId(), player.getCode());
 	}

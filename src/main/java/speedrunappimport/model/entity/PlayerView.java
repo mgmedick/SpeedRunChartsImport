@@ -22,6 +22,12 @@ public class PlayerView {
     private String hitboxUrl;
     private String youtubeUrl;
     private String twitterUrl;
+    private int playerNameStyleId;
+    private Boolean isGradient;
+    private String colorLight;
+    private String colorDark;
+    private String colorToLight;
+    private String colorToDark;    
 
     public int getId() {
         return id;
@@ -109,5 +115,53 @@ public class PlayerView {
 
     public void setTwitterUrl(String twitterUrl) {
         this.twitterUrl = twitterUrl;
+    }
+
+    public int getPlayerNameStyleId() {
+        return playerNameStyleId;
+    }
+
+    public void setPlayerNameStyleId(int playerNameStyleId) {
+        this.playerNameStyleId = playerNameStyleId;
+    }
+
+    public Boolean getIsGradient() {
+        return isGradient;
+    }
+
+    public void setIsGradient(Boolean isGradient) {
+        this.isGradient = isGradient;
+    }
+
+    public String getColorLight() {
+        return colorLight;
+    }
+
+    public void setColorLight(String colorLight) {
+        this.colorLight = colorLight;
+    }
+
+    public String getColorDark() {
+        return colorDark;
+    }
+
+    public void setColorDark(String colorDark) {
+        this.colorDark = colorDark;
+    }
+
+    public String getColorToLight() {
+        return colorToLight;
+    }
+
+    public void setColorToLight(String colorToLight) {
+        this.colorToLight = colorToLight;
+    }
+
+    public String getColorToDark() {
+        return colorToDark;
+    }
+
+    public void setColorToDark(String colorToDark) {
+        this.colorToDark = colorToDark;
     }
 }

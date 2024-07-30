@@ -24,6 +24,7 @@ public class Player {
 
     @Transient
     private PlayerLink playerLink;
+    private PlayerNameStyle playerNameStyle;
 
     public int getId() {
         return id;
@@ -79,5 +80,13 @@ public class Player {
 
     public void setPlayerLink(PlayerLink playerLink) {
         this.playerLink = playerLink;
+    }
+
+    public PlayerNameStyle getPlayerNameStyle() {
+        return playerNameStyle;
+    }
+
+    public void setPlayerNameStyle(PlayerNameStyle playerNameStyle) {
+        this.playerNameStyle = playerNameStyle;
     }
 }

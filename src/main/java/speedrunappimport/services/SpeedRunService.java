@@ -440,7 +440,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			}
 		}
 
-		_logger.info("Found New: {}, Changed: {}, Total: {}", newCount, changedCount, players.size());	
+		_logger.info("Found New: {}, Changed: {}, Existing: {}, Total: {}", newCount, changedCount, existingPlayerVWs.size(), players.size());	
 		return results;
 	}	
 
@@ -599,7 +599,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			}
 		}
 
-		_logger.info("Found New: {}, Changed: {}, Total: {}", newCount, changedCount, runs.size());	
+		_logger.info("Found New: {}, Changed: {}, Existing: {}, Total: {}", newCount, changedCount, existingRunVWs.size(), runs.size());	
 		return results;
 	}		
 }

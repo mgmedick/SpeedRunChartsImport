@@ -175,7 +175,7 @@ public class PlatformService extends BaseService implements IPlatformService {
 			}
 		}
 
-		_logger.info("Found New: {}, Changed: {}, Total: {}", newCount, changedCount, platforms.size());		
+		_logger.info("Found New: {}, Changed: {}, Existing: {}, Total: {}", newCount, changedCount, existingPlatforms.size(), platforms.size());		
 		return results;
 	}	
 }

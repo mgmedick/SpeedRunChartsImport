@@ -500,16 +500,19 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 								}).toList();
 			run.setPlayers(runPlayers);				
 
-			var variableValues = i.values().entrySet().stream()
-											.map(x -> { 
-												var variableValue = new SpeedRunVariableValue();
-												variableValue.setId(existingRunVW != null ? existingRunVW.getVariableValues().stream().filter(g ->  g.getVariableCode().equals(x.getKey()) && g.getVariableValueCode().equals(x.getValue())).map(g -> g.getId()).findFirst().orElse(0) : 0);
-												variableValue.setSpeedRunId(run.getId());
-												variableValue.setVariableId(existingGameVW.getVariables().stream().filter(g -> g.getCode().equals(x.getKey())).map(g -> g.getId()).findFirst().orElse(0));			
-												variableValue.setVariableValueId(existingGameVW.getVariableValues().stream().filter(g -> g.getCode().equals(x.getValue())).map(g -> g.getId()).findFirst().orElse(0));
-												return variableValue;
-											}).filter(x -> x.getVariableId() != 0 && x.getVariableValueId() != 0).toList();
-			run.setVariableValues(variableValues);
+			if (existingGameVW.getVariableValues() != null) {
+				var variableValues = existingGameVW.getVariableValues().stream()
+							.filter(g -> i.values().entrySet().stream().anyMatch(h -> h.getKey().equals(g.getVariableCode()) && h.getValue().equals(g.getCode())))
+							.map(x -> {
+								var runVariableValue = new SpeedRunVariableValue();
+								runVariableValue.setId(existingRunVW != null ? existingRunVW.getVariableValues().stream().filter(g -> g.getVariableValueId() == x.getId()).map(g -> g.getId()).findFirst().orElse(0) : 0);
+								runVariableValue.setSpeedRunId(run.getId());
+								runVariableValue.setVariableId(x.getVariableId());			
+								runVariableValue.setVariableValueId(x.getId());			
+								return runVariableValue;
+							}).toList();
+				run.setVariableValues(variableValues);
+			}
 
 			List<SpeedRunVideo> videos = new ArrayList<SpeedRunVideo>();
 			if (i.videos() != null && i.videos().links() != null) {
@@ -583,10 +586,10 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 						|| !Objects.equals(run.getSpeedRunLink().getSrcUrl(), existingRunVW.getSrcUrl()));
 					
 					if (!isChanged) {
-						var variableCodes = run.getVariableValues().stream().map(i -> i.getVariableCode()).toList();
-						var existingVariableCodes = existingRunVW.getVariableValues().stream().map(i -> i.getVariableCode()).toList();
-						isChanged = variableCodes.stream().anyMatch(i -> !existingVariableCodes.contains(i))
-									|| existingVariableCodes.stream().anyMatch(i -> !variableCodes.contains(i));
+						var variableIds = run.getVariableValues().stream().map(i -> i.getVariableId()).toList();
+						var existingVariableIds = existingRunVW.getVariableValues().stream().map(i -> i.getVariableId()).toList();
+						isChanged = variableIds.stream().anyMatch(i -> !existingVariableIds.contains(i))
+									|| existingVariableIds.stream().anyMatch(i -> !variableIds.contains(i));
 					}					
 
 					if (!isChanged) {
@@ -595,8 +598,8 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 						for (var variableValue : run.getVariableValues()) {
 							var existingVariable = variableValueIndex < existingVaraibleValues.size() ? existingVaraibleValues.get(variableValueIndex) : null;
 							isChanged = (existingVariable == null 
-								|| !variableValue.getVariableCode().equals(existingVariable.getVariableCode())
-								|| !variableValue.getVariableValueCode().equals(existingVariable.getVariableValueCode()));
+								|| variableValue.getVariableId() != existingVariable.getVariableId()
+								|| variableValue.getVariableValueId() != existingVariable.getVariableValueId());
 
 							if (isChanged) {
 								break;

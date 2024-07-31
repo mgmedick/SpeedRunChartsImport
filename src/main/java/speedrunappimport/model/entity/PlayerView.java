@@ -22,7 +22,7 @@ public class PlayerView {
     private String hitboxUrl;
     private String youtubeUrl;
     private String twitterUrl;
-    private int playerNameStyleId;
+    private Integer playerNameStyleId;
     private Boolean isGradient;
     private String colorLight;
     private String colorDark;

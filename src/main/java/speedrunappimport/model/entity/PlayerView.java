@@ -117,11 +117,11 @@ public class PlayerView {
         this.twitterUrl = twitterUrl;
     }
 
-    public int getPlayerNameStyleId() {
+    public Integer getPlayerNameStyleId() {
         return playerNameStyleId;
     }
 
-    public void setPlayerNameStyleId(int playerNameStyleId) {
+    public void setPlayerNameStyleId(Integer playerNameStyleId) {
         this.playerNameStyleId = playerNameStyleId;
     }
 

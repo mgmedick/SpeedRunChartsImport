@@ -56,8 +56,10 @@ public class PlayerRepository extends BaseRepository implements IPlayerRepositor
 		player.getPlayerLink().setPlayerId(player.getId());
 		_playerLinkDB.save(player.getPlayerLink());
 
-		player.getPlayerNameStyle().setPlayerId(player.getId());
-		_playerNameStyleDB.save(player.getPlayerNameStyle());		
+		if (player.getPlayerNameStyle() != null) {
+			player.getPlayerNameStyle().setPlayerId(player.getId());
+			_playerNameStyleDB.save(player.getPlayerNameStyle());		
+		}
 
 		_logger.info("Completed Saving playerId: {}, code: {}", player.getId(), player.getCode());
 	}

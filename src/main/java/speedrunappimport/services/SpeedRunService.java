@@ -500,8 +500,9 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 								}).toList();
 			run.setPlayers(runPlayers);				
 
+			List<SpeedRunVariableValue> variableValues = new ArrayList<SpeedRunVariableValue>();
 			if (existingGameVW.getVariableValues() != null) {
-				var variableValues = existingGameVW.getVariableValues().stream()
+				variableValues = existingGameVW.getVariableValues().stream()
 							.filter(g -> i.values().entrySet().stream().anyMatch(h -> h.getKey().equals(g.getVariableCode()) && h.getValue().equals(g.getCode())))
 							.map(x -> {
 								var runVariableValue = new SpeedRunVariableValue();
@@ -511,8 +512,8 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 								runVariableValue.setVariableValueId(x.getId());			
 								return runVariableValue;
 							}).toList();
-				run.setVariableValues(variableValues);
 			}
+			run.setVariableValues(variableValues);
 
 			List<SpeedRunVideo> videos = new ArrayList<SpeedRunVideo>();
 			if (i.videos() != null && i.videos().links() != null) {

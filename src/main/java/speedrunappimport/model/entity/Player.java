@@ -24,6 +24,7 @@ public class Player {
 
     @Transient
     private PlayerLink playerLink;
+    @Transient
     private PlayerNameStyle playerNameStyle;
 
     public int getId() {

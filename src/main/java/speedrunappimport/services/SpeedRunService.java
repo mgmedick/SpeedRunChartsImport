@@ -478,6 +478,15 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			run.setCategoryTypeId(category != null ? category.getCategoryTypeId() : 0);
 			run.setCategoryId(category != null ? category.getId() : 0);
 			run.setLevelId(i.level() != null ? existingGameVW.getLevels().stream().filter(g ->  g.getCode().equals(i.level())).map(g -> g.getId()).findFirst().orElse(0) : null);
+			
+			var subCategoryVariableValueIds = existingGameVW.getVariableValues().stream()
+												.filter(g -> i.values().entrySet().stream().anyMatch(h -> h.getKey().equals(g.getVariableCode()) && h.getValue().equals(g.getCode()))
+															&& existingGameVW.getVariables().stream().anyMatch(h -> h.getCode().equals(g.getVariableCode()) && h.isSubCategory()))
+												.map(x -> Integer.toString(x.getId())).toList();		
+			if (subCategoryVariableValueIds.size() > 0) {
+				run.setSubCategoryVariableValueIds(String.join(",", subCategoryVariableValueIds));
+			}
+
 			run.setPlatformId(platforms.stream().filter(g ->  g.getCode().equals(i.system().platform())).map(g -> g.getId()).findFirst().orElse(null));
 			run.setPrimaryTime(Duration.parse(i.times().primary()).toMillis());
 			run.setDateSumbitted(i.submitted());
@@ -580,12 +589,14 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 						|| !Objects.equals(run.getCategoryTypeId(), existingRunVW.getCategoryTypeId())
 						|| !Objects.equals(run.getCategoryId(), existingRunVW.getCategoryId())
 						|| !Objects.equals(run.getLevelId(), existingRunVW.getLevelId())
+						|| !Objects.equals(run.getSubCategoryVariableValueIds(), existingRunVW.getSubCategoryVariableValueIds())
 						|| !Objects.equals(run.getPlatformId(), existingRunVW.getPlatformId())
 						|| !Objects.equals(run.getPrimaryTime(), existingRunVW.getPrimaryTime())
 						|| !Objects.equals(run.getDateSubmitted(), existingRunVW.getDateSubmitted())
 						|| !Objects.equals(run.getVerifyDate(), existingRunVW.getVerifyDate())
 						|| !Objects.equals(run.getSpeedRunLink().getSrcUrl(), existingRunVW.getSrcUrl()));
 					
+					/*	
 					if (!isChanged) {
 						var variableIds = run.getVariableValues().stream().map(i -> i.getVariableId()).toList();
 						var existingVariableIds = existingRunVW.getVariableValues().stream().map(i -> i.getVariableId()).toList();
@@ -609,6 +620,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 							variableValueIndex++;
 						}
 					}
+					*/
 
 					if (isChanged){
 						changedCount++;

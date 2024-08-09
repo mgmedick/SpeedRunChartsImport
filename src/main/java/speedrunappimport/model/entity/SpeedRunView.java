@@ -31,6 +31,7 @@ public class SpeedRunView {
     private int categoryTypeId;
     private int categoryId;
     private Integer levelId;
+    private String subCategoryVariableValueIds;
     private Integer platformId;
     private Integer rank;
     private long primaryTime;
@@ -91,6 +92,12 @@ public class SpeedRunView {
     public void setLevelId(Integer levelId) {
         this.levelId = levelId;
     }
+    public String getSubCategoryVariableValueIds() {
+        return subCategoryVariableValueIds;
+    }
+    public void setSubCategoryVariableValueIds(String subCategoryVariableValueIds) {
+        this.subCategoryVariableValueIds = subCategoryVariableValueIds;
+    }        
     public Integer getPlatformId() {
         return platformId;
     }

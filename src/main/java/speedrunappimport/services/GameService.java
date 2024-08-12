@@ -280,7 +280,7 @@ public class GameService extends BaseService implements IGameService {
 									variableValue.setGameId(game.getId());
 									variableValue.setVariableId(existingGameVW != null ? existingGameVW.getVariables().stream().filter(h ->  h.getCode().equals(x.id())).map(h -> h.getId()).findFirst().orElse(0) : 0);
 									variableValue.setVariableCode(x.id());
-									variableValue.setIsMiscellaneous(g.getValue().flags().miscellaneous());
+									variableValue.setIsMiscellaneous(g.getValue().flags() != null ? g.getValue().flags().miscellaneous() : false);
 									return variableValue;							
 								})).toList();
 			game.setVariableValues(variableValues);

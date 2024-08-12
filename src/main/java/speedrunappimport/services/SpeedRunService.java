@@ -70,6 +70,9 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			var prevTotal = 0;
 			var limit = super.getMaxPageLimit();
 			var games = _gameRepo.GetGameViewsModifiedAfter(lastImportDateUtc);		
+			// var codes = new ArrayList<String>();
+			// codes.add("9d3rr0dl");
+			// var games = _gameRepo.GetGameViewsByCode(codes);			
 			var isSaved = false;
 
 			for (var game : games) {
@@ -330,10 +333,10 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			SavePlayersFromRunResponses(runResponses);
 
 			var playerCodes = runResponses.stream().flatMap(x -> x.players().data().stream().map(i -> { return StringExtensions.KebabToUpperSnakeCase(i.rel()).equals(PlayerType.USER.toString()) ? i.id() : i.name(); })).distinct().toList();	
-			var existingPlayerVWs = _playerRepo.GetPlayerViewsByCode(playerCodes);
+			var existingPlayers = _playerRepo.GetPlayersByCode(playerCodes);
 			var existingRunVWs = _speedRunRepo.GetSpeedRunViewsByCode(runResponses.stream().map(x -> x.id()).toList());
 			var existingGameVWs = _gameRepo.GetGameViewsByCode(runResponses.stream().map(x -> x.game()).distinct().toList());
-			var runs = GetSpeedRunsFromResponses(runResponses, existingRunVWs, existingGameVWs, existingPlayerVWs);
+			var runs = GetSpeedRunsFromResponses(runResponses, existingRunVWs, existingGameVWs, existingPlayers);
 			runs = GetNewOrChangedSpeedRuns(runs, existingRunVWs);
 			_speedRunRepo.SaveSpeedRuns(runs);
 		}
@@ -461,7 +464,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 		return results;
 	}	
 
-	private List<SpeedRun> GetSpeedRunsFromResponses(List<SpeedRunResponse> runs, List<SpeedRunView> existingRunVWs, List<GameView> existingGameVWs, List<PlayerView> existingPlayerVWs) {
+	private List<SpeedRun> GetSpeedRunsFromResponses(List<SpeedRunResponse> runs, List<SpeedRunView> existingRunVWs, List<GameView> existingGameVWs, List<Player> existingPlayers) {
 		var platforms = _platformRepo.GetAllPlatforms();
 		var existingCameCodes = existingGameVWs.stream().map(i -> i.getCode()).toList();
 
@@ -480,8 +483,8 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			run.setLevelId(i.level() != null ? existingGameVW.getLevels().stream().filter(g ->  g.getCode().equals(i.level())).map(g -> g.getId()).findFirst().orElse(0) : null);
 			
 			var subCategoryVariableValueIds = existingGameVW.getVariableValues().stream()
-												.filter(g -> i.values().entrySet().stream().anyMatch(h -> h.getKey().equals(g.getVariableCode()) && h.getValue().equals(g.getCode()))
-															&& existingGameVW.getVariables().stream().anyMatch(h -> h.getCode().equals(g.getVariableCode()) && h.isSubCategory()))
+												.filter(g -> i.values().entrySet().stream().anyMatch(h -> h.getValue().equals(g.getCode()))
+															&& existingGameVW.getVariables().stream().anyMatch(h -> h.getId() == g.getVariableId() && h.isSubCategory()))
 												.map(x -> Integer.toString(x.getId())).toList();		
 			if (subCategoryVariableValueIds.size() > 0) {
 				run.setSubCategoryVariableValueIds(String.join(",", subCategoryVariableValueIds));
@@ -499,7 +502,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			run.setSpeedRunLink(link);
 
 			var playerCodes = i.players().data().stream().map(x -> StringExtensions.KebabToUpperSnakeCase(x.rel()).equals(PlayerType.USER.toString()) ? x.id() : x.name()).toList();
-			var runPlayers = existingPlayerVWs.stream()
+			var runPlayers = existingPlayers.stream()
 								.filter(g -> playerCodes.contains(g.getCode()))
 								.map(x -> { 
 									var runPlayer = new SpeedRunPlayer();
@@ -512,7 +515,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			List<SpeedRunVariableValue> variableValues = new ArrayList<SpeedRunVariableValue>();
 			if (existingGameVW.getVariableValues() != null) {
 				variableValues = existingGameVW.getVariableValues().stream()
-							.filter(g -> i.values().entrySet().stream().anyMatch(h -> h.getKey().equals(g.getVariableCode()) && h.getValue().equals(g.getCode())))
+							.filter(g -> i.values().entrySet().stream().anyMatch(h -> h.getValue().equals(g.getCode())))
 							.map(x -> {
 								var runVariableValue = new SpeedRunVariableValue();
 								runVariableValue.setId(existingRunVW != null ? existingRunVW.getVariableValues().stream().filter(g -> g.getVariableValueId() == x.getId()).map(g -> g.getId()).findFirst().orElse(0) : 0);

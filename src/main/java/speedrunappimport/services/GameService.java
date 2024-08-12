@@ -265,6 +265,7 @@ public class GameService extends BaseService implements IGameService {
 										variable.setCategoryCode(variablesList.get(x).category());
 										variable.setLevelId(existingGameVW != null ? existingGameVW.getLevels().stream().filter(h ->  h.getCode().equals(variablesList.get(x).scope().level())).map(h -> h.getId()).findFirst().orElse(0) : 0);
 										variable.setLevelCode(variablesList.get(x).scope().level());
+										variable.setSubCategory(variablesList.get(x).isSubcategory());
 										variable.setSortOrder(x);
 										return variable;
 									}).toList();			
@@ -279,6 +280,7 @@ public class GameService extends BaseService implements IGameService {
 									variableValue.setGameId(game.getId());
 									variableValue.setVariableId(existingGameVW != null ? existingGameVW.getVariables().stream().filter(h ->  h.getCode().equals(x.id())).map(h -> h.getId()).findFirst().orElse(0) : 0);
 									variableValue.setVariableCode(x.id());
+									variableValue.setIsMiscellaneous(g.getValue().flags().miscellaneous());
 									return variableValue;							
 								})).toList();
 			game.setVariableValues(variableValues);
@@ -386,7 +388,8 @@ public class GameService extends BaseService implements IGameService {
 						var existingVariables = existingGameVW.getVariables();
 						for (var variable : game.getVariables()) {
 							var existingVariable = variableIndex < existingVariables.size() ? existingVariables.get(variableIndex) : null;
-							isChanged = existingVariable == null || !variable.getCode().equals(existingVariable.getCode());
+							isChanged = (existingVariable == null
+										|| !variable.getCode().equals(existingVariable.getCode()));
 
 							if (isChanged) {
 								break;
@@ -400,7 +403,7 @@ public class GameService extends BaseService implements IGameService {
 						var variableValueCodes = game.getVariableValues().stream().map(i -> i.getCode()).toList();
 						var existingVariableValueCodes = existingGameVW.getVariableValues().stream().map(i -> i.getCode()).toList();
 						isChanged = variableValueCodes.stream().anyMatch(i -> !existingVariableValueCodes.contains(i))
-									|| existingVariableValueCodes.stream().anyMatch(i -> !variableValueCodes.contains(i));
+									|| existingVariableValueCodes.stream().anyMatch(i -> !variableValueCodes.contains(i));		
 					}		
 					
 					if (!isChanged) {

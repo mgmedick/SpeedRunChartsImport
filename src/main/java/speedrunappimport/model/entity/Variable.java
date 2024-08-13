@@ -22,7 +22,7 @@ public class Variable {
     private int gameId;
     private int variableScopeTypeId;
     private Integer categoryId;
-    private Integer levelId;
+    private Integer levelId;   
     private boolean isSubCategory;
     private Integer sortOrder;
     private boolean deleted;
@@ -93,7 +93,7 @@ public class Variable {
         return isSubCategory;
     }
 
-    public void setSubCategory(boolean isSubCategory) {
+    public void setIsSubCategory(boolean isSubCategory) {
         this.isSubCategory = isSubCategory;
     }
 
@@ -104,14 +104,6 @@ public class Variable {
     public void setSortOrder(Integer sortOrder) {
         this.sortOrder = sortOrder;
     }    
-
-    public boolean isDeleted() {
-        return deleted;
-    }
-
-    public void setDeleted(boolean deleted) {
-        this.deleted = deleted;
-    }
      
     public String getCategoryCode() {
         return categoryCode;
@@ -128,4 +120,12 @@ public class Variable {
     public void setLevelCode(String levelCode) {
         this.levelCode = levelCode;
     }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }      
 }

@@ -67,7 +67,7 @@ public class VariableValue {
         this.variableId = variableId;
     }
 
-    public boolean isIsMiscellaneous() {
+    public boolean isMiscellaneous() {
         return isMiscellaneous;
     }
 

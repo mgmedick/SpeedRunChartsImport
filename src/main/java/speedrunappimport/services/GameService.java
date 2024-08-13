@@ -235,7 +235,7 @@ public class GameService extends BaseService implements IGameService {
 									category.setCode(x.id());
 									category.setGameId(game.getId());
 									category.setCategoryTypeId(CategoryTypes.valueOf(StringExtensions.KebabToUpperSnakeCase(x.type())).getValue());
-									category.setMiscellaneous(x.miscellaneous());
+									category.setIsMiscellaneous(x.miscellaneous());
 									category.setIsTimerAscending(x.rules() != null && x.rules().contains("long as possible"));
 									return category;
 								}).toList();
@@ -265,7 +265,7 @@ public class GameService extends BaseService implements IGameService {
 										variable.setCategoryCode(variablesList.get(x).category());
 										variable.setLevelId(existingGameVW != null ? existingGameVW.getLevels().stream().filter(h ->  h.getCode().equals(variablesList.get(x).scope().level())).map(h -> h.getId()).findFirst().orElse(0) : 0);
 										variable.setLevelCode(variablesList.get(x).scope().level());
-										variable.setSubCategory(variablesList.get(x).isSubcategory());
+										variable.setIsSubCategory(variablesList.get(x).isSubcategory());
 										variable.setSortOrder(x);
 										return variable;
 									}).toList();			

@@ -45,7 +45,7 @@ public class PlayerRepository extends BaseRepository implements IPlayerRepositor
 
 	@Transactional(rollbackFor = { Exception.class })
 	public void SavePlayer(Player player) {
-		_logger.info("Saving playerId: {}, code: {}", player.getId(), player.getCode());
+		// _logger.info("Saving playerId: {}, code: {}", player.getId(), player.getCode());
 	
 		if (player.getId() != 0) {
 			player.setModifiedDate(Instant.now());
@@ -61,7 +61,7 @@ public class PlayerRepository extends BaseRepository implements IPlayerRepositor
 			_playerNameStyleDB.save(player.getPlayerNameStyle());		
 		}
 
-		_logger.info("Completed Saving playerId: {}, code: {}", player.getId(), player.getCode());
+		// _logger.info("Completed Saving playerId: {}, code: {}", player.getId(), player.getCode());
 	}
 
 	@Transactional(isolation = Isolation.READ_UNCOMMITTED)

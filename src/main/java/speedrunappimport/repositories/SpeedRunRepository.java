@@ -47,12 +47,12 @@ public class SpeedRunRepository extends BaseRepository implements ISpeedRunRepos
 
 	@Transactional(rollbackFor = { Exception.class })
 	public void SaveSpeedRun(SpeedRun run) {
-		_logger.info("Saving runId: {}, code: {}", run.getId(), run.getCode());
+		// _logger.info("Saving runId: {}, code: {}", run.getId(), run.getCode());
 	
 		if (run.getId() != 0) {
 			run.setModifiedDate(Instant.now());	
 	
-			_logger.info("Deleting secondary run entities");
+			// _logger.info("Deleting secondary run entities");
 			_speedRunPlayerDB.deleteAllById(run.getPlayersToRemove());	
 			_speedRunVariableValueDB.deleteAllById(run.getVariableValuesToRemove());	
 			_speedRunVideoDB.deleteAllById(run.getVideosToRemove());	
@@ -72,7 +72,7 @@ public class SpeedRunRepository extends BaseRepository implements ISpeedRunRepos
 		run.getVideos().forEach(i -> i.setSpeedRunId(run.getId()));
 		_speedRunVideoDB.saveAll(run.getVideos());
 
-		_logger.info("Completed Saving runId: {}, code: {}", run.getId(), run.getCode());
+		// _logger.info("Completed Saving runId: {}, code: {}", run.getId(), run.getCode());
 	}
 
 	@Transactional(isolation = Isolation.READ_UNCOMMITTED)

@@ -12,8 +12,8 @@ public class PlayerNameStyle {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    private int playerId;
-    private Boolean isGradient;
+    private int playerId;   
+    private boolean isGradient;
     private String colorLight;
     private String colorDark;
     private String colorToLight;
@@ -31,10 +31,10 @@ public class PlayerNameStyle {
     public void setPlayerId(int playerId) {
         this.playerId = playerId;
     }
-    public Boolean getIsGradient() {
+    public boolean isGradient() {
         return isGradient;
     }
-    public void setIsGradient(Boolean isGradient) {
+    public void setIsGradient(boolean isGradient) {
         this.isGradient = isGradient;
     }
     public String getColorLight() {

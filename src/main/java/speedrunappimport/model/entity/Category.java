@@ -68,11 +68,11 @@ public class Category {
         return isMiscellaneous;
     }
 
-    public void setMiscellaneous(boolean isMiscellaneous) {
+    public void setIsMiscellaneous(boolean isMiscellaneous) {
         this.isMiscellaneous = isMiscellaneous;
     }
 
-    public boolean isIsTimerAscending() {
+    public boolean isTimerAscending() {
         return isTimerAscending;
     }
 

@@ -39,7 +39,7 @@ public class Processor {
 		try {
 			_logger.info("Started Init");
 			
-			this.setReload(_env.getProperty("isReload", boolean.class));
+			this.setIsReload(_env.getProperty("isReload", boolean.class));
 		
 		} catch (Exception ex) {
 			_logger.error("Run", ex);
@@ -76,7 +76,7 @@ public class Processor {
 		return isReload;
 	}
 
-	public void setReload(boolean isReload) {
+	public void setIsReload(boolean isReload) {
 		this.isReload = isReload;
 	}	
 }

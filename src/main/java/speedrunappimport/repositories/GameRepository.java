@@ -53,12 +53,12 @@ public class GameRepository extends BaseRepository implements IGameRepository {
 
 	@Transactional(rollbackFor = { Exception.class })
 	public void SaveGame(Game game) {
-		_logger.info("Saving gameId: {}, code: {}", game.getId(), game.getCode());
+		// _logger.info("Saving gameId: {}, code: {}", game.getId(), game.getCode());
 	
 		if (game.getId() != 0) {
 			game.setModifiedDate(Instant.now());	
 	
-			_logger.info("Deleting secondary game entities");
+			// _logger.info("Deleting secondary game entities");
 			_gameCategoryTypeDB.deleteAllById(game.getGameCategoryTypesToRemove());	
 			_categoryDB.deleteAllById(game.getCategoriesToRemove());
 			_levelDB.deleteAllById(game.getLevelsToRemove());
@@ -97,7 +97,7 @@ public class GameRepository extends BaseRepository implements IGameRepository {
 		game.getGamePlatforms().forEach(i -> i.setGameId(game.getId()));
 		_gamePlatformDB.saveAll(game.getGamePlatforms());
 
-		_logger.info("Completed Saving gameId: {}, code: {}", game.getId(), game.getCode());
+		// _logger.info("Completed Saving gameId: {}, code: {}", game.getId(), game.getCode());
 	}
 
 	@Transactional(isolation = Isolation.READ_UNCOMMITTED)

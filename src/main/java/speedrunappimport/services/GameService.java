@@ -164,7 +164,7 @@ public class GameService extends BaseService implements IGameService {
 				_logger.info("Retrying pull games: {}, total games: {}, retry: {}", limit, offset, retryCount);				
 				data = GetGameResponses(limit, offset, orderBy, retryCount);
 			} else {
-				_logger.info("Retry max reached");
+				_logger.info("Max retry reached");
 				throw ex;
 			}
 		}

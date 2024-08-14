@@ -157,7 +157,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 				_logger.info("GameCode: {}, CategoryCode: {}, pulled runs: {}, order: desc, category total: {}, total runs: {}", game.getCode(), category.getCode(), runs.size(), ((int)results.stream().filter(i -> i.game().equals(game.getCode()) && i.category().equals(category.getCode())).count()), results.size() + prevTotal);
 				Thread.sleep(super.getPullDelayMS());
 			} catch (PaginationException ex) {
-				_logger.info(ex.getMessage());
+				_logger.info("Max pagination reached");
 				break;
 			}
 		}
@@ -308,7 +308,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 				_logger.info("Retrying pull runs: {}, total runs: {}, retry: {}", limit, offset, retryCount);
 				data = GetSpeedRunResponses(limit, offset, gameCode, categoryCode, orderBy, retryCount);
 			} else {
-				_logger.info("Retry max reached");
+				_logger.info("Max retry reached");
 				throw ex;
 			}
 		}

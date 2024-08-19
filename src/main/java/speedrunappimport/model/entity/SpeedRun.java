@@ -33,6 +33,7 @@ public class SpeedRun {
     private long primaryTime;
     private Instant dateSubmitted;
     private Instant verifyDate;
+    private boolean deleted;
     @Transient
     private Instant createdDate;
     private Instant modifiedDate;
@@ -130,6 +131,12 @@ public class SpeedRun {
     public void setVerifyDate(Instant verifyDate) {
         this.verifyDate = verifyDate;
     }
+    public boolean isDeleted() {
+        return deleted;
+    }
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }    
     public Instant getCreatedDate() {
         return createdDate;
     }

@@ -13,6 +13,10 @@ public interface ISpeedRunDB extends IBaseDB<SpeedRun, Integer>
 {
     public List<SpeedRun> findByCodeIn(List<String> codes);
 
+    @Procedure("ImportDeleteObsoleteSpeedRuns")
+    // @Transactional(timeout = 32767) 
+    void deleteObsoleteSpeedRuns(@Param("LastImportDate") Instant lastImportDateUtc); 
+
     @Procedure("ImportUpdateSpeedRunRanks")
     // @Transactional(timeout = 32767) 
     void updateSpeedRunRanks(@Param("LastImportDate") Instant lastImportDateUtc);    

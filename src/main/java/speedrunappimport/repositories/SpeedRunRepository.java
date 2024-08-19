@@ -107,6 +107,14 @@ public class SpeedRunRepository extends BaseRepository implements ISpeedRunRepos
 		return results;
 	}
 
+	public void DeleteObsoleteSpeedRuns(Instant lastImportDateUtc) {
+		_logger.info("Started DeleteObsoleteSpeedRuns: {}", lastImportDateUtc);
+	
+		_speedRunDB.deleteObsoleteSpeedRuns(lastImportDateUtc);
+
+		_logger.info("Completed DeleteObsoleteSpeedRuns");
+	}	
+
 	public void UpdateSpeedRunRanks(Instant lastImportDateUtc) {
 		_logger.info("Started UpdateSpeedRunRanks: {}", lastImportDateUtc);
 	

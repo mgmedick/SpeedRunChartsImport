@@ -337,7 +337,9 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			var existingRunVWs = _speedRunRepo.GetSpeedRunViewsByCode(runResponses.stream().map(x -> x.id()).toList());
 			var existingGameVWs = _gameRepo.GetGameViewsByCode(runResponses.stream().map(x -> x.game()).distinct().toList());
 			var runs = GetSpeedRunsFromResponses(runResponses, existingRunVWs, existingGameVWs, existingPlayers);
-			runs = GetNewOrChangedSpeedRuns(runs, existingRunVWs);
+			// if (!isReload) {
+			// 	runs = GetNewOrChangedSpeedRuns(runs, existingRunVWs);
+			// }
 			_speedRunRepo.SaveSpeedRuns(runs);
 		}
 
@@ -351,7 +353,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 		var lastImportDateUtc = stLastImportDateUtc != null && stLastImportDateUtc.getDte() != null ? stLastImportDateUtc.getDte() : getSqlMinDateTime();	
 		
 		if (isReload) {
-			lastImportDateUtc = null;
+			_speedRunRepo.DeleteObsoleteSpeedRuns(lastImportDateUtc);
 		}					
 		
 		_speedRunRepo.UpdateSpeedRunRanks(lastImportDateUtc);

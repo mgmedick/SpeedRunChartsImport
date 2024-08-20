@@ -195,7 +195,9 @@ public class GameView {
         List<GameCategoryType> results = new ArrayList<GameCategoryType>();
         
         try {
-            results = Arrays.asList(_mapper.readValue(this.gameCategoryTypesJson, GameCategoryType[].class));
+            if (this.gameCategoryTypesJson != null) {
+                results = Arrays.asList(_mapper.readValue(this.gameCategoryTypesJson, GameCategoryType[].class));
+            }
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }

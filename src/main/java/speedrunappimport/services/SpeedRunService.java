@@ -357,7 +357,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 		}					
 		
 		_speedRunRepo.UpdateSpeedRunRanks(lastImportDateUtc);
-		_speedRunRepo.UpdateSpeedRunOrdered(lastImportDateUtc);
+		_speedRunRepo.UpdateSpeedRunSummary(lastImportDateUtc);
 
 		_logger.info("Completed FinalizeSavedSpeedRuns");
 	}

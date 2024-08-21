@@ -11,7 +11,7 @@ public interface ISpeedRunRepository {
     List<SpeedRunView> GetSpeedRunViewsByCode(List<String> codes);
     void DeleteObsoleteSpeedRuns(Instant lastImportDateUtc);
     void UpdateSpeedRunRanks(Instant lastImportDateUtc);
-    void UpdateSpeedRunOrdered(Instant lastImportDateUtc);
+    void UpdateSpeedRunSummary(Instant lastImportDateUtc);
 }
 
 

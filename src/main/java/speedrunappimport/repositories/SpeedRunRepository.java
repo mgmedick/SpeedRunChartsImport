@@ -123,11 +123,11 @@ public class SpeedRunRepository extends BaseRepository implements ISpeedRunRepos
 		_logger.info("Completed UpdateSpeedRunRanks");
 	}	
 
-	public void UpdateSpeedRunOrdered(Instant lastImportDateUtc) {
-		_logger.info("Started UpdateSpeedRunOrdered: {}", lastImportDateUtc);
+	public void UpdateSpeedRunSummary(Instant lastImportDateUtc) {
+		_logger.info("Started UpdateSpeedRunSummary: {}", lastImportDateUtc);
 	
-		_speedRunDB.updateSpeedRunOrdered(lastImportDateUtc);
+		_speedRunDB.updateSpeedRunSummary(lastImportDateUtc);
 
-		_logger.info("Completed UpdateSpeedRunOrdered");
+		_logger.info("Completed UpdateSpeedRunSummary");
 	}		
 }

@@ -162,7 +162,7 @@ public class PlatformService extends BaseService implements IPlatformService {
 			} else {
 				var existingPlatform = existingPlatforms.stream().filter(x -> x.getId() == platform.getId()).findFirst().orElse(null);			
 				if (existingPlatform != null) {
-					isChanged = !platform.getName().equals(platform.getName());
+					isChanged = !platform.getName().equalsIgnoreCase(platform.getName());
 
 					if (isChanged){
 						changedCount++;

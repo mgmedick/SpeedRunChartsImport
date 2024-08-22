@@ -51,10 +51,8 @@ public class Processor {
 			var result = false;
 			_logger.info("Started RunProcesses");
 
-			if (this.isReload()) {
-				result = _platformService.ProcessPlatforms();
-			}
-
+			result = _platformService.ProcessPlatforms();
+			
 			if (result) {
 				result = _gameService.ProcessGames(this.isReload());
 			}

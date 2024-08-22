@@ -108,7 +108,13 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			}
 
 			if (isSaved) {
-				FinalizeSavedSpeedRuns(true);				
+				FinalizeSavedSpeedRuns(true);		
+
+				var stSpeedRunLastImportRefDateUtc = _settingService.GetSetting("SpeedRunLastImportRefDate");	
+				if (stSpeedRunLastImportRefDateUtc == null || stSpeedRunLastImportRefDateUtc.getDte() == null) {
+					var lastImportRefDateUtc = _speedRunRepo.GetMaxVerifyDate();
+					_settingService.UpdateSetting("SpeedRunLastImportRefDate", lastImportRefDateUtc);	
+				}
 			}
 
 			result = true;	

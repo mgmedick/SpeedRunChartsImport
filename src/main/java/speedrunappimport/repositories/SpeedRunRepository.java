@@ -107,6 +107,11 @@ public class SpeedRunRepository extends BaseRepository implements ISpeedRunRepos
 		return results;
 	}
 
+	@Transactional(isolation = Isolation.READ_UNCOMMITTED)
+	public Instant GetMaxVerifyDate() {
+		return _speedRunDB.findMaxVerifyDate();
+	}	
+
 	public void DeleteObsoleteSpeedRuns(Instant lastImportDateUtc) {
 		_logger.info("Started DeleteObsoleteSpeedRuns: {}", lastImportDateUtc);
 	

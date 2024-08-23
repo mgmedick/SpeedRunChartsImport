@@ -13,7 +13,7 @@ import jakarta.persistence.Transient;
 
 import org.hibernate.annotations.*;
 
-@Entity
+@Entity(name = "tbl_speedrun")
 @Table(name = "tbl_speedrun")
 @SQLDelete(sql = "UPDATE tbl_speedrun SET deleted = true WHERE id=?")
 @SQLRestriction("deleted = false")

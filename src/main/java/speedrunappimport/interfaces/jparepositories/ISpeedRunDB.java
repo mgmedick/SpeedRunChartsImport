@@ -14,7 +14,7 @@ public interface ISpeedRunDB extends IBaseDB<SpeedRun, Integer>
 {
     public List<SpeedRun> findByCodeIn(List<String> codes);
     
-    @Query(value = "SELECT MAX(verifyDate) FROM tbl_speedrun")
+    @Query("SELECT MAX(verifyDate) FROM tbl_speedrun")
     Instant findMaxVerifyDate();
 
     @Procedure("ImportDeleteObsoleteSpeedRuns")

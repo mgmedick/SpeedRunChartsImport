@@ -4,6 +4,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.nio.charset.StandardCharsets;
+import java.net.URLDecoder;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -388,11 +390,14 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			var playerCode = playerTypeId == PlayerType.USER.getValue() ? i.id() : i.name();
 			var playerName = playerTypeId == PlayerType.USER.getValue() ? i.names().international() : i.name();
 			var playerSrcUrl = playerTypeId == PlayerType.USER.getValue() ? i.weblink() : i.links().stream().filter(g -> g.rel().equals("self")).map(g -> g.uri()).findFirst().orElse(null);
+			var playerSrcPath = URI.create(playerSrcUrl).getPath();
+			var playerAbbr = URLDecoder.decode(playerSrcPath.substring(playerSrcPath.lastIndexOf('/') + 1), StandardCharsets.UTF_8);
 			var existingPlayerVW = existingPlayerVWs.stream().filter(g -> g.getCode().equals(playerCode)).findFirst().orElse(null);
 
 			player.setId(existingPlayerVW != null ? existingPlayerVW.getId() : 0);
 			player.setName(playerName);			
 			player.setCode(playerCode);
+			player.setAbbr(playerAbbr);
 			player.setPlayerTypeId(playerTypeId);	
 
 			var playerLink = new PlayerLink();
@@ -450,6 +455,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 				
 				if (existingPlayerVW != null) {
 					isChanged = (!player.getName().equalsIgnoreCase(existingPlayerVW.getName())
+						|| !Objects.equals(player.getAbbr(), existingPlayerVW.getAbbr())
 						|| !Objects.equals(player.getPlayerLink().getProfileImageUrl(), existingPlayerVW.getProfileImageUrl())
 						|| !Objects.equals(player.getPlayerLink().getSrcUrl(), existingPlayerVW.getSrcUrl())
 						|| !Objects.equals(player.getPlayerLink().getHitboxUrl(), existingPlayerVW.getHitboxUrl())

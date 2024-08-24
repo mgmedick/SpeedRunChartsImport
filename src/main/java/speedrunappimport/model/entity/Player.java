@@ -17,6 +17,7 @@ public class Player {
     private int id;
     private String name;
     private String code;
+    private String abbr;
     private int playerTypeId;
     @Transient
     private Instant createdDate;
@@ -51,6 +52,14 @@ public class Player {
         this.code = code;
     }
     
+    public String getAbbr() {
+        return abbr;
+    }
+
+    public void setAbbr(String abbr) {
+        this.abbr = abbr;
+    }   
+
     public int getPlayerTypeId() {
         return playerTypeId;
     }

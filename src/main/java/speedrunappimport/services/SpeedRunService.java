@@ -73,7 +73,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			var limit = super.getMaxPageLimit();
 			var games = _gameRepo.GetGameViewsModifiedAfter(lastImportDateUtc);		
 			// var codes = new ArrayList<String>();
-			// codes.add("9d3rr0dl");
+			// codes.add("ldewmwjd");
 			// var games = _gameRepo.GetGameViewsByCode(codes);			
 			var isSaved = false;
 
@@ -496,9 +496,9 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			run.setCategoryId(category != null ? category.getId() : 0);
 			run.setLevelId(i.level() != null ? existingGameVW.getLevels().stream().filter(g ->  g.getCode().equals(i.level())).map(g -> g.getId()).findFirst().orElse(0) : null);
 			
+			var subCategoryVariableCodes = existingGameVW.getVariables().stream().filter(g -> g.isSubCategory()).map(x -> x.getCode()).toList();
 			var subCategoryVariableValueIds = existingGameVW.getVariableValues().stream()
-												.filter(g -> i.values().entrySet().stream().anyMatch(h -> h.getValue().equals(g.getCode()))
-															&& existingGameVW.getVariables().stream().anyMatch(h -> h.getId() == g.getVariableId() && h.isSubCategory()))
+												.filter(g -> i.values().entrySet().stream().anyMatch(h -> h.getValue().equals(g.getCode()) && subCategoryVariableCodes.contains(h.getKey())))
 												.map(x -> Integer.toString(x.getId())).toList();		
 			if (subCategoryVariableValueIds.size() > 0) {
 				run.setSubCategoryVariableValueIds(String.join(",", subCategoryVariableValueIds));

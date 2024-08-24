@@ -417,7 +417,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 					playerNameStyle.setColorDark(i.nameStyle().color().dark());
 				} else {
 					playerNameStyle.setColorLight(i.nameStyle().colorFrom().light());
-					playerNameStyle.setColorToDark(i.nameStyle().colorTo().dark());
+					playerNameStyle.setColorToLight(i.nameStyle().colorTo().light());
 					playerNameStyle.setColorDark(i.nameStyle().colorFrom().dark());
 					playerNameStyle.setColorToDark(i.nameStyle().colorTo().dark());
 				}

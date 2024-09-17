@@ -72,10 +72,10 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			List<SpeedRunResponse> runs = new ArrayList<SpeedRunResponse>();
 			var prevTotal = 0;
 			var limit = super.getMaxPageLimit();
-			var games = _gameRepo.GetGameViewsModifiedAfter(lastImportDateUtc);		
-			// var codes = new ArrayList<String>();
-			// codes.add("ldewmwjd");
-			// var games = _gameRepo.GetGameViewsByCode(codes);			
+			// var games = _gameRepo.GetGameViewsModifiedAfter(lastImportDateUtc);		
+			var codes = new ArrayList<String>();
+			codes.add("ldewmwjd");
+			var games = _gameRepo.GetGameViewsByCode(codes);			
 			var isSaved = false;
 
 			for (var game : games) {
@@ -406,7 +406,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			var playerLink = new PlayerLink();
 			playerLink.setId(existingPlayerVW != null ? existingPlayerVW.getPlayerLinkId() : 0);
 			playerLink.setPlayerId(player.getId());
-			playerLink.setProfileImageUrl(i.links() != null ? i.links().stream().filter(g -> g.rel().equals("image")).map(g -> g.uri()).findFirst().orElse(null) : null);
+			playerLink.setProfileImageUrl(i.assets() != null && i.assets().image() != null ? i.assets().image().uri() : null);
 			playerLink.setSrcUrl(playerSrcUrl);
 			playerLink.setTwitchUrl(i.twich() != null ? i.twich().uri() : null);
 			playerLink.setHitboxUrl(i.hitbox() != null ? i.hitbox().uri() : null);

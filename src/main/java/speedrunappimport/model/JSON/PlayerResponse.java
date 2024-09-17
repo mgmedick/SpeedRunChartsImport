@@ -19,6 +19,7 @@ LinkResponse hitbox,
 LinkResponse youtube,
 LinkResponse twitter,
 LinkResponse speedrunslive,
+PlayerAssetResponse assets,
 List<LinkResponse> links) {
 }
 

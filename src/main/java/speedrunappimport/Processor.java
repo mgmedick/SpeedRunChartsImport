@@ -1,9 +1,15 @@
 package speedrunappimport;
 
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+
 import org.slf4j.Logger;
 import speedrunappimport.interfaces.services.*;
 
@@ -40,6 +46,21 @@ public class Processor {
 			_logger.info("Started Init");
 			
 			this.setIsReload(_env.getProperty("isReload", boolean.class));
+
+			var stReloadTime = _settingService.GetSetting("ReloadTime");
+
+			if (stReloadTime != null && stReloadTime.getStr() != null) {
+				var reloadTime = LocalTime.parse(stReloadTime.getStr(), DateTimeFormatter.ofPattern("HH:mm"));
+				var currDateLocal = LocalDateTime.now();
+				var startDateLocal = LocalDateTime.of(currDateLocal.toLocalDate(), reloadTime);
+				var stLastImportDateUtc = _settingService.GetSetting("LastImportDate");
+				var lastImportDateUtc = stLastImportDateUtc != null && stLastImportDateUtc.getDte() != null ? stLastImportDateUtc.getDte() : getSqlMinDateTime();
+				var lastImportDateLocal = lastImportDateUtc.atZone(ZoneId.systemDefault()).toLocalDateTime();
+
+				if (startDateLocal.compareTo(currDateLocal) <= 0 && startDateLocal.compareTo(lastImportDateLocal) > 0) {
+					this.setIsReload(true);
+				}
+			}
 		
 		} catch (Exception ex) {
 			_logger.error("Run", ex);
@@ -76,5 +97,12 @@ public class Processor {
 
 	public void setIsReload(boolean isReload) {
 		this.isReload = isReload;
-	}	
+	}
+	
+	@Value("${settings.sqlMinDateTime}")
+	private Instant sqlMinDateTime;	
+
+	public Instant getSqlMinDateTime() {
+		return sqlMinDateTime;
+	}
 }

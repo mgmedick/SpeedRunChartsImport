@@ -457,7 +457,7 @@ public class GameService extends BaseService implements IGameService {
 				var dataString = response.body();
 				var data = new JSONObject(dataString);
 				if (data != null) {
-					result = data.getBoolean("sucesss");
+					result = data.getBoolean("success");
 				}
 			}
 

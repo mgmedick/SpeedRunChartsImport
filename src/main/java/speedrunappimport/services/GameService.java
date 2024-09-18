@@ -4,6 +4,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.net.http.HttpRequest.BodyPublishers;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,8 +14,10 @@ import java.util.HashMap;
 import java.util.stream.Collectors;
 import java.util.function.Function;
 import java.util.stream.IntStream;
+import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
+import org.json.JSONObject;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -426,5 +429,44 @@ public class GameService extends BaseService implements IGameService {
 
 		_logger.info("Found New: {}, Changed: {}, Existing: {}, Total: {}", newCount, changedCount, existingGamesVWs.size(), games.size());	
 		return results;
-	}	
+	}
+	
+	public CompletableFuture<Boolean> RefreshCache() {
+		boolean result = false;
+
+		try {
+			_logger.info("Started RefreshCache");
+
+			var hashKey = getHashKey();
+			var stLastImportDateUtc = _settingService.GetSetting("LastImportDate");
+			var lastImportDateUtc = stLastImportDateUtc != null && stLastImportDateUtc.getDte() != null ? stLastImportDateUtc.getDte() : getSqlMinDateTime();
+			var token = StringExtensions.GetHMACSHA256Hash(lastImportDateUtc.toString(), hashKey);
+
+			var client = HttpClient.newHttpClient();
+			var parameters = new HashMap<String, String>();
+			parameters.put("token", token);
+
+			var request = HttpRequest.newBuilder()
+					.uri(URI.create("https://speedruncharts.com/Home/RefreshCache"))
+					.header("Accept", "application/json")
+					.POST(BodyPublishers.ofString(StringExtensions.GetFormUrlEncodedString(parameters)))
+					.build();
+
+			var response = client.send(request, BodyHandlers.ofString());
+			if (response.statusCode() == 200) {
+				var dataString = response.body();
+				var data = new JSONObject(dataString);
+				if (data != null) {
+					result = data.getBoolean("sucesss");
+				}
+			}
+
+			_logger.info("Completed RefreshCache");
+		} catch (Exception ex) {
+			result = false;
+			_logger.error("RefreshCache", ex);
+		}
+
+		return CompletableFuture.completedFuture(result);	
+	}
 }

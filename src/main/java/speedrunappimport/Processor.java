@@ -81,7 +81,11 @@ public class Processor {
 			if (result) {
 				result = _speedRunService.ProcessSpeedRuns(this.isReload());
 			}		
-			
+
+			if (result && isReload()) {
+				result = (_gameService.RefreshCache()).join();
+			}
+
 			_settingService.UpdateSetting("LastImportDate", Instant.now());
 			_logger.info("Completed RunProcesses");
 		} catch (Exception ex) {

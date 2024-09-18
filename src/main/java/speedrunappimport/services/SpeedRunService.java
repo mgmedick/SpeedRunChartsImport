@@ -394,7 +394,13 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			var playerSrcPath = URI.create(playerSrcUrl).getPath();
 			var path = Paths.get(playerSrcPath);
 			var lastSegment = path.getName(path.getNameCount() - 1).toString();			
-			var playerAbbr = URLDecoder.decode(lastSegment, StandardCharsets.UTF_8);
+			var playerAbbr = lastSegment;
+			try {
+				playerAbbr = URLDecoder.decode(lastSegment, StandardCharsets.UTF_8);
+			} catch (IllegalArgumentException ex) {
+				_logger.info(ex.getMessage());
+			}
+
 			var existingPlayerVW = existingPlayerVWs.stream().filter(g -> g.getCode().equals(playerCode)).findFirst().orElse(null);
 
 			player.setId(existingPlayerVW != null ? existingPlayerVW.getId() : 0);

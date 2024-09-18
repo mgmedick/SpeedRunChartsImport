@@ -27,6 +27,9 @@ public abstract class BaseService
 	@Value("${settings.sqlMinDateTime}")
 	private Instant sqlMinDateTime;
 
+	@Value("${settings.hashKey}")
+	private String hashKey;	
+
 	public int getPullDelayMS() {
 		return pullDelayMS;
 	}
@@ -54,8 +57,10 @@ public abstract class BaseService
 	public Instant getSqlMinDateTime() {
 		return sqlMinDateTime;
 	}
-
 	
+	public String getHashKey() {
+		return hashKey;
+	}
 }
 
 

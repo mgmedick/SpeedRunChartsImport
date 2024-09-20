@@ -30,6 +30,15 @@ public abstract class BaseService
 	@Value("${settings.hashKey}")
 	private String hashKey;	
 
+	@Value("${settings.youTubeAPIDailyRequestLimit}")
+	private int youTubeAPIDailyRequestLimit;	
+
+	@Value("${settings.youTubeAPIMaxBatchCount}")
+	private int youTubeAPIMaxBatchCount;	
+
+	@Value("${settings.youTubeAPIKey}")
+	private String youTubeAPIKey;		
+
 	public int getPullDelayMS() {
 		return pullDelayMS;
 	}
@@ -61,6 +70,18 @@ public abstract class BaseService
 	public String getHashKey() {
 		return hashKey;
 	}
+
+	public int getYouTubeAPIDailyRequestLimit() {
+		return youTubeAPIDailyRequestLimit;
+	}	
+
+	public int getYouTubeAPIMaxBatchCount() {
+		return youTubeAPIMaxBatchCount;
+	}		
+
+	public String getYouTubeAPIKey() {
+		return youTubeAPIKey;
+	}	
 }
 
 

@@ -5,6 +5,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+
+import java.time.Instant;
 
 import org.hibernate.annotations.*;
 
@@ -23,6 +26,9 @@ public class SpeedRunVideo {
     private String channelCode;
     private Long viewCount;
     private boolean deleted;
+
+    @Transient
+    private String videoId;
 
     public int getId() {
         return id;
@@ -71,5 +77,11 @@ public class SpeedRunVideo {
     }
     public void setDeleted(boolean deleted) {
         this.deleted = deleted;
-    }   
+    }
+    public String getVideoId() {
+        return videoId;
+    }
+    public void setVideoId(String videoId) {
+        this.videoId = videoId;
+    }
 }

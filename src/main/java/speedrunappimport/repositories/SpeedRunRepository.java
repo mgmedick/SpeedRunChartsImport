@@ -19,15 +19,17 @@ public class SpeedRunRepository extends BaseRepository implements ISpeedRunRepos
 	private ISpeedRunPlayerDB _speedRunPlayerDB;
 	private ISpeedRunVariableValueDB _speedRunVariableValueDB;
 	private ISpeedRunVideoDB _speedRunVideoDB;
+	private ISpeedRunSummaryViewDB _speedRunSummaryViewDB;
 	private Logger _logger;
 
-	public SpeedRunRepository(ISpeedRunDB speedRunDB, ISpeedRunViewDB speedRunViewDB, ISpeedRunLinkDB speedRunLinkDB, ISpeedRunPlayerDB speedRunPlayerDB, ISpeedRunVariableValueDB speedRunVariableValueDB, ISpeedRunVideoDB speedRunVideoDB, Logger logger) {
+	public SpeedRunRepository(ISpeedRunDB speedRunDB, ISpeedRunViewDB speedRunViewDB, ISpeedRunLinkDB speedRunLinkDB, ISpeedRunPlayerDB speedRunPlayerDB, ISpeedRunVariableValueDB speedRunVariableValueDB, ISpeedRunVideoDB speedRunVideoDB, ISpeedRunSummaryViewDB speedRunSummaryViewDB, Logger logger) {
 		_speedRunDB = speedRunDB;
 		_speedRunViewDB = speedRunViewDB;
 		_speedRunLinkDB = speedRunLinkDB;
 		_speedRunPlayerDB = speedRunPlayerDB;	
 		_speedRunVariableValueDB = speedRunVariableValueDB;
 		_speedRunVideoDB = speedRunVideoDB;
+		_speedRunSummaryViewDB = speedRunSummaryViewDB;
 		_logger = logger;
 	}
 
@@ -111,6 +113,20 @@ public class SpeedRunRepository extends BaseRepository implements ISpeedRunRepos
 	public Instant GetMaxVerifyDate() {
 		return _speedRunDB.findMaxVerifyDate();
 	}	
+
+	@Transactional(isolation = Isolation.READ_UNCOMMITTED)
+	public List<SpeedRunSummaryView> GetSpeedRunSummaryViews() {
+		var results = _speedRunSummaryViewDB.findAll();
+			
+		return results;
+	}
+
+	@Transactional(isolation = Isolation.READ_UNCOMMITTED)
+	public List<SpeedRunSummaryView> GetSpeedRunSummaryViewsVerifyAfter(Instant date) {
+		var results = _speedRunSummaryViewDB.findAllWithVerifyDateAfter(date);
+			
+		return results;
+	}		
 
 	public void DeleteObsoleteSpeedRuns(Instant lastImportDateUtc) {
 		_logger.info("Started DeleteObsoleteSpeedRuns: {}", lastImportDateUtc);

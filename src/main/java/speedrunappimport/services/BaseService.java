@@ -39,6 +39,15 @@ public abstract class BaseService
 	@Value("${settings.youTubeAPIKey}")
 	private String youTubeAPIKey;		
 
+	@Value("${settings.twitchClientId}")
+	private String twitchClientId;		
+	
+	@Value("${settings.twitchClientKey}")
+	private String twitchClientKey;			
+
+	@Value("${settings.twitchAPIMaxBatchCount}")
+	private int twitchAPIMaxBatchCount;		
+
 	public int getPullDelayMS() {
 		return pullDelayMS;
 	}
@@ -82,6 +91,18 @@ public abstract class BaseService
 	public String getYouTubeAPIKey() {
 		return youTubeAPIKey;
 	}	
+
+	public String getTwitchClientId() {
+		return twitchClientId;
+	}		
+
+	public String getTwitchClientKey() {
+		return twitchClientKey;
+	}
+	
+	public int getTwitchAPIMaxBatchCount() {
+		return twitchAPIMaxBatchCount;
+	}		
 }
 
 

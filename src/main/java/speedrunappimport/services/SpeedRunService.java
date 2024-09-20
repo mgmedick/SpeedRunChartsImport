@@ -3,6 +3,7 @@ package speedrunappimport.services;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
 import java.net.URLDecoder;
@@ -12,12 +13,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Arrays;
+import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 import java.util.function.Function;
 import java.time.Duration;
 import java.nio.file.Paths;
 
+import org.hibernate.dialect.JsonHelper;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 
@@ -690,6 +693,13 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 				results.addAll(ytvideos);
 			}
 
+			var stTwitchApiEnabled = _settingService.GetSetting("TwitchAPIEnabled");
+			if (stTwitchApiEnabled != null && stTwitchApiEnabled.getNum().equals(1)) {
+				var twvideos = GetTwitchVideoDetails(videos);
+				twvideos = GetNewOrChangedSpeedRunVideos(twvideos, videos);
+				results.addAll(twvideos);
+			}			
+
 			if (results.size() > 0) {
 				//_speedRunRepository.
 			}
@@ -771,11 +781,148 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 									.setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE)
 									.registerModule(new JavaTimeModule());
 				var videoResponses = Arrays.asList(mapper.readerFor(YoutubeVideoResponse[].class)
-						.readValue(mapper.readTree(response.body()).get("data"), YoutubeVideoResponse[].class));
+						.readValue(mapper.readTree(response.body()).get("items"), YoutubeVideoResponse[].class));
 				results.addAll(videoResponses);				
 			}					
 		} catch (Exception ex) {
 			_logger.error("GetYoutubeVideoResponses", ex);
+		}
+		
+		return results;
+	}
+
+	private List<SpeedRunVideo> GetTwitchVideoDetails(List<SpeedRunVideo> videos) {
+		List<SpeedRunVideo> results = new ArrayList<SpeedRunVideo>();
+		var twvideos = videos.stream()
+								.filter(i -> i.getVideoLinkUrl().contains("twitch.tv"))
+								.toList();
+
+		for (var twvideo : twvideos) {
+			var pathString = URI.create(twvideo.getVideoLinkUrl()).getPath();
+			var path = Paths.get(pathString);
+			var lastSegment = path.getName(path.getNameCount() - 1).toString();	
+			twvideo.setVideoId(lastSegment);	
+		}
+
+		var twitchToken = GetTwitchToken();
+		var responses = new ArrayList<TwitchVideoResponse>();
+		var batchCount = 0;
+		while (batchCount < twvideos.size()) {
+
+			var videoIDsBatch = twvideos.stream().skip(batchCount).limit(super.getTwitchAPIMaxBatchCount()).map(i -> i.getVideoId()).toList();			
+			responses.addAll(GetTwitchVideoResponses(videoIDsBatch, twitchToken));
+		}
+
+		for (var twvideo : twvideos) {
+			var videoResponse = responses.stream().filter(g ->  g.id().equals(twvideo.getVideoId())).findFirst().orElse(null);
+			
+			if (videoResponse != null) {
+				twvideo.setViewCount(videoResponse.viewCount());
+				twvideo.setChannelCode(videoResponse.userId());
+
+				var thumbnailUrl = videoResponse.thumbnailUrl();
+				if (thumbnailUrl != null) {
+					thumbnailUrl = thumbnailUrl.replace("%{width}","640").replace("%{height}","480");
+					twvideo.setThumbnailLinkUrl(thumbnailUrl);
+				}
+			}
+		}		
+
+		return results;
+	}
+
+	private String GetTwitchToken() {
+		var stTwitchApiEnabled = _settingService.GetSetting("TwitchToken");
+		var token = stTwitchApiEnabled != null && stTwitchApiEnabled.getStr() != null ? stTwitchApiEnabled.getStr() : null;
+		
+		if (token == null || !ValidateTwitchToken(token)) {
+			token = GenerateTwitchToken();
+			_settingService.UpdateSetting("TwitchToken", token);
+		}
+
+		return token;
+	}
+
+	private boolean ValidateTwitchToken(String token) {
+		var result = false;
+
+		try (var client = HttpClient.newHttpClient()) {
+			var request = HttpRequest.newBuilder()
+					.uri(URI.create("https://id.twitch.tv/oauth2/validate"))
+					.header("Authorization", "Bearer " + token)
+					.build();
+
+			var response = client.send(request, BodyHandlers.ofString());
+
+			if (response.statusCode() == 200) {
+				result = true;		
+			}					
+		} catch (Exception ex) {
+			_logger.error("ValidateTwitchToken", ex);
+		}
+
+		return result;
+	}
+
+	private String GenerateTwitchToken() {
+		String result = null;
+
+		try (var client = HttpClient.newHttpClient()) {
+			var parameters = new HashMap<String, String>();
+			parameters.put("client_id", super.getTwitchClientId());
+			parameters.put("client_secret", super.getTwitchClientKey());
+			parameters.put("grant_type", "client_credentials");
+
+			var paramString = String.join("&", parameters.entrySet().stream().map(i -> i.getKey() + "=" + i.getValue()).toList());
+
+			var request = HttpRequest.newBuilder()
+					.uri(URI.create("https://id.twitch.tv/oauth2/token?" + paramString))
+					.header("Accept", "application/json")
+					.build();
+
+			var response = client.send(request, BodyHandlers.ofString());
+
+			if (response.statusCode() == 200) {
+				var dataString = response.body();
+				var data = new JSONObject(dataString);
+				if (data != null) {
+					result = data.getString("access_token");
+				}			
+			}					
+		} catch (Exception ex) {
+			_logger.error("GenerateTwitchToken", ex);
+		}
+
+		return result;
+	}	
+
+	private List<TwitchVideoResponse> GetTwitchVideoResponses(List<String> videoIDs, String twitchToken) {
+		List<TwitchVideoResponse> results = new ArrayList<TwitchVideoResponse>();
+
+		try (var client = HttpClient.newHttpClient()) {
+			var parameters = new HashMap<String, String>();
+			parameters.put("id", String.join(",", videoIDs));
+			parameters.put("Client-Id", super.getTwitchClientId());
+			parameters.put("Authorization", "Bearer " + twitchToken);
+
+			var paramString = String.join("&", parameters.entrySet().stream().map(i -> i.getKey() + "=" + i.getValue()).toList());
+
+			var request = HttpRequest.newBuilder()
+					.uri(URI.create("https://api.twitch.tv/helix/videos?" + paramString))
+					.build();
+
+			var response = client.send(request, BodyHandlers.ofString());
+
+			if (response.statusCode() == 200) {
+				var mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+									.setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE)
+									.registerModule(new JavaTimeModule());
+				var videoResponses = Arrays.asList(mapper.readerFor(TwitchVideoResponse[].class)
+						.readValue(mapper.readTree(response.body()).get("data"), TwitchVideoResponse[].class));
+				results.addAll(videoResponses);				
+			}					
+		} catch (Exception ex) {
+			_logger.error("GetTwitchVideoResponses", ex);
 		}
 		
 		return results;
@@ -812,199 +959,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			}
 		}
 
-		_logger.info("Found New: {}, Changed: {}, Existing: {}, Total: {}", newCount, changedCount, existingRunVWs.size(), runs.size());	
+		_logger.info("Found New: {}, Changed: {}, Existing: {}, Total: {}", newCount, changedCount, existingVideos.size(), videos.size());	
 		return results;
-	}	
-
-	/*
-		public bool UpdateSpeedRunVideoDetails(bool isPostBulkImport, DateTime importLastRunDateUtc)
-        {
-            bool result = true;
-
-            try
-            {
-                _logger.Information("Started UpdateSpeedRunVideoDetails {@IsPostBulkImport}, {@ImportLastRunDateUtc}", isPostBulkImport, importLastRunDateUtc);
-                var maxVideoCount = YouTubeAPIDailyRequestLimit * YouTubeAPIMaxBatchCount;
-
-                var refDate = importLastRunDateUtc.AddDays(-14);
-                var videoViews = _speedRunRepo.GetSpeedRunVideoViews(i => i.VideoLinkUrl != null && (isPostBulkImport || i.VerifyDate >= refDate) && (i.VideoLinkUrl.Contains("youtube.com") || i.VideoLinkUrl.Contains("youtu.be"))).OrderByDescending(i => i.SpeedRunVideoID).Take(maxVideoCount).ToList();
-
-                if (!isPostBulkImport)
-                {
-                    var twitchVideoViews = _speedRunRepo.GetSpeedRunVideoViews(i => i.VideoLinkUrl != null && i.VerifyDate >= refDate && i.VideoLinkUrl.Contains("twitch.tv")).OrderByDescending(i => i.SpeedRunVideoID).Take(maxVideoCount).ToList();
-                    videoViews.AddRange(twitchVideoViews);
-                }
-
-                var videos = videoViews.Select(i => new SpeedRunVideoEntity() { ID = i.SpeedRunVideoID, SpeedRunID = i.SpeedRunID, VideoLinkUrl = i.VideoLinkUrl, VideoLinkUri = new Uri(i.VideoLinkUrl), ThumbnailLinkUrl = i.ThumbnailLinkUrl, EmbeddedVideoLinkUrl = i.EmbeddedVideoLinkUrl }).ToList();
-                
-                var videoDetails = GetSpeedRunVideoDetails(videos, false);
-                var videosToUpdate = new List<SpeedRunVideoEntity>();
-                var videoDetailsToUpdate = new List<SpeedRunVideoDetailEntity>();
-                var videoDetailsToInsert = new List<SpeedRunVideoDetailEntity>();
-                foreach (var videoDetail in videoDetails)
-                {
-                    var video = videos.Find(g => g.ID == videoDetail.SpeedRunVideoID);
-
-                    if (!string.IsNullOrWhiteSpace(videoDetail.ThumbnailLinkUrl) && (string.IsNullOrWhiteSpace(video.ThumbnailLinkUrl) || (video.ThumbnailLinkUrl.EndsWith("hqdefault.jpg") && videoDetail.ThumbnailLinkUrl.EndsWith("maxresdefault.jpg"))))
-                    {
-                        video.ThumbnailLinkUrl = videoDetail.ThumbnailLinkUrl;
-                        videosToUpdate.Add(video);
-                    }
-
-                    var videoVW = videoViews.Find(g => g.SpeedRunVideoID == videoDetail.SpeedRunVideoID);
-                    if (!videoVW.HasDetails)
-                    {
-                        videoDetailsToInsert.Add(videoDetail);
-                    }
-                    else if (videoVW.ViewCount != videoDetail.ViewCount)
-                    {
-                        videoDetailsToUpdate.Add(videoDetail);
-                    }
-                }
-
-                _speedRunRepo.UpdateSpeedRunVideoThumbnailLinkUrls(videosToUpdate);
-                _speedRunRepo.UpdateSpeedRunVideoDetailVideoCounts(videoDetailsToUpdate);
-                _speedRunRepo.InsertSpeedRunVideoDetails(videoDetailsToInsert);
-
-                _logger.Information("Completed UpdateSpeedRunVideoDetails");
-            }
-            catch (Exception ex)
-            {
-                result = false;
-                _logger.Error(ex, "UpdateSpeedRunVideoDetails");
-            }
-
-            return result;
-        }
-
-        private List<SpeedRunVideoDetailEntity> GetSpeedRunVideoDetails(List<SpeedRunVideoEntity> videos, bool isBulkReload)
-        {
-            var details = new List<SpeedRunVideoDetailEntity>();
-            var batchCount = 0;
-            _logger.Information("Started GetSpeedRunVideoDetails");
-
-            if (TwitchAPIEnabled)
-            {
-                var twitchToken = _settingService.GetTwitchToken();
-                var twitchIdentifiers = new List<string> { "twitch.tv" };
-                var twitchVideos = videos.Where(i => i.VideoLinkUri != null && twitchIdentifiers.Any(g => i.VideoLinkUri.GetLeftPart(UriPartial.Authority).Contains(g)) && i.VideoLinkUri.AbsolutePath.StartsWith(@"/videos/")).ToList();
-
-                foreach (var twitchVideo in twitchVideos)
-                {
-                    twitchVideo.VideoID = twitchVideo.VideoLinkUri.Segments.Last();
-                }
-                twitchVideos = twitchVideos.Where(i => !string.IsNullOrWhiteSpace(i.VideoID)).ToList();
-
-                while (batchCount < twitchVideos.Count)
-                {
-                    var videosBatch = twitchVideos.Skip(batchCount).Take(TwitchAPIMaxBatchCount).ToList();
-                    var videoIDsBatch = videosBatch.Select(i => i.VideoID).ToList();
-                    var videoIDsString = string.Join("&id=", videoIDsBatch);
-                    var requestString = string.Format(@"https://api.twitch.tv/helix/videos?id={0}", videoIDsString);
-                    var parameters = new Dictionary<string, string>() { { "Client-Id", TwitchClientID }, { "Authorization", "Bearer " + twitchToken } };
-                    dynamic results = null;
-                    try
-                    {
-                        results = JsonHelper.FromUri(new Uri(requestString), parameters)?.data;
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.Information(ex, "GetSpeedRunVideoDetails");
-                    }
-
-                    foreach (var video in videosBatch)
-                    {
-                        dynamic result = null;
-                        if (results != null)
-                        {
-                            foreach (var res in results)
-                            {
-                                if (res.id == video.VideoID)
-                                {
-                                    result = res;
-                                    break;
-                                }
-                            }
-                        }
-
-                        if (result != null)
-                        {
-                            var thumbnailUriString = (string)result.thumbnail_url;
-                            var thumbnailLinkUrl = thumbnailUriString?.Replace("%{width}", "1280").Replace("%{height}", "720");
-                            details.Add(new SpeedRunVideoDetailEntity() { SpeedRunVideoLocalID = video.LocalID, SpeedRunVideoID = video.ID, SpeedRunID = video.SpeedRunID, ChannelCode = (string)result.user_id, ViewCount = (long?)result.view_count, ThumbnailLinkUrl = thumbnailLinkUrl });
-                        }
-                    }
-
-                    batchCount += TwitchAPIMaxBatchCount;
-                    _logger.Information("Set Twitch Video Details {@Count} / {@Total}", (batchCount > twitchVideos.Count ? twitchVideos.Count : batchCount), twitchVideos.Count);
-                }
-            }
-
-            if (YouTubeAPIEnabled && !isBulkReload)
-            {
-                batchCount = 0;
-                var youtubeIdentifiers = new List<string> { "youtube.com", "youtu.be" };
-                var youtubeVideos = videos.Where(i => i.VideoLinkUri != null && youtubeIdentifiers.Any(g => i.VideoLinkUri.GetLeftPart(UriPartial.Authority).Contains(g))).ToList();
-
-                foreach (var youtubeVideo in youtubeVideos)
-                {
-                    var queryDictionary = QueryHelpers.ParseQuery(youtubeVideo.VideoLinkUri.Query);
-                    youtubeVideo.VideoID = queryDictionary.ContainsKey("v") ? queryDictionary["v"].ToString() : youtubeVideo.VideoLinkUri.Segments.Last();
-                }
-                youtubeVideos = youtubeVideos.Where(i => !string.IsNullOrWhiteSpace(i.VideoID)).ToList();
-
-                while (batchCount < youtubeVideos.Count && YouTubeAPIRequestCount < YouTubeAPIDailyRequestLimit)
-                {
-                    var videosBatch = youtubeVideos.Skip(batchCount).Take(YouTubeAPIMaxBatchCount).ToList();
-                    var videoIDsBatch = videosBatch.Select(i => i.VideoID).ToList();
-                    var videoIDsString = string.Join(",", videoIDsBatch);
-                    var requestString = string.Format(@"https://www.googleapis.com/youtube/v3/videos?part=statistics,snippet&id={0}&key={1}", videoIDsString, YouTubeAPIKey);
-                    dynamic results = null;
-                    try
-                    {
-                        results = JsonHelper.FromUri(new Uri(requestString))?.items;
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.Information(ex, "GetSpeedRunVideoDetails");
-                        if (ex.Message.Contains("exceeded"))
-                        {
-                            break;
-                        }
-                    }
-
-                    foreach (var video in videosBatch)
-                    {
-                        dynamic result = null;
-                        if (results != null)
-                        {
-                            foreach (var res in results)
-                            {
-                                if (res.id == video.VideoID)
-                                {
-                                    result = res;
-                                    break;
-                                }
-                            }
-                        }
-
-                        if (result != null)
-                        {
-                            var thumbnailLinkUrl = (string)(result.snippet?.thumbnails?.maxres?.url ?? result.snippet?.thumbnails?.high?.url);
-                            details.Add(new SpeedRunVideoDetailEntity() { SpeedRunVideoLocalID = video.LocalID, SpeedRunVideoID = video.ID, SpeedRunID = video.SpeedRunID, ChannelCode = (string)result.snippet?.channelId, ViewCount = (long?)result.statistics?.viewCount, ThumbnailLinkUrl = thumbnailLinkUrl });
-                        }
-
-                        break;
-                    }
-
-                    batchCount += YouTubeAPIMaxBatchCount;
-                    YouTubeAPIRequestCount += 1;
-                    _logger.Information("Set Youtube Video Details {@Count} / {@Total}", (batchCount > youtubeVideos.Count ? youtubeVideos.Count : batchCount), youtubeVideos.Count);
-                }
-            }
-
-            _logger.Information("Completed GetSpeedRunVideoDetails");
-            return details;
-        }
-	*/
+	}
 }

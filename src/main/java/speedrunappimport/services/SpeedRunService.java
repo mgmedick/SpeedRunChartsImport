@@ -42,14 +42,16 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 	private IPlatformRepository _platformRepo;
 	private IPlayerRepository _playerRepo;
 	private ISettingService _settingService;
+	private IAuthService _authService;
 	private Logger _logger;
 
-	public SpeedRunService(ISpeedRunRepository speedRunRepo, IGameRepository gameRepo, IPlatformRepository platformRepo, IPlayerRepository playerRepo, ISettingService settingService, Logger logger) {
+	public SpeedRunService(ISpeedRunRepository speedRunRepo, IGameRepository gameRepo, IPlatformRepository platformRepo, IPlayerRepository playerRepo, ISettingService settingService, IAuthService authService, Logger logger) {
 		_speedRunRepo = speedRunRepo;
 		_gameRepo = gameRepo;
 		_platformRepo = platformRepo;
 		_playerRepo = playerRepo;
 		_settingService = settingService;
+		_authService = authService;
 		_logger = logger;
 	}
 
@@ -765,13 +767,13 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 		try (var client = HttpClient.newHttpClient()) {
 			var parameters = new HashMap<String, String>();
 			parameters.put("id", String.join(",", videoIDs));
-			parameters.put("key", super.getYouTubeAPIKey());
-			parameters.put("part", "statistics,snippet");
 
 			var paramString = String.join("&", parameters.entrySet().stream().map(i -> i.getKey() + "=" + i.getValue()).toList());
 
 			var request = HttpRequest.newBuilder()
 					.uri(URI.create("https://www.googleapis.com/youtube/v3/videos?" + paramString))
+					.header("key", super.getYouTubeAPIKey())
+					.header("part", "statistics,snippet")					
 					.build();
 
 			var response = client.send(request, BodyHandlers.ofString());
@@ -804,7 +806,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			twvideo.setVideoId(lastSegment);	
 		}
 
-		var twitchToken = GetTwitchToken();
+		var twitchToken = _authService.GetTwitchToken();
 		var responses = new ArrayList<TwitchVideoResponse>();
 		var batchCount = 0;
 		while (batchCount < twvideos.size()) {
@@ -831,84 +833,19 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 		return results;
 	}
 
-	private String GetTwitchToken() {
-		var stTwitchApiEnabled = _settingService.GetSetting("TwitchToken");
-		var token = stTwitchApiEnabled != null && stTwitchApiEnabled.getStr() != null ? stTwitchApiEnabled.getStr() : null;
-		
-		if (token == null || !ValidateTwitchToken(token)) {
-			token = GenerateTwitchToken();
-			_settingService.UpdateSetting("TwitchToken", token);
-		}
-
-		return token;
-	}
-
-	private boolean ValidateTwitchToken(String token) {
-		var result = false;
-
-		try (var client = HttpClient.newHttpClient()) {
-			var request = HttpRequest.newBuilder()
-					.uri(URI.create("https://id.twitch.tv/oauth2/validate"))
-					.header("Authorization", "Bearer " + token)
-					.build();
-
-			var response = client.send(request, BodyHandlers.ofString());
-
-			if (response.statusCode() == 200) {
-				result = true;		
-			}					
-		} catch (Exception ex) {
-			_logger.error("ValidateTwitchToken", ex);
-		}
-
-		return result;
-	}
-
-	private String GenerateTwitchToken() {
-		String result = null;
-
-		try (var client = HttpClient.newHttpClient()) {
-			var parameters = new HashMap<String, String>();
-			parameters.put("client_id", super.getTwitchClientId());
-			parameters.put("client_secret", super.getTwitchClientKey());
-			parameters.put("grant_type", "client_credentials");
-
-			var paramString = String.join("&", parameters.entrySet().stream().map(i -> i.getKey() + "=" + i.getValue()).toList());
-
-			var request = HttpRequest.newBuilder()
-					.uri(URI.create("https://id.twitch.tv/oauth2/token?" + paramString))
-					.header("Accept", "application/json")
-					.build();
-
-			var response = client.send(request, BodyHandlers.ofString());
-
-			if (response.statusCode() == 200) {
-				var dataString = response.body();
-				var data = new JSONObject(dataString);
-				if (data != null) {
-					result = data.getString("access_token");
-				}			
-			}					
-		} catch (Exception ex) {
-			_logger.error("GenerateTwitchToken", ex);
-		}
-
-		return result;
-	}	
-
 	private List<TwitchVideoResponse> GetTwitchVideoResponses(List<String> videoIDs, String twitchToken) {
 		List<TwitchVideoResponse> results = new ArrayList<TwitchVideoResponse>();
 
 		try (var client = HttpClient.newHttpClient()) {
 			var parameters = new HashMap<String, String>();
 			parameters.put("id", String.join(",", videoIDs));
-			parameters.put("Client-Id", super.getTwitchClientId());
-			parameters.put("Authorization", "Bearer " + twitchToken);
 
 			var paramString = String.join("&", parameters.entrySet().stream().map(i -> i.getKey() + "=" + i.getValue()).toList());
 
 			var request = HttpRequest.newBuilder()
 					.uri(URI.create("https://api.twitch.tv/helix/videos?" + paramString))
+					.header("Client-Id", super.getTwitchClientId())
+					.header("Authorization", "Bearer " + twitchToken)
 					.build();
 
 			var response = client.send(request, BodyHandlers.ofString());

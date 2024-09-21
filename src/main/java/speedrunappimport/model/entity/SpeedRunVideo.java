@@ -15,7 +15,7 @@ import org.hibernate.annotations.*;
 @Table(name = "tbl_speedrun_video")
 @SQLDelete(sql = "UPDATE tbl_speedrun_video SET deleted = true WHERE id=?")
 @SQLRestriction("deleted = false")
-public class SpeedRunVideo {
+public class SpeedRunVideo implements Cloneable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -26,6 +26,22 @@ public class SpeedRunVideo {
     private String channelCode;
     private Long viewCount;
     private boolean deleted;
+
+    public SpeedRunVideo()
+    {       
+    }
+
+    public SpeedRunVideo(int id, int speedRunId, String videoLinkUrl, String embeddedVideoLinkUrl,
+            String thumbnailLinkUrl, String channelCode, Long viewCount, boolean deleted) {
+        this.id = id;
+        this.speedRunId = speedRunId;
+        this.videoLinkUrl = videoLinkUrl;
+        this.embeddedVideoLinkUrl = embeddedVideoLinkUrl;
+        this.thumbnailLinkUrl = thumbnailLinkUrl;
+        this.channelCode = channelCode;
+        this.viewCount = viewCount;
+        this.deleted = deleted;
+    }
 
     @Transient
     private String videoId;
@@ -84,4 +100,13 @@ public class SpeedRunVideo {
     public void setVideoId(String videoId) {
         this.videoId = videoId;
     }
+      
+    @Override
+    public Object clone() {
+        try {
+            return (SpeedRunVideo) super.clone();
+        } catch (CloneNotSupportedException e) {
+            return new SpeedRunVideo(this.getId(), this.getSpeedRunId(), this.getVideoLinkUrl(), this.getEmbeddedVideoLinkUrl(), this.getThumbnailLinkUrl(), this.getChannelCode(), this.getViewCount(), this.isDeleted());            
+        }
+    } 
 }

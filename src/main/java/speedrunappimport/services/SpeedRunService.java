@@ -718,6 +718,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 		var ytvideos = videos.stream()
 								.filter(i -> i.getVideoLinkUrl().contains("youtube.com") || i.getVideoLinkUrl().contains("youtu.be"))
 								.limit(maxYoutubeVideoCount)
+								.map(a -> (SpeedRunVideo) a.clone())
 								.toList();
 
 		for (var ytvideo : ytvideos) {
@@ -794,8 +795,9 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 	private List<SpeedRunVideo> GetTwitchVideoDetails(List<SpeedRunVideo> videos) {
 		var twvideos = videos.stream()
 							.filter(i -> i.getVideoLinkUrl().contains("twitch.tv") && i.getVideoLinkUrl().contains("/videos/"))
+							.map(a -> (SpeedRunVideo) a.clone())
 							.toList();
-							
+
 		for (var twvideo : twvideos) {
 			var pathString = URI.create(twvideo.getVideoLinkUrl()).getPath();
 			var path = Paths.get(pathString);

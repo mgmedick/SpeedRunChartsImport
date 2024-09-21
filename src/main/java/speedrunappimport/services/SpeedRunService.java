@@ -714,7 +714,6 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 	}
 
 	private List<SpeedRunVideo> GetYoutubeVideoDetails(List<SpeedRunVideo> videos) {
-		List<SpeedRunVideo> results = new ArrayList<SpeedRunVideo>();
 		var maxYoutubeVideoCount = getYouTubeAPIDailyRequestLimit() * getYouTubeAPIMaxBatchCount();
 		var ytvideos = videos.stream()
 								.filter(i -> i.getVideoLinkUrl().contains("youtube.com") || i.getVideoLinkUrl().contains("youtu.be"))
@@ -757,7 +756,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			}
 		}		
 
-		return results;
+		return ytvideos;
 	}
 
 	private List<YoutubeVideoResponse> GetYoutubeVideoResponses(List<String> videoIDs) {
@@ -793,7 +792,6 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 	}
 
 	private List<SpeedRunVideo> GetTwitchVideoDetails(List<SpeedRunVideo> videos) {
-		List<SpeedRunVideo> results = new ArrayList<SpeedRunVideo>();
 		var twvideos = videos.stream()
 								.filter(i -> i.getVideoLinkUrl().contains("twitch.tv") && i.getVideoLinkUrl().contains("/videos/"))
 								.toList();
@@ -830,7 +828,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			}
 		}		
 
-		return results;
+		return twvideos;
 	}
 
 	private List<TwitchVideoResponse> GetTwitchVideoResponses(List<String> videoIDs, String twitchToken) {

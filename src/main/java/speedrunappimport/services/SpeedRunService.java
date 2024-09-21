@@ -676,18 +676,16 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 
 			List<SpeedRunVideo> results = new ArrayList<SpeedRunVideo>();
 			List<SpeedRunVideo> videos = new ArrayList<SpeedRunVideo>();
+
 			if (isReload) {
-				videos = _speedRunRepo.GetSpeedRunSummaryViews().stream()
-										.flatMap(x -> x.getVideos().stream().map(g -> g))				
-										.sorted((o1, o2) -> (o2.getId() - o1.getId()))
-										.toList();
-			} else {
-				videos = _speedRunRepo.GetSpeedRunSummaryViewsVerifyAfter(lastImportDateUtc).stream()
-										.flatMap(x -> x.getVideos().stream().map(g -> g))				
-										.sorted((o1, o2) -> (o2.getId() - o1.getId()))
-										.toList();
+				lastImportDateUtc = lastImportDateUtc.minus(30, ChronoUnit.DAYS);
 			}
 
+			videos = _speedRunRepo.GetSpeedRunSummaryViewsVerifyAfter(lastImportDateUtc).stream()
+								.flatMap(x -> x.getVideos().stream().map(g -> g))				
+								.sorted((o1, o2) -> (o2.getId() - o1.getId()))
+								.toList();
+								
 			var stYoutubeApiEnabled = _settingService.GetSetting("YoutubeAPIEnabled");
 			if (stYoutubeApiEnabled != null && stYoutubeApiEnabled.getNum().equals(1)) {
 				var ytvideos = GetYoutubeVideoDetails(videos);
@@ -703,7 +701,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			}			
 
 			if (results.size() > 0) {
-				//_speedRunRepository.
+				_speedRunRepo.SaveSpeedRunVideos(results);
 			}
 
 			_logger.info("Completed UpdateSpeedRunVideoDetails");
@@ -742,6 +740,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 		while (batchCount < ytvideos.size()) {
 			var videoIDsBatch = ytvideos.stream().skip(batchCount).limit(super.getYouTubeAPIMaxBatchCount()).map(i -> i.getVideoId()).toList();			
 			responses.addAll(GetYoutubeVideoResponses(videoIDsBatch));
+			batchCount += super.getYouTubeAPIMaxBatchCount();	
 		}
 
 		for (var ytvideo : ytvideos) {
@@ -767,13 +766,13 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 		try (var client = HttpClient.newHttpClient()) {
 			var parameters = new HashMap<String, String>();
 			parameters.put("id", String.join(",", videoIDs));
+			parameters.put("key", super.getYouTubeAPIKey());
+			parameters.put("part", "statistics,snippet");
 
 			var paramString = String.join("&", parameters.entrySet().stream().map(i -> i.getKey() + "=" + i.getValue()).toList());
 
 			var request = HttpRequest.newBuilder()
-					.uri(URI.create("https://www.googleapis.com/youtube/v3/videos?" + paramString))
-					.header("key", super.getYouTubeAPIKey())
-					.header("part", "statistics,snippet")					
+					.uri(URI.create("https://www.googleapis.com/youtube/v3/videos?" + paramString))				
 					.build();
 
 			var response = client.send(request, BodyHandlers.ofString());
@@ -796,7 +795,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 	private List<SpeedRunVideo> GetTwitchVideoDetails(List<SpeedRunVideo> videos) {
 		List<SpeedRunVideo> results = new ArrayList<SpeedRunVideo>();
 		var twvideos = videos.stream()
-								.filter(i -> i.getVideoLinkUrl().contains("twitch.tv"))
+								.filter(i -> i.getVideoLinkUrl().contains("twitch.tv") && i.getVideoLinkUrl().contains("/videos/"))
 								.toList();
 
 		for (var twvideo : twvideos) {
@@ -813,6 +812,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 
 			var videoIDsBatch = twvideos.stream().skip(batchCount).limit(super.getTwitchAPIMaxBatchCount()).map(i -> i.getVideoId()).toList();			
 			responses.addAll(GetTwitchVideoResponses(videoIDsBatch, twitchToken));
+			batchCount += super.getYouTubeAPIMaxBatchCount();		
 		}
 
 		for (var twvideo : twvideos) {
@@ -838,7 +838,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 
 		try (var client = HttpClient.newHttpClient()) {
 			var parameters = new HashMap<String, String>();
-			parameters.put("id", String.join(",", videoIDs));
+			parameters.put("id", String.join("&id=", videoIDs));
 
 			var paramString = String.join("&", parameters.entrySet().stream().map(i -> i.getKey() + "=" + i.getValue()).toList());
 
@@ -852,7 +852,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 
 			if (response.statusCode() == 200) {
 				var mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-									.setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE)
+									.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
 									.registerModule(new JavaTimeModule());
 				var videoResponses = Arrays.asList(mapper.readerFor(TwitchVideoResponse[].class)
 						.readValue(mapper.readTree(response.body()).get("data"), TwitchVideoResponse[].class));

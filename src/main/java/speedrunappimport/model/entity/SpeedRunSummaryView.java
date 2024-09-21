@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-@Entity
+@Entity(name = "vw_speedrunsummary")
 @Table(name = "vw_speedrunsummary")
 public class SpeedRunSummaryView {
     @Id

@@ -77,6 +77,22 @@ public class SpeedRunRepository extends BaseRepository implements ISpeedRunRepos
 		// _logger.info("Completed Saving runId: {}, code: {}", run.getId(), run.getCode());
 	}
 
+	// @Transactional(rollbackFor = { Exception.class })
+	public void SaveSpeedRunVideos(List<SpeedRunVideo> videos) {
+		// _logger.info("Saving runId: {}, code: {}", run.getId(), run.getCode());
+	
+		var maxBatchCount = super.maxQueryLimit;
+		var batchCount = 0;
+
+		while (batchCount < videos.size()) {
+			var videosBatch = videos.stream().skip(batchCount).limit(maxBatchCount).collect(Collectors.toList());
+			_speedRunVideoDB.saveAll(videosBatch);
+			batchCount += maxBatchCount;
+		}
+
+		// _logger.info("Completed Saving runId: {}, code: {}", run.getId(), run.getCode());
+	}	
+
 	@Transactional(isolation = Isolation.READ_UNCOMMITTED)
 	public List<SpeedRun> GetSpeedRunsByCode(List<String> codes) {
 		var maxBatchCount = super.maxQueryLimit;

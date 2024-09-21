@@ -7,6 +7,7 @@ import speedrunappimport.model.entity.*;
 
 public interface ISpeedRunRepository {
     void SaveSpeedRuns(List<SpeedRun> runs);
+    void SaveSpeedRunVideos(List<SpeedRunVideo> videos);
     List<SpeedRun> GetSpeedRunsByCode(List<String> codes);
     List<SpeedRunView> GetSpeedRunViewsByCode(List<String> codes);
     Instant GetMaxVerifyDate();

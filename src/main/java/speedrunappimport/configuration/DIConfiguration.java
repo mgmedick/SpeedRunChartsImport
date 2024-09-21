@@ -53,8 +53,8 @@ public class DIConfiguration
 	}
 
 	@Bean
-	public ISpeedRunRepository getSpeedRunRepository(ISpeedRunDB speedRunDB, ISpeedRunViewDB speedRunViewDB, ISpeedRunLinkDB speedRunLinkDB, ISpeedRunPlayerDB speedRunPlayerDB, ISpeedRunVariableValueDB speedRunVariableValueDB, ISpeedRunVideoDB speedRunVideoDB, Logger logger){
-		return new SpeedRunRepository(speedRunDB, speedRunViewDB, speedRunLinkDB, speedRunPlayerDB, speedRunVariableValueDB, speedRunVideoDB, logger);
+	public ISpeedRunRepository getSpeedRunRepository(ISpeedRunDB speedRunDB, ISpeedRunViewDB speedRunViewDB, ISpeedRunLinkDB speedRunLinkDB, ISpeedRunPlayerDB speedRunPlayerDB, ISpeedRunVariableValueDB speedRunVariableValueDB, ISpeedRunVideoDB speedRunVideoDB, ISpeedRunSummaryViewDB speedRunSummaryViewDB, Logger logger){
+		return new SpeedRunRepository(speedRunDB, speedRunViewDB, speedRunLinkDB, speedRunPlayerDB, speedRunVariableValueDB, speedRunVideoDB, speedRunSummaryViewDB, logger);
 	}
 
 	@Bean
@@ -71,9 +71,14 @@ public class DIConfiguration
 	public IGameService getGameService(IGameRepository gameRepo, IPlatformRepository platformRepo, ISettingService settingService, Logger logger){
 		return new GameService(gameRepo, platformRepo, settingService, logger);
 	}
+	
+	@Bean
+	public IAuthService getAuthService(ISettingService settingService, Logger logger){
+		return new AuthService(settingService, logger);
+	}
 
 	@Bean
-	public ISpeedRunService getSpeedRunService(ISpeedRunRepository speedRunRepo, IGameRepository gameRepo, IPlatformRepository platformRepo, IPlayerRepository playerRepo, ISettingService settingService, Logger logger){
-		return new SpeedRunService(speedRunRepo, gameRepo, platformRepo, playerRepo, settingService, logger);
+	public ISpeedRunService getSpeedRunService(ISpeedRunRepository speedRunRepo, IGameRepository gameRepo, IPlatformRepository platformRepo, IPlayerRepository playerRepo, ISettingService settingService, IAuthService authService, Logger logger){
+		return new SpeedRunService(speedRunRepo, gameRepo, platformRepo, playerRepo, settingService, authService, logger);
 	}	
 }

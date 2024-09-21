@@ -82,6 +82,10 @@ public class Processor {
 				result = _speedRunService.ProcessSpeedRuns(this.isReload());
 			}		
 
+			if (result) {
+				result = _speedRunService.UpdateSpeedRunVideos(this.isReload());
+			}				
+
 			if (result && isReload()) {
 				result = (_gameService.RefreshCache()).join();
 			}

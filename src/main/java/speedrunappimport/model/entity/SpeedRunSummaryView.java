@@ -41,7 +41,9 @@ public class SpeedRunSummaryView {
     private String subCategoryVariableValueIds;
     private Integer rank;
     private long primaryTime;
-    private Instant verifyDate;   
+    private Instant verifyDate;  
+    private Instant createdDate;   
+    private Instant modifiedDate;   
     private String subCategoryVariableValueNamesJson;    
     private String playersJson;   
     private String videosJson;    
@@ -200,6 +202,22 @@ public class SpeedRunSummaryView {
 
     public void setVerifyDate(Instant verifyDate) {
         this.verifyDate = verifyDate;
+    }
+
+    public Instant getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(Instant createdDate) {
+        this.createdDate = createdDate;
+    }
+    
+    public Instant getModifiedDate() {
+        return modifiedDate;
+    }
+
+    public void setModifiedDate(Instant modifiedDate) {
+        this.modifiedDate = modifiedDate;
     }
 
     public String getSubCategoryVariableValueNamesJson() {

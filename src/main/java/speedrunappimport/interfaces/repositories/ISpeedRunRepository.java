@@ -12,7 +12,7 @@ public interface ISpeedRunRepository {
     List<SpeedRunView> GetSpeedRunViewsByCode(List<String> codes);
     Instant GetMaxVerifyDate();
     List<SpeedRunSummaryView> GetSpeedRunSummaryViews();
-    List<SpeedRunSummaryView> GetSpeedRunSummaryViewsVerifyAfter(Instant date);
+    List<SpeedRunSummaryView> GetSpeedRunSummaryViewsModifiedAfter(Instant date);
     void DeleteObsoleteSpeedRuns(Instant lastImportDateUtc);
     void UpdateSpeedRunRanks(Instant lastImportDateUtc);
     void UpdateSpeedRunSummary(Instant lastImportDateUtc);

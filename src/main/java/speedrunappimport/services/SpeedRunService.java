@@ -681,7 +681,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 				lastImportDateUtc = lastImportDateUtc.minus(30, ChronoUnit.DAYS);
 			}
 
-			videos = _speedRunRepo.GetSpeedRunSummaryViewsVerifyAfter(lastImportDateUtc).stream()
+			videos = _speedRunRepo.GetSpeedRunSummaryViewsModifiedAfter(lastImportDateUtc).stream()
 								.flatMap(x -> x.getVideos().stream().map(g -> g))				
 								.sorted((o1, o2) -> (o2.getId() - o1.getId()))
 								.toList();
@@ -793,9 +793,9 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 
 	private List<SpeedRunVideo> GetTwitchVideoDetails(List<SpeedRunVideo> videos) {
 		var twvideos = videos.stream()
-								.filter(i -> i.getVideoLinkUrl().contains("twitch.tv") && i.getVideoLinkUrl().contains("/videos/"))
-								.toList();
-
+							.filter(i -> i.getVideoLinkUrl().contains("twitch.tv") && i.getVideoLinkUrl().contains("/videos/"))
+							.toList();
+							
 		for (var twvideo : twvideos) {
 			var pathString = URI.create(twvideo.getVideoLinkUrl()).getPath();
 			var path = Paths.get(pathString);

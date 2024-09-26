@@ -3,25 +3,21 @@ package speedrunappimport.services;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
 import java.net.URLDecoder;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Arrays;
-import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 import java.util.function.Function;
 import java.time.Duration;
 import java.nio.file.Paths;
 
-import org.hibernate.dialect.JsonHelper;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -678,9 +674,9 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			List<SpeedRunVideo> videos = new ArrayList<SpeedRunVideo>();
 
 			if (isReload) {
-				lastImportDateUtc = lastImportDateUtc.minus(3, ChronoUnit.MONTHS);
+				lastImportDateUtc = lastImportDateUtc.atZone(ZoneId.systemDefault()).minusMonths(3).toInstant();
 			}
-
+			
 			videos = _speedRunRepo.GetSpeedRunSummaryViewsModifiedAfter(lastImportDateUtc).stream()
 								.flatMap(x -> x.getVideos().stream().map(g -> g))				
 								.sorted((o1, o2) -> (o2.getId() - o1.getId()))

@@ -138,8 +138,8 @@ public class SpeedRunRepository extends BaseRepository implements ISpeedRunRepos
 	}
 
 	@Transactional(isolation = Isolation.READ_UNCOMMITTED)
-	public List<SpeedRunSummaryView> GetSpeedRunSummaryViewsModifiedAfter(Instant date) {
-		var results = _speedRunSummaryViewDB.findAllWithModifiedDateAfter(date);
+	public List<SpeedRunSummaryView> GetSpeedRunSummaryViewsVerifyAfter(Instant date) {
+		var results = _speedRunSummaryViewDB.findAllWithVerifyDateAfter(date);
 			
 		return results;
 	}		

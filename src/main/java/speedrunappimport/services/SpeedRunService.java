@@ -677,7 +677,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 				lastImportDateUtc = lastImportDateUtc.atZone(ZoneId.systemDefault()).minusMonths(3).toInstant();
 			}
 			
-			videos = _speedRunRepo.GetSpeedRunSummaryViewsModifiedAfter(lastImportDateUtc).stream()
+			videos = _speedRunRepo.GetSpeedRunSummaryViewsVerifyAfter(lastImportDateUtc).stream()
 								.flatMap(x -> x.getVideos().stream().map(g -> g))				
 								.sorted((o1, o2) -> (o2.getId() - o1.getId()))
 								.toList();
@@ -700,10 +700,10 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 				_speedRunRepo.SaveSpeedRunVideos(results);
 			}
 
-			_logger.info("Completed UpdateSpeedRunVideoDetails");
+			_logger.info("Completed UpdateSpeedRunVideos");
 		} catch (Exception ex) {
 			result = false;
-			_logger.error("UpdateSpeedRunVideoDetails", ex);
+			_logger.error("UpdateSpeedRunVideos", ex);
 		}
 
 		return result;
@@ -726,10 +726,13 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			} else {
 				var pathString = uri.getPath();
 				var path = Paths.get(pathString);
-				var lastSegment = path.getName(path.getNameCount() - 1).toString();	
-				ytvideo.setVideoId(lastSegment);
+				if (path.getNameCount() > 0) {
+					var lastSegment = path.getName(path.getNameCount() - 1).toString();
+					ytvideo.setVideoId(lastSegment);
+				}
 			}		
 		}
+		ytvideos = ytvideos.stream().filter(g ->  g.getVideoId() != null && !g.getVideoId().isEmpty()).toList();
 
 		var responses = new ArrayList<YoutubeVideoResponse>();
 		var batchCount = 0;
@@ -797,9 +800,12 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 		for (var twvideo : twvideos) {
 			var pathString = URI.create(twvideo.getVideoLinkUrl()).getPath();
 			var path = Paths.get(pathString);
-			var lastSegment = path.getName(path.getNameCount() - 1).toString();	
-			twvideo.setVideoId(lastSegment);	
+			if (path.getNameCount() > 0) {
+				var lastSegment = path.getName(path.getNameCount() - 1).toString();	
+				twvideo.setVideoId(lastSegment);	
+			}
 		}
+		twvideos = twvideos.stream().filter(g ->  g.getVideoId() != null && !g.getVideoId().isEmpty()).toList();
 
 		var twitchToken = _authService.GetTwitchToken();
 		var responses = new ArrayList<TwitchVideoResponse>();

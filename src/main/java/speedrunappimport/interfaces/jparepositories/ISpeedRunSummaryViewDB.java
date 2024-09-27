@@ -9,6 +9,6 @@ import speedrunappimport.model.entity.*;
 
 public interface ISpeedRunSummaryViewDB extends IBaseDB<SpeedRunSummaryView, Integer>
 {
-    @Query("SELECT rn FROM vw_speedrunsummary rn WHERE COALESCE(rn.modifiedDate, rn.createdDate) > :compareDate")
-    List<SpeedRunSummaryView> findAllWithModifiedDateAfter(Instant compareDate);     
+    @Query("SELECT rn FROM vw_speedrunsummary rn WHERE rn.verifyDate > :compareDate")
+    List<SpeedRunSummaryView> findAllWithVerifyDateAfter(Instant compareDate);     
 }

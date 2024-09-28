@@ -42,11 +42,16 @@ public class SpeedRunSummaryView {
     private Integer rank;
     private long primaryTime;
     private Instant verifyDate;  
+    private int speedRunVideoId;
+    private String videoLinkUrl;
+    private String embeddedVideoLinkUrl;
+    private String thumbnailLinkUrl;
+    private String channelCode;
+    private Long viewCount;
     private Instant createdDate;   
     private Instant modifiedDate;   
     private String subCategoryVariableValueNamesJson;    
     private String playersJson;   
-    private String videosJson;    
 
     @Transient
     private ObjectMapper _mapper;
@@ -203,6 +208,62 @@ public class SpeedRunSummaryView {
     public void setVerifyDate(Instant verifyDate) {
         this.verifyDate = verifyDate;
     }
+    
+    public int getSpeedRunVideoId() {
+        return speedRunVideoId;
+    }
+
+    public void setSpeedRunVideoId(int speedRunVideoId) {
+        this.speedRunVideoId = speedRunVideoId;
+    }
+
+    public String getVideoLinkUrl() {
+        return videoLinkUrl;
+    }
+
+    public void setVideoLinkUrl(String videoLinkUrl) {
+        this.videoLinkUrl = videoLinkUrl;
+    }
+
+    public String getEmbeddedVideoLinkUrl() {
+        return embeddedVideoLinkUrl;
+    }
+
+    public void setEmbeddedVideoLinkUrl(String embeddedVideoLinkUrl) {
+        this.embeddedVideoLinkUrl = embeddedVideoLinkUrl;
+    }
+
+    public String getThumbnailLinkUrl() {
+        return thumbnailLinkUrl;
+    }
+
+    public void setThumbnailLinkUrl(String thumbnailLinkUrl) {
+        this.thumbnailLinkUrl = thumbnailLinkUrl;
+    }
+
+    public String getChannelCode() {
+        return channelCode;
+    }
+
+    public void setChannelCode(String channelCode) {
+        this.channelCode = channelCode;
+    }
+
+    public Long getViewCount() {
+        return viewCount;
+    }
+
+    public void setViewCount(Long viewCount) {
+        this.viewCount = viewCount;
+    }
+
+    public ObjectMapper get_mapper() {
+        return _mapper;
+    }
+
+    public void set_mapper(ObjectMapper _mapper) {
+        this._mapper = _mapper;
+    }
 
     public Instant getCreatedDate() {
         return createdDate;
@@ -236,14 +297,6 @@ public class SpeedRunSummaryView {
         this.playersJson = playersJson;
     }
 
-    public String getVideosJson() {
-        return videosJson;
-    }
-
-    public void setVideosJson(String videosJson) {
-        this.videosJson = videosJson;
-    }
-    
     public List<SpeedRunPlayer> getPlayers() {
         List<SpeedRunPlayer> results = new ArrayList<SpeedRunPlayer>();
         
@@ -269,18 +322,5 @@ public class SpeedRunSummaryView {
         }
         
         return results;
-    }    
-    public List<SpeedRunVideo> getVideos() {
-        List<SpeedRunVideo> results = new ArrayList<SpeedRunVideo>();
-        
-        try {
-            if (this.videosJson != null) {
-                results = Arrays.asList(_mapper.readValue(this.videosJson, SpeedRunVideo[].class));
-            }
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        }
-        
-        return results;
-    }    
+    }  
 }

@@ -674,11 +674,20 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			List<SpeedRunVideo> videos = new ArrayList<SpeedRunVideo>();
 
 			if (isReload) {
-				lastImportDateUtc = lastImportDateUtc.atZone(ZoneId.systemDefault()).minusMonths(1).toInstant();
+				lastImportDateUtc = lastImportDateUtc.atZone(ZoneId.systemDefault()).minusMonths(3).toInstant();
 			}
 			
 			videos = _speedRunRepo.GetSpeedRunSummaryViewsVerifyAfter(lastImportDateUtc).stream()
-								.flatMap(x -> x.getVideos().stream().map(g -> g))				
+								.map(x -> {
+									return new SpeedRunVideo(x.getSpeedRunVideoId(),
+																x.getId(),	
+																x.getVideoLinkUrl(),		
+																x.getEmbeddedVideoLinkUrl(),	
+																x.getThumbnailLinkUrl(),
+																x.getChannelCode(),
+																x.getViewCount(),
+																false);
+								})
 								.sorted((o1, o2) -> (o2.getId() - o1.getId()))
 								.toList();
 								

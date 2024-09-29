@@ -674,7 +674,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			List<SpeedRunVideo> videos = new ArrayList<SpeedRunVideo>();
 
 			if (isReload) {
-				lastImportDateUtc = lastImportDateUtc.atZone(ZoneId.systemDefault()).minusMonths(3).toInstant();
+				lastImportDateUtc = lastImportDateUtc.atZone(ZoneId.systemDefault()).minusMonths(1).toInstant();
 			}
 			
 			videos = _speedRunRepo.GetSpeedRunSummaryViewsVerifyAfter(lastImportDateUtc).stream()

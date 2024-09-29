@@ -79,7 +79,7 @@ public class SpeedRunRepository extends BaseRepository implements ISpeedRunRepos
 
 	// @Transactional(rollbackFor = { Exception.class })
 	public void SaveSpeedRunVideos(List<SpeedRunVideo> videos) {
-		// _logger.info("Saving runId: {}, code: {}", run.getId(), run.getCode());
+		_logger.info("Started SaveSpeedRunVideos: {}", videos.size());
 	
 		var maxBatchCount = super.maxQueryLimit;
 		var batchCount = 0;
@@ -87,10 +87,12 @@ public class SpeedRunRepository extends BaseRepository implements ISpeedRunRepos
 		while (batchCount < videos.size()) {
 			var videosBatch = videos.stream().skip(batchCount).limit(maxBatchCount).collect(Collectors.toList());
 			_speedRunVideoDB.saveAll(videosBatch);
+
 			batchCount += maxBatchCount;
+			_logger.info("Saved videos {}/ {}", (batchCount > videos.size() ? videos.size() : batchCount), videos.size());				
 		}
 
-		// _logger.info("Completed Saving runId: {}, code: {}", run.getId(), run.getCode());
+		_logger.info("Completed SaveSpeedRunVideos");
 	}	
 
 	@Transactional(isolation = Isolation.READ_UNCOMMITTED)

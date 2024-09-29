@@ -719,52 +719,60 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 	}
 
 	private List<SpeedRunVideo> GetYoutubeVideoDetails(List<SpeedRunVideo> videos) {
-		var maxYoutubeVideoCount = getYouTubeAPIDailyRequestLimit() * getYouTubeAPIMaxBatchCount();
-		var ytvideos = videos.stream()
-								.filter(i -> i.getVideoLinkUrl().contains("youtube.com") || i.getVideoLinkUrl().contains("youtu.be"))
-								.limit(maxYoutubeVideoCount)
-								.map(a -> (SpeedRunVideo) a.clone())
-								.toList();
+		List<SpeedRunVideo> ytvideos = new ArrayList<SpeedRunVideo>();
+		_logger.info("Started GetYoutubeVideoDetails");
 
-		for (var ytvideo : ytvideos) {
-			var uri = URI.create(ytvideo.getVideoLinkUrl());
-			var queryParams = UriExtensions.splitQuery(uri);
-			
-			if (queryParams.containsKey("v")) {
-				ytvideo.setVideoId(queryParams.get("v"));
-			} else {
-				var pathString = uri.getPath();
-				var path = Paths.get(pathString);
-				if (path.getNameCount() > 0) {
-					var lastSegment = path.getName(path.getNameCount() - 1).toString();
-					ytvideo.setVideoId(lastSegment);
+		try {		
+			var maxYoutubeVideoCount = getYouTubeAPIDailyRequestLimit() * getYouTubeAPIMaxBatchCount();
+			ytvideos = videos.stream()
+									.filter(i -> i.getVideoLinkUrl().contains("youtube.com") || i.getVideoLinkUrl().contains("youtu.be"))
+									.limit(maxYoutubeVideoCount)
+									.map(a -> (SpeedRunVideo) a.clone())
+									.toList();
+
+			for (var ytvideo : ytvideos) {
+				var uri = URI.create(ytvideo.getVideoLinkUrl());
+				var queryParams = UriExtensions.splitQuery(uri);
+				
+				if (queryParams.containsKey("v")) {
+					ytvideo.setVideoId(queryParams.get("v"));
+				} else {
+					var pathString = uri.getPath();
+					var path = Paths.get(pathString);
+					if (path.getNameCount() > 0) {
+						var lastSegment = path.getName(path.getNameCount() - 1).toString();
+						ytvideo.setVideoId(lastSegment);
+					}
+				}		
+			}
+			ytvideos = ytvideos.stream().filter(g ->  g.getVideoId() != null && !g.getVideoId().isEmpty()).toList();
+
+			var responses = new ArrayList<YoutubeVideoResponse>();
+			var batchCount = 0;
+			while (batchCount < ytvideos.size()) {
+				var videoIDsBatch = ytvideos.stream().skip(batchCount).limit(super.getYouTubeAPIMaxBatchCount()).map(i -> i.getVideoId()).toList();			
+				responses.addAll(GetYoutubeVideoResponses(videoIDsBatch));
+				batchCount += super.getYouTubeAPIMaxBatchCount();	
+			}
+
+			for (var ytvideo : ytvideos) {
+				var videoResponse = responses.stream().filter(g ->  g.id().equals(ytvideo.getVideoId())).findFirst().orElse(null);
+				
+				if (videoResponse != null) {
+					ytvideo.setViewCount(videoResponse.statistics().viewCount());
+					ytvideo.setChannelCode(videoResponse.snippet().channelId());
+
+					var thumbnail = videoResponse.snippet().thumbnails().get("standard");
+					if (thumbnail != null) {
+						ytvideo.setThumbnailLinkUrl(thumbnail.url());
+					}
 				}
 			}		
-		}
-		ytvideos = ytvideos.stream().filter(g ->  g.getVideoId() != null && !g.getVideoId().isEmpty()).toList();
-
-		var responses = new ArrayList<YoutubeVideoResponse>();
-		var batchCount = 0;
-		while (batchCount < ytvideos.size()) {
-			var videoIDsBatch = ytvideos.stream().skip(batchCount).limit(super.getYouTubeAPIMaxBatchCount()).map(i -> i.getVideoId()).toList();			
-			responses.addAll(GetYoutubeVideoResponses(videoIDsBatch));
-			batchCount += super.getYouTubeAPIMaxBatchCount();	
+		} catch (Exception ex) {
+			_logger.error("GetYoutubeVideoDetails", ex);
 		}
 
-		for (var ytvideo : ytvideos) {
-			var videoResponse = responses.stream().filter(g ->  g.id().equals(ytvideo.getVideoId())).findFirst().orElse(null);
-			
-			if (videoResponse != null) {
-				ytvideo.setViewCount(videoResponse.statistics().viewCount());
-				ytvideo.setChannelCode(videoResponse.snippet().channelId());
-
-				var thumbnail = videoResponse.snippet().thumbnails().get("standard");
-				if (thumbnail != null) {
-					ytvideo.setThumbnailLinkUrl(thumbnail.url());
-				}
-			}
-		}		
-
+		_logger.info("Completed GetYoutubeVideoDetails");
 		return ytvideos;
 	}
 
@@ -801,46 +809,54 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 	}
 
 	private List<SpeedRunVideo> GetTwitchVideoDetails(List<SpeedRunVideo> videos) {
-		var twvideos = videos.stream()
-							.filter(i -> i.getVideoLinkUrl().contains("twitch.tv") && i.getVideoLinkUrl().contains("/videos/"))
-							.map(a -> (SpeedRunVideo) a.clone())
-							.toList();
+		List<SpeedRunVideo> twvideos = new ArrayList<SpeedRunVideo>();
+		_logger.info("Started GetTwitchVideoDetails");
 
-		for (var twvideo : twvideos) {
-			var pathString = URI.create(twvideo.getVideoLinkUrl()).getPath();
-			var path = Paths.get(pathString);
-			if (path.getNameCount() > 0) {
-				var lastSegment = path.getName(path.getNameCount() - 1).toString();	
-				twvideo.setVideoId(lastSegment);	
-			}
-		}
-		twvideos = twvideos.stream().filter(g ->  g.getVideoId() != null && !g.getVideoId().isEmpty()).toList();
+		try {		
+			twvideos = videos.stream()
+								.filter(i -> i.getVideoLinkUrl().contains("twitch.tv") && i.getVideoLinkUrl().contains("/videos/"))
+								.map(a -> (SpeedRunVideo) a.clone())
+								.toList();
 
-		var twitchToken = _authService.GetTwitchToken();
-		var responses = new ArrayList<TwitchVideoResponse>();
-		var batchCount = 0;
-		while (batchCount < twvideos.size()) {
-
-			var videoIDsBatch = twvideos.stream().skip(batchCount).limit(super.getTwitchAPIMaxBatchCount()).map(i -> i.getVideoId()).toList();			
-			responses.addAll(GetTwitchVideoResponses(videoIDsBatch, twitchToken));
-			batchCount += super.getYouTubeAPIMaxBatchCount();		
-		}
-
-		for (var twvideo : twvideos) {
-			var videoResponse = responses.stream().filter(g ->  g.id().equals(twvideo.getVideoId())).findFirst().orElse(null);
-			
-			if (videoResponse != null) {
-				twvideo.setViewCount(videoResponse.viewCount());
-				twvideo.setChannelCode(videoResponse.userId());
-
-				var thumbnailUrl = videoResponse.thumbnailUrl();
-				if (thumbnailUrl != null) {
-					thumbnailUrl = thumbnailUrl.replace("%{width}","640").replace("%{height}","480");
-					twvideo.setThumbnailLinkUrl(thumbnailUrl);
+			for (var twvideo : twvideos) {
+				var pathString = URI.create(twvideo.getVideoLinkUrl()).getPath();
+				var path = Paths.get(pathString);
+				if (path.getNameCount() > 0) {
+					var lastSegment = path.getName(path.getNameCount() - 1).toString();	
+					twvideo.setVideoId(lastSegment);	
 				}
 			}
-		}		
+			twvideos = twvideos.stream().filter(g ->  g.getVideoId() != null && !g.getVideoId().isEmpty()).toList();
 
+			var twitchToken = _authService.GetTwitchToken();
+			var responses = new ArrayList<TwitchVideoResponse>();
+			var batchCount = 0;
+			while (batchCount < twvideos.size()) {
+
+				var videoIDsBatch = twvideos.stream().skip(batchCount).limit(super.getTwitchAPIMaxBatchCount()).map(i -> i.getVideoId()).toList();			
+				responses.addAll(GetTwitchVideoResponses(videoIDsBatch, twitchToken));
+				batchCount += super.getYouTubeAPIMaxBatchCount();		
+			}
+
+			for (var twvideo : twvideos) {
+				var videoResponse = responses.stream().filter(g ->  g.id().equals(twvideo.getVideoId())).findFirst().orElse(null);
+				
+				if (videoResponse != null) {
+					twvideo.setViewCount(videoResponse.viewCount());
+					twvideo.setChannelCode(videoResponse.userId());
+
+					var thumbnailUrl = videoResponse.thumbnailUrl();
+					if (thumbnailUrl != null) {
+						thumbnailUrl = thumbnailUrl.replace("%{width}","640").replace("%{height}","480");
+						twvideo.setThumbnailLinkUrl(thumbnailUrl);
+					}
+				}
+			}		
+		} catch (Exception ex) {
+			_logger.error("GetTwitchVideoDetails", ex);
+		}
+
+		_logger.info("Completed GetTwitchVideoDetails");	
 		return twvideos;
 	}
 

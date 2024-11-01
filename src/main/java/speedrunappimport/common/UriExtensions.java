@@ -43,7 +43,7 @@ public class UriExtensions
                         if (segments.length > 0) {
                             videoIDString = segments[segments.length - 1];
                         } 
-                        uriString = String.format("https://player.twitch.tv/?video=%s&parent=localhost&parent=speedruncharts.com&parent=www.speedruncharts.com&autoplay=false&muted=true", videoIDString);
+                        uriString = String.format("https://player.twitch.tv/?video=%s&parent=localhost&parent=speedruncharts.com&parent=www.speedruncharts.com", videoIDString);
                     }
                 }
                 else if (domain.contains("youtube.com") || domain.contains("youtu.be"))
@@ -55,7 +55,7 @@ public class UriExtensions
                         videoIDString = segments[segments.length - 1];
                     }
 
-                    uriString = String.format("https://www.youtube.com/embed/%s?autoplay=0&mute=1", videoIDString);
+                    uriString = String.format("https://www.youtube.com/embed/%s", videoIDString);
                 }
                 else if (domain.contains("vimeo.com"))
                 {
@@ -64,7 +64,7 @@ public class UriExtensions
                         if (segments.length > 0) {
                             videoIDString = segments[segments.length - 1];
                         }
-                        uriString = String.format("https://player.vimeo.com/video/%s?autoplay=0&muted=1", videoIDString);
+                        uriString = String.format("https://player.vimeo.com/video/%s", videoIDString);
                     }
                 }
                 else if (domain.contains("streamable.com"))
@@ -77,7 +77,7 @@ public class UriExtensions
                 else if (domain.contains("medal.tv"))
                 {
                     if (segments.length > 1) {
-                        uriString = String.format("https://medal.tv/clip/%s/%s?autoplay=0&muted=1&loop=0", segments[segments.length-2], segments[segments.length-1]);
+                        uriString = String.format("https://medal.tv/clip/%s/%s", segments[segments.length-2], segments[segments.length-1]);
                     } 
                 }
             }

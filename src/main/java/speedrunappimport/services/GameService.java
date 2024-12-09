@@ -392,7 +392,8 @@ public class GameService extends BaseService implements IGameService {
 						for (var variable : game.getVariables()) {
 							var existingVariable = variableIndex < existingVariables.size() ? existingVariables.get(variableIndex) : null;
 							isChanged = (existingVariable == null
-										|| !variable.getCode().equals(existingVariable.getCode()));
+										|| !variable.getCode().equals(existingVariable.getCode())
+										|| !Objects.equals(variable.isSubCategory(), existingVariable.isSubCategory()));
 
 							if (isChanged) {
 								break;

@@ -168,5 +168,13 @@ public class SpeedRunRepository extends BaseRepository implements ISpeedRunRepos
 		_speedRunDB.updateSpeedRunSummary(lastImportDateUtc);
 
 		_logger.info("Completed UpdateSpeedRunSummary");
+	}
+	
+	public void RenameFullTables() {
+		_logger.info("Started RenameFullTables");
+	
+		_speedRunDB.importRenameFullTables();
+
+		_logger.info("Completed RenameFullTables");
 	}		
 }

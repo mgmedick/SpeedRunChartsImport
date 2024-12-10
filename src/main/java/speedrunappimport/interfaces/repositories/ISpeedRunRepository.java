@@ -16,6 +16,7 @@ public interface ISpeedRunRepository {
     void DeleteObsoleteSpeedRuns(Instant lastImportDateUtc);
     void UpdateSpeedRunRanks(Instant lastImportDateUtc);
     void UpdateSpeedRunSummary(Instant lastImportDateUtc);
+    void RenameFullTables();
 }
 
 

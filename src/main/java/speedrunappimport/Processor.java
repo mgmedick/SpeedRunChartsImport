@@ -86,6 +86,11 @@ public class Processor {
 				result = _speedRunService.UpdateSpeedRunVideos(this.isReload());
 			}				
 
+			var stLastImportDateUtc = _settingService.GetSetting("LastImportDate");
+			if (result && isReload() && stLastImportDateUtc == null) {
+				result = _speedRunService.RenameFullTables();
+			}
+
 			if (result && isReload()) {
 				result = (_gameService.RefreshCache()).join();
 			}

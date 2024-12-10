@@ -926,4 +926,19 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 		_logger.info("Found New: {}, Changed: {}, Existing: {}, Total: {}", newCount, changedCount, existingVideos.size(), videos.size());	
 		return results;
 	}
+
+	public boolean RenameFullTables() {
+		boolean result = false;		
+		_logger.info("Started RenameFullTables");
+
+		try {
+			_speedRunRepo.RenameFullTables();
+			result = true;
+		} catch (Exception ex) {
+			_logger.error("RenameFullTables", ex);
+		}
+
+		_logger.info("Completed RenameFullTables");
+		return result;
+	}	
 }

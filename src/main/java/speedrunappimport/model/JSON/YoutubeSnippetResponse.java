@@ -1,8 +1,8 @@
 package speedrunappimport.model.json;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 public record YoutubeSnippetResponse(String channelId,
-HashMap<String, YoutubeThumbnailResponse> thumbnails) {
+LinkedHashMap<String, YoutubeThumbnailResponse> thumbnails) {
 }
 

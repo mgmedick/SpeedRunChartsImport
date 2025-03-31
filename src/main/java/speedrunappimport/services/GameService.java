@@ -81,7 +81,7 @@ public class GameService extends BaseService implements IGameService {
 				}
 			}
 			while (games.size() == limit && (isReload || games.stream().map(i -> i.created() != null ? i.created() : super.getSqlMinDateTime()).max(Instant::compareTo).get().compareTo(lastImportRefDateUtc) > 0));
-			//while (1 == 0);
+			// while (1 == 0);
 
 			if (!isReload) {
 				results = results.reversed();	
@@ -148,7 +148,8 @@ public class GameService extends BaseService implements IGameService {
 					parameters.entrySet().stream().map(i -> i.getKey() + "=" + i.getValue()).toList());
 
 			var request = HttpRequest.newBuilder()
-					.uri(URI.create("https://www.speedrun.com/api/v1/games?" + paramString))
+					// .uri(URI.create("https://www.speedrun.com/api/v1/games/9dokge1p?" + paramString))
+					.uri(URI.create("https://www.speedrun.com/api/v1/games?" + paramString))	
 					.build();
 
 			var response = client.send(request, BodyHandlers.ofString());
@@ -156,9 +157,13 @@ public class GameService extends BaseService implements IGameService {
 				var mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 											.setPropertyNamingStrategy(PropertyNamingStrategies.KEBAB_CASE)
 											.registerModule(new JavaTimeModule());
+				// GameResponse games = mapper.readerFor(GameResponse.class)
+				// 				.readValue(mapper.readTree(response.body()).get("data"), GameResponse.class);
+				// data = new ArrayList<GameResponse>();
+				// data.add(games);													
 				var games = Arrays.asList(mapper.readerFor(GameResponse[].class)
 								.readValue(mapper.readTree(response.body()).get("data"), GameResponse[].class));
-				data = new ArrayList<GameResponse>(games);
+				data = new ArrayList<GameResponse>(games);		
 			}
 		} catch (Exception ex) {
 			Thread.sleep(super.getErrorPullDelayMS());
@@ -285,7 +290,12 @@ public class GameService extends BaseService implements IGameService {
 									variableValue.setVariableCode(x.id());
 									variableValue.setIsMiscellaneous(g.getValue().flags() != null ? g.getValue().flags().miscellaneous() : false);
 									return variableValue;							
-								})).toList();
+								})).toList();			
+								
+			for (int g = 0; g < variableValues.size(); g++) {
+				variableValues.get(g).setSortOrder(g);
+			}	
+
 			game.setVariableValues(variableValues);
 
 			var gamePlatforms = platforms.stream()
@@ -410,6 +420,22 @@ public class GameService extends BaseService implements IGameService {
 									|| existingVariableValueCodes.stream().anyMatch(i -> !variableValueCodes.contains(i));		
 					}		
 					
+					if (!isChanged) {
+						var variableValueIndex = 0;
+						var existingVariableValues = existingGameVW.getVariableValues();
+						for (var variableValue : game.getVariableValues()) {
+							var existingVariableValue = variableValueIndex < existingVariableValues.size() ? existingVariableValues.get(variableValueIndex) : null;
+							isChanged = (existingVariableValue == null
+										|| !variableValue.getCode().equals(existingVariableValue.getCode()));
+
+							if (isChanged) {
+								break;
+							}
+
+							variableValueIndex++;
+						}
+					}
+
 					if (!isChanged) {
 						var platformIds = game.getGamePlatforms().stream().map(i -> i.getPlatformId()).toList();
 						var existingPlatformIds = existingGameVW.getGamePlatforms().stream().map(i -> i.getPlatformId()).toList();

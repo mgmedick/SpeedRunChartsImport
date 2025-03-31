@@ -22,6 +22,7 @@ public class VariableValue {
     private int gameId;
     private int variableId;
     private boolean isMiscellaneous;
+    private Integer sortOrder;
     private boolean deleted;
 
     @Transient
@@ -83,6 +84,14 @@ public class VariableValue {
         this.variableCode = variableCode;
     }
     
+    public Integer getSortOrder() {
+        return sortOrder;
+    }
+
+    public void setSortOrder(Integer sortOrder) {
+        this.sortOrder = sortOrder;
+    }    
+
     public boolean isDeleted() {
         return deleted;
     }

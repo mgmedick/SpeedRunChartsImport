@@ -340,8 +340,8 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 					.collect(Collectors.toMap(SpeedRunResponse::id, Function.identity(), (u1, u2) -> u1))
 					.values()
 					.stream()
-					.collect(Collectors.toList());		
-
+					.collect(Collectors.toList());	
+					
 			SavePlayersFromRunResponses(runResponses);
 
 			var playerCodes = runResponses.stream().flatMap(x -> x.players().data().stream().map(i -> { return StringExtensions.KebabToUpperSnakeCase(i.rel()).equals(PlayerType.USER.toString()) ? i.id() : i.name(); })).distinct().toList();	
@@ -506,7 +506,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			var subCategoryVariableCodes = existingGameVW.getVariables().stream().filter(g -> g.isSubCategory()).map(x -> x.getCode()).toList();
 			var subCategoryVariableValueIds = existingGameVW.getVariableValues().stream()
 												.filter(g -> i.values().entrySet().stream().anyMatch(h -> h.getValue().equals(g.getCode()) && subCategoryVariableCodes.contains(h.getKey())))
-												.map(x -> Integer.toString(x.getId())).toList();		
+												.map(x -> Integer.toString(x.getId())).toList();												
 			if (subCategoryVariableValueIds.size() > 0) {
 				run.setSubCategoryVariableValueIds(String.join(",", subCategoryVariableValueIds));
 			}
@@ -674,7 +674,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			List<SpeedRunVideo> videos = new ArrayList<SpeedRunVideo>();
 
 			if (isReload) {
-				lastImportDateUtc = lastImportDateUtc.atZone(ZoneId.systemDefault()).minusMonths(3).toInstant();
+				lastImportDateUtc = lastImportDateUtc.atZone(ZoneId.systemDefault()).minusDays(14).toInstant();
 			} else {
 				lastImportDateUtc = lastImportDateUtc.atZone(ZoneId.systemDefault()).minusDays(1).toInstant();			
 			}
@@ -834,7 +834,6 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			var responses = new ArrayList<TwitchVideoResponse>();
 			var batchCount = 0;
 			while (batchCount < twvideos.size()) {
-
 				var videoIDsBatch = twvideos.stream().skip(batchCount).limit(super.getTwitchAPIMaxBatchCount()).map(i -> i.getVideoId()).toList();			
 				responses.addAll(GetTwitchVideoResponses(videoIDsBatch, twitchToken));
 				batchCount += super.getYouTubeAPIMaxBatchCount();		

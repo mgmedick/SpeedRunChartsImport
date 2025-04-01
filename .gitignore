@@ -32,3 +32,7 @@ build/
 ### VS Code ###
 .vscode/
 .DS_Store
+
+src/main/resources/application.dev.properties
+src/main/resources/appsettings.dev.properties
+src/main/resources/logback.dev.xml

@@ -663,7 +663,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 	
 	public boolean UpdateSpeedRunVideos(boolean isReload) {
 		boolean result = false;		
-		_logger.info("Started UpdateSpeedRunVideos");
+		_logger.info("Started UpdateSpeedRunVideos {}", isReload);
 
 		try
 		{
@@ -674,7 +674,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			List<SpeedRunVideo> videos = new ArrayList<SpeedRunVideo>();
 
 			if (isReload) {
-				lastImportDateUtc = lastImportDateUtc.atZone(ZoneId.systemDefault()).minusDays(14).toInstant();
+				lastImportDateUtc = Instant.now().atZone(ZoneId.systemDefault()).minusMonths(1).toInstant();	
 			} else {
 				lastImportDateUtc = lastImportDateUtc.atZone(ZoneId.systemDefault()).minusDays(1).toInstant();			
 			}
@@ -711,6 +711,7 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 				_speedRunRepo.SaveSpeedRunVideos(results);
 			}
 
+			result = true;	
 			_logger.info("Completed UpdateSpeedRunVideos");
 		} catch (Exception ex) {
 			result = false;
@@ -941,5 +942,5 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 
 		_logger.info("Completed RenameFullTables");
 		return result;
-	}	
+	}
 }

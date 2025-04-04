@@ -45,7 +45,9 @@ public class Processor {
 		try {
 			_logger.info("Started Init");
 			
-			this.setIsReload(_env.getProperty("isReload", boolean.class));
+			var isReload = _env.getProperty("isReload", boolean.class);
+			isReload = isReload != null ? isReload : false;
+			this.setIsReload(isReload);
 
 			var stReloadTime = _settingService.GetSetting("ReloadTime");
 
@@ -87,11 +89,13 @@ public class Processor {
 			}				
 
 			var stLastImportDateUtc = _settingService.GetSetting("LastImportDate");
-			if (result && isReload() && stLastImportDateUtc == null) {
+			var isFullReload = this.isReload() && stLastImportDateUtc.getDte() == null;
+			if (result && isFullReload) {
+				_settingService.UpdateSetting("LastImportDate", Instant.now());
 				result = _speedRunService.RenameFullTables();
 			}
 
-			if (result && isReload()) {
+			if (result && this.isReload()) {
 				result = (_gameService.RefreshCache()).join();
 			}
 

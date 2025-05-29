@@ -48,8 +48,9 @@ public class PlatformService extends BaseService implements IPlatformService {
 				_logger.info("Pulled platforms: {}, total platforms: {}", platforms.size(), results.size() + prevTotal);
 
 				if (results.size() > super.getMaxRecordCount()) {
-					var memorySize = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-					_logger.info("Saving to clear memory, results: {}, size: {}", results.size(), memorySize);
+					var totalMemory = Runtime.getRuntime().totalMemory();
+					var memorySize = totalMemory - Runtime.getRuntime().freeMemory();
+					_logger.info("Saving to clear memory, results: {}, memorySize: {}, totalMemory: {}", results.size(), memorySize, totalMemory);
 					prevTotal += results.size();
 					SavePlatformResponses(results);
 					results = new ArrayList<PlatformResponse>();
@@ -132,19 +133,20 @@ public class PlatformService extends BaseService implements IPlatformService {
 	}
 
 	private List<Platform> GetPlatformsFromResponses(List<PlatformResponse> platformResponses, List<Platform> existingPlatforms) {
-		var platforms = platformResponses.stream()
-										.map(i -> {
-													var platform = new Platform();
+		var results = new ArrayList<Platform>();	
+		
+		for (var platformResponse : platformResponses) {
+			var platform = new Platform();
 
-													var existingPlatform = existingPlatforms.stream().filter(x -> x.getCode().equals(i.id())).findFirst().orElse(null);			
-													platform.setId(existingPlatform != null ? existingPlatform.getId() : 0);
-													platform.setName(i.name());
-													platform.setCode(i.id());
+			var existingPlatform = existingPlatforms.stream().filter(x -> x.getCode().equals(platformResponse.id())).findFirst().orElse(null);			
+			platform.setId(existingPlatform != null ? existingPlatform.getId() : 0);
+			platform.setName(platformResponse.name());
+			platform.setCode(platformResponse.id());
 
-													return platform;
-										}).toList();
-										
-		return platforms;
+			results.add(platform);
+		}
+		
+		return results;
 	}	
 
 	private List<Platform> GetNewOrChangedPlatforms(List<Platform> platforms, List<Platform> existingPlatforms) {	

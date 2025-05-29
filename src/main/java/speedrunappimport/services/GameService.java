@@ -71,8 +71,9 @@ public class GameService extends BaseService implements IGameService {
 						results = results.reversed();
 					}
 
-					var memorySize = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-					_logger.info("Saving to clear memory, results: {}, size: {}", results.size(), memorySize);	
+					var totalMemory = Runtime.getRuntime().totalMemory();
+					var memorySize = totalMemory - Runtime.getRuntime().freeMemory();
+					_logger.info("Saving to clear memory, results: {}, memorySize: {}, totalMemory: {}", results.size(), memorySize, totalMemory);	
 					prevTotal += results.size();
 					currImportRefDateUtc = results.stream().map(i -> i.created() != null ? i.created() : super.getSqlMinDateTime()).max(Instant::compareTo).get();
 					SaveGameResponses(results, isReload);
@@ -202,43 +203,51 @@ public class GameService extends BaseService implements IGameService {
 		_logger.info("Completed SaveGameResponses");
 	}
 
-	private List<Game> GetGamesFromResponses(List<GameResponse> games, List<GameView> existingGamesVWs) {
+	private List<Game> GetGamesFromResponses(List<GameResponse> gameResponses, List<GameView> existingGamesVWs) {
+		var results = new ArrayList<Game>();	
 		var platforms = _platformRepo.GetAllPlatforms();
 
-		var gameEntities = games.stream().map(i -> {
+		for (var gameResponse : gameResponses) {
 			var game = new Game();
 
-			var existingGameVW = existingGamesVWs.stream().filter(x -> x.getCode().equals(i.id())).findFirst().orElse(null);			
+			var existingGameVW = existingGamesVWs.stream().filter(x -> x.getCode().equals(gameResponse.id())).findFirst().orElse(null);	
+			List<GameCategoryType> existingGameCategoryTypes = existingGameVW != null ? existingGameVW.getGameCategoryTypes() : null;
+			List<Category> existingGameCategories = existingGameVW != null ? existingGameVW.getCategories() : null;	
+			List<Level> existingGameLevels = existingGameVW != null ? existingGameVW.getLevels() : null;	
+			List<Variable> existingGameVariables = existingGameVW != null ? existingGameVW.getVariables() : null;	
+			List<VariableValue> existingGameVariableValues = existingGameVW != null ? existingGameVW.getVariableValues() : null;	
+			List<GamePlatform> existingGamePlatforms = existingGameVW != null ? existingGameVW.getGamePlatforms() : null;	
+
 			game.setId(existingGameVW != null ? existingGameVW.getId() : 0);
-			game.setName(i.names().international());
-			game.setCode(i.id());
-			game.setAbbr(i.abbreviation());
-			game.setShowMilliseconds(i.ruleset() != null ? i.ruleset().showMilliseconds() : false);
-			game.setReleaseDate(i.releaseDate());
-			game.setSrcCreatedDate(i.created());
+			game.setName(gameResponse.names().international());
+			game.setCode(gameResponse.id());
+			game.setAbbr(gameResponse.abbreviation());
+			game.setShowMilliseconds(gameResponse.ruleset() != null ? gameResponse.ruleset().showMilliseconds() : false);
+			game.setReleaseDate(gameResponse.releaseDate());
+			game.setSrcCreatedDate(gameResponse.created());
 
 			var gameLink = new GameLink();
 			gameLink.setId(existingGameVW != null ? existingGameVW.getGameLinkId() : 0);
 			gameLink.setGameId(game.getId());
-			gameLink.setCoverImageUrl(i.assets().coverLarge().uri());
-			gameLink.setSrcUrl(i.weblink());
+			gameLink.setCoverImageUrl(gameResponse.assets().coverLarge().uri());
+			gameLink.setSrcUrl(gameResponse.weblink());
 			game.setGameLink(gameLink);
 			
 			var gameCategoryTypes = Arrays.stream(CategoryTypes.values())
-									.filter(g -> i.categories().data().stream().anyMatch(x -> StringExtensions.KebabToUpperSnakeCase(x.type()).equals(g.name())))
+									.filter(g -> gameResponse.categories().data().stream().anyMatch(x -> StringExtensions.KebabToUpperSnakeCase(x.type()).equals(g.name())))
 									.map(x -> { 
 										var gameCategoryType = new GameCategoryType();
-										gameCategoryType.setId(existingGameVW != null ? existingGameVW.getGameCategoryTypes().stream().filter(g ->  g.getCategoryTypeId() == x.getValue()).map(g -> g.getId()).findFirst().orElse(0) : 0);
+										gameCategoryType.setId(existingGameCategoryTypes != null ? existingGameCategoryTypes.stream().filter(g ->  g.getCategoryTypeId() == x.getValue()).map(g -> g.getId()).findFirst().orElse(0) : 0);
 										gameCategoryType.setCategoryTypeId(x.getValue());
 										gameCategoryType.setGameId(game.getId());
 										return gameCategoryType;
 							}).toList();
 			game.setGameCategoryTypes(gameCategoryTypes);	
 			
-			var categories = i.categories().data().stream()
+			var categories = gameResponse.categories().data().stream()
 								.map(x -> { 
 									var category = new Category();
-									category.setId(existingGameVW != null ? existingGameVW.getCategories().stream().filter(g ->  g.getCode().equals(x.id())).map(g -> g.getId()).findFirst().orElse(0) : 0);
+									category.setId(existingGameCategories != null ? existingGameCategories.stream().filter(g ->  g.getCode().equals(x.id())).map(g -> g.getId()).findFirst().orElse(0) : 0);
 									category.setName(x.name());
 									category.setCode(x.id());
 									category.setGameId(game.getId());
@@ -249,10 +258,10 @@ public class GameService extends BaseService implements IGameService {
 								}).toList();
 			game.setCategories(categories);
 
-			var levels = i.levels().data().stream()
+			var levels = gameResponse.levels().data().stream()
 								.map(x -> { 
 									var level = new Level();
-									level.setId(existingGameVW != null ? existingGameVW.getLevels().stream().filter(g ->  g.getCode().equals(x.id())).map(g -> g.getId()).findFirst().orElse(0) : 0);
+									level.setId(existingGameLevels != null ? existingGameLevels.stream().filter(g ->  g.getCode().equals(x.id())).map(g -> g.getId()).findFirst().orElse(0) : 0);
 									level.setName(x.name());
 									level.setCode(x.id());
 									level.setGameId(game.getId());
@@ -260,18 +269,18 @@ public class GameService extends BaseService implements IGameService {
 								}).toList();
 			game.setLevels(levels);
 
-			var variablesList = i.variables().data();
+			var variablesList = gameResponse.variables().data();
 			var variables = IntStream.range(0, variablesList.size())
 									.mapToObj(x -> { 
 										var variable = new Variable();
-										variable.setId(existingGameVW != null ? existingGameVW.getVariables().stream().filter(g ->  g.getCode().equals(variablesList.get(x).id())).map(g -> g.getId()).findFirst().orElse(0) : 0);
+										variable.setId(existingGameVariables != null ? existingGameVariables.stream().filter(g ->  g.getCode().equals(variablesList.get(x).id())).map(g -> g.getId()).findFirst().orElse(0) : 0);
 										variable.setName(variablesList.get(x).name());
 										variable.setCode(variablesList.get(x).id());
 										variable.setGameId(game.getId());
 										variable.setVariableScopeTypeId(VariableScopeType.valueOf(StringExtensions.KebabToUpperSnakeCase(variablesList.get(x).scope().type())).getValue());
-										variable.setCategoryId(existingGameVW != null ? existingGameVW.getCategories().stream().filter(h ->  h.getCode().equals(variablesList.get(x).category())).map(h -> h.getId()).findFirst().orElse(0) : 0);
+										variable.setCategoryId(existingGameCategories != null ? existingGameCategories.stream().filter(h ->  h.getCode().equals(variablesList.get(x).category())).map(h -> h.getId()).findFirst().orElse(0) : 0);
 										variable.setCategoryCode(variablesList.get(x).category());
-										variable.setLevelId(existingGameVW != null ? existingGameVW.getLevels().stream().filter(h ->  h.getCode().equals(variablesList.get(x).scope().level())).map(h -> h.getId()).findFirst().orElse(0) : 0);
+										variable.setLevelId(existingGameLevels != null ? existingGameLevels.stream().filter(h ->  h.getCode().equals(variablesList.get(x).scope().level())).map(h -> h.getId()).findFirst().orElse(0) : 0);
 										variable.setLevelCode(variablesList.get(x).scope().level());
 										variable.setIsSubCategory(variablesList.get(x).isSubcategory());
 										variable.setSortOrder(x);
@@ -279,14 +288,14 @@ public class GameService extends BaseService implements IGameService {
 									}).toList();			
 			game.setVariables(variables);			
 
-			var variableValues = i.variables().data().stream()
+			var variableValues = gameResponse.variables().data().stream()
 								.flatMap(x -> x.values().values().entrySet().stream().map(g -> {
 									var variableValue = new VariableValue();
-									variableValue.setId(existingGameVW != null ? existingGameVW.getVariableValues().stream().filter(h ->  h.getCode().equals(g.getKey())).map(h -> h.getId()).findFirst().orElse(0) : 0);
+									variableValue.setId(existingGameVariableValues != null ? existingGameVariableValues.stream().filter(h ->  h.getCode().equals(g.getKey())).map(h -> h.getId()).findFirst().orElse(0) : 0);
 									variableValue.setName(g.getValue().label());
 									variableValue.setCode(g.getKey());		
 									variableValue.setGameId(game.getId());
-									variableValue.setVariableId(existingGameVW != null ? existingGameVW.getVariables().stream().filter(h ->  h.getCode().equals(x.id())).map(h -> h.getId()).findFirst().orElse(0) : 0);
+									variableValue.setVariableId(existingGameVariables != null ? existingGameVariables.stream().filter(h ->  h.getCode().equals(x.id())).map(h -> h.getId()).findFirst().orElse(0) : 0);
 									variableValue.setVariableCode(x.id());
 									variableValue.setIsMiscellaneous(g.getValue().flags() != null ? g.getValue().flags().miscellaneous() : false);
 									return variableValue;							
@@ -299,10 +308,10 @@ public class GameService extends BaseService implements IGameService {
 			game.setVariableValues(variableValues);
 
 			var gamePlatforms = platforms.stream()
-								.filter(g -> i.platforms().contains(g.getCode()))
+								.filter(g -> gameResponse.platforms().contains(g.getCode()))
 								.map(x -> { 
 									var gamePlatform = new GamePlatform();
-									gamePlatform.setId(existingGameVW != null ? existingGameVW.getGamePlatforms().stream().filter(g ->  g.getPlatformId() == x.getId()).map(g -> g.getId()).findFirst().orElse(0) : 0);
+									gamePlatform.setId(existingGamePlatforms != null ? existingGamePlatforms.stream().filter(g ->  g.getPlatformId() == x.getId()).map(g -> g.getId()).findFirst().orElse(0) : 0);
 									gamePlatform.setPlatformId(x.getId());
 									gamePlatform.setGameId(game.getId());
 									return gamePlatform;
@@ -310,41 +319,41 @@ public class GameService extends BaseService implements IGameService {
 			game.setGamePlatforms(gamePlatforms);				
 			
 			if (existingGameVW != null) {
-				if (existingGameVW.getGameCategoryTypes() != null) {
-					var removeGameCategoryTypes = existingGameVW.getGameCategoryTypes().stream().filter(g -> !game.getGameCategoryTypes().stream().anyMatch(h -> h.getId() == g.getId())).map(g -> g.getId()).toList();
+				if (existingGameCategoryTypes != null) {
+					var removeGameCategoryTypes = existingGameCategoryTypes.stream().filter(g -> !game.getGameCategoryTypes().stream().anyMatch(h -> h.getId() == g.getId())).map(g -> g.getId()).toList();
 					game.setGameCategoryTypesToRemove(removeGameCategoryTypes);		
 				}
 
-				if (existingGameVW.getCategories() != null) {
-					var removeCategories = existingGameVW.getCategories().stream().filter(g -> !game.getCategories().stream().anyMatch(h -> h.getCode().equals(g.getCode()))).map(g -> g.getId()).toList();
+				if (existingGameCategories != null) {
+					var removeCategories = existingGameCategories.stream().filter(g -> !game.getCategories().stream().anyMatch(h -> h.getCode().equals(g.getCode()))).map(g -> g.getId()).toList();
 					game.setCategoriesToRemove(removeCategories);
 				}
 
-				if (existingGameVW.getLevels() != null) {
-					var removeLevels = existingGameVW.getLevels().stream().filter(g -> !game.getLevels().stream().anyMatch(h -> h.getCode().equals(g.getCode()))).map(g -> g.getId()).toList();
+				if (existingGameLevels != null) {
+					var removeLevels = existingGameLevels.stream().filter(g -> !game.getLevels().stream().anyMatch(h -> h.getCode().equals(g.getCode()))).map(g -> g.getId()).toList();
 					game.setLevelsToRemove(removeLevels);	
 				}
 
-				if (existingGameVW.getVariables() != null) {
-					var removeVariables = existingGameVW.getVariables().stream().filter(g -> !game.getVariables().stream().anyMatch(h -> h.getCode().equals(g.getCode()))).map(g -> g.getId()).toList();
+				if (existingGameVariables != null) {
+					var removeVariables = existingGameVariables.stream().filter(g -> !game.getVariables().stream().anyMatch(h -> h.getCode().equals(g.getCode()))).map(g -> g.getId()).toList();
 					game.setVariablesToRemove(removeVariables);	
 				}
 
-				if (existingGameVW.getVariableValues() != null) {					
-					var removeVariableValues = existingGameVW.getVariableValues().stream().filter(g -> !game.getVariableValues().stream().anyMatch(h -> h.getCode().equals(g.getCode()))).map(g -> g.getId()).toList();
+				if (existingGameVariableValues != null) {					
+					var removeVariableValues = existingGameVariableValues.stream().filter(g -> !game.getVariableValues().stream().anyMatch(h -> h.getCode().equals(g.getCode()))).map(g -> g.getId()).toList();
 					game.setVariableValuesToRemove(removeVariableValues);		
 				}	
 
-				if (existingGameVW.getGamePlatforms() != null) {										
-					var removeGamePlatforms = existingGameVW.getGamePlatforms().stream().filter(g -> !game.getGamePlatforms().stream().anyMatch(h -> h.getId() == g.getId())).map(g -> g.getId()).toList();
+				if (existingGamePlatforms != null) {										
+					var removeGamePlatforms = existingGamePlatforms.stream().filter(g -> !game.getGamePlatforms().stream().anyMatch(h -> h.getId() == g.getId())).map(g -> g.getId()).toList();
 					game.setGamePlatformsToRemove(removeGamePlatforms);	
 				}					
 			}
 			
-			return game;
-		}).toList();
+			results.add(game);
+		}
 
-		return gameEntities;
+		return results;
 	}
 
 	private List<Game> GetNewOrChangedGames(List<Game> games, List<GameView> existingGamesVWs) {	

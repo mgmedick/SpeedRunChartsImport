@@ -99,8 +99,9 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 				//while (1 == 0);
 
 				if (results.size() > super.getMaxRecordCount()) {
-					var memorySize = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-					_logger.info("Saving to clear memory, results: {}, size: {}", results.size(), memorySize);
+					var totalMemory = Runtime.getRuntime().totalMemory();
+					var memorySize = totalMemory - Runtime.getRuntime().freeMemory();
+					_logger.info("Saving to clear memory, results: {}, memorySize: {}, totalMemory: {}", results.size(), memorySize, totalMemory);
 					prevTotal += results.size();
 					SaveSpeedRunResponses(results, true);
 					isSaved = true;
@@ -203,8 +204,9 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 					results = results.reversed();
 					results.removeIf(i -> (i.status().verifyDate() != null ? i.status().verifyDate() : super.getSqlMinDateTime()).compareTo(lastImportRefDateUtc) <= 0);
 	
-					var memorySize = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();					
-					_logger.info("Saving to clear memory, results: {}, size: {}", results.size(), memorySize);
+					var totalMemory = Runtime.getRuntime().totalMemory();
+					var memorySize = totalMemory - Runtime.getRuntime().freeMemory();
+					_logger.info("Saving to clear memory, results: {}, memorySize: {}, totalMemory: {}", results.size(), memorySize, totalMemory);
 					prevTotal += results.size();
 					currImportRefDateUtc = results.stream().map(i -> i.status().verifyDate() != null ? i.status().verifyDate() : super.getSqlMinDateTime()).max(Instant::compareTo).get();					
 					SaveSpeedRunResponses(results, false);
@@ -374,26 +376,34 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 		_logger.info("Completed FinalizeSavedSpeedRuns");
 	}
 
-	private void SavePlayersFromRunResponses(List<SpeedRunResponse> runs) {
-		_logger.info("Started SavePlayersFromRunResponses: {}", runs.size());
+	private void SavePlayersFromRunResponses(List<SpeedRunResponse> runResponses) {
+		_logger.info("Started SavePlayersFromRunResponses: {}", runResponses.size());
 	
-		var playerCodes = runs.stream().flatMap(x -> x.players().data().stream().map(i -> { return StringExtensions.KebabToUpperSnakeCase(i.rel()).equals(PlayerType.USER.toString()) ? i.id() : i.name(); })).distinct().toList();
+		var playerCodes = runResponses.stream().flatMap(x -> x.players().data().stream().map(i -> { return StringExtensions.KebabToUpperSnakeCase(i.rel()).equals(PlayerType.USER.toString()) ? i.id() : i.name(); })).distinct().toList();
 		var existingPlayerVWs = _playerRepo.GetPlayerViewsByCode(playerCodes);
-		var players = GetPlayersFromResponses(runs, existingPlayerVWs);
+		var players = GetPlayersFromResponses(runResponses, existingPlayerVWs);
 		players = GetNewOrChangedPlayers(players, existingPlayerVWs);
 		_playerRepo.SavePlayers(players);	
 		
 		_logger.info("Completed SavePlayersFromRunResponses");			
 	}
 
-	private List<Player> GetPlayersFromResponses(List<SpeedRunResponse> runs, List<PlayerView> existingPlayerVWs) {
-		var playerEntities = runs.stream().flatMap(x -> x.players().data().stream().map(i -> {
+	private List<Player> GetPlayersFromResponses(List<SpeedRunResponse> runResponses, List<PlayerView> existingPlayerVWs) {
+		var results = new ArrayList<Player>();
+
+		var playerResponses = runResponses.stream().flatMap(x -> x.players().data().stream())
+		.collect(Collectors.toMap(PlayerResponse::id, Function.identity(), (u1, u2) -> u1))
+		.values()
+		.stream()
+		.collect(Collectors.toList());
+
+		for (var playerResponse : playerResponses) {
 			var player = new Player();
-			
-			var playerTypeId = PlayerType.valueOf(StringExtensions.KebabToUpperSnakeCase(i.rel())).getValue();
-			var playerCode = playerTypeId == PlayerType.USER.getValue() ? i.id() : i.name();
-			var playerName = playerTypeId == PlayerType.USER.getValue() ? i.names().international() : i.name();
-			var playerSrcUrl = playerTypeId == PlayerType.USER.getValue() ? i.weblink() : i.links().stream().filter(g -> g.rel().equals("self")).map(g -> g.uri()).findFirst().orElse(null);
+
+			var playerTypeId = PlayerType.valueOf(StringExtensions.KebabToUpperSnakeCase(playerResponse.rel())).getValue();
+			var playerCode = playerTypeId == PlayerType.USER.getValue() ? playerResponse.id() : playerResponse.name();
+			var playerName = playerTypeId == PlayerType.USER.getValue() ? playerResponse.names().international() : playerResponse.name();
+			var playerSrcUrl = playerTypeId == PlayerType.USER.getValue() ? playerResponse.weblink() : playerResponse.links().stream().filter(g -> g.rel().equals("self")).map(g -> g.uri()).findFirst().orElse(null);
 			var playerSrcPath = URI.create(playerSrcUrl).getRawPath();
 			var path = Paths.get(playerSrcPath);
 			var lastSegment = path.getName(path.getNameCount() - 1).toString();			
@@ -410,39 +420,36 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			var playerLink = new PlayerLink();
 			playerLink.setId(existingPlayerVW != null ? existingPlayerVW.getPlayerLinkId() : 0);
 			playerLink.setPlayerId(player.getId());
-			playerLink.setProfileImageUrl(i.assets() != null && i.assets().image() != null ? i.assets().image().uri() : null);
+			playerLink.setProfileImageUrl(playerResponse.assets() != null && playerResponse.assets().image() != null ? playerResponse.assets().image().uri() : null);
 			playerLink.setSrcUrl(playerSrcUrl);
-			playerLink.setTwitchUrl(i.twich() != null ? i.twich().uri() : null);
-			playerLink.setHitboxUrl(i.hitbox() != null ? i.hitbox().uri() : null);
-			playerLink.setYoutubeUrl(i.youtube() != null ? i.youtube().uri() : null);
-			playerLink.setTwitterUrl(i.twitter() != null ? i.twitter().uri() : null);
-			playerLink.setSpeedRunsLiveUrl(i.speedrunslive() != null ? i.speedrunslive().uri() : null);
+			playerLink.setTwitchUrl(playerResponse.twich() != null ? playerResponse.twich().uri() : null);
+			playerLink.setHitboxUrl(playerResponse.hitbox() != null ? playerResponse.hitbox().uri() : null);
+			playerLink.setYoutubeUrl(playerResponse.youtube() != null ? playerResponse.youtube().uri() : null);
+			playerLink.setTwitterUrl(playerResponse.twitter() != null ? playerResponse.twitter().uri() : null);
+			playerLink.setSpeedRunsLiveUrl(playerResponse.speedrunslive() != null ? playerResponse.speedrunslive().uri() : null);
 			player.setPlayerLink(playerLink);
 
-			if (i.nameStyle() != null) {
+			if (playerResponse.nameStyle() != null) {
 				var playerNameStyle = new PlayerNameStyle();
 				playerNameStyle.setId(existingPlayerVW != null ? existingPlayerVW.getPlayerNameStyleId() : 0);
 				playerNameStyle.setPlayerId(player.getId());
-				playerNameStyle.setIsGradient(i.nameStyle().style().equals("gradient"));
-				if (i.nameStyle().color() != null) {
-					playerNameStyle.setColorLight(i.nameStyle().color().light());
-					playerNameStyle.setColorDark(i.nameStyle().color().dark());
+				playerNameStyle.setIsGradient(playerResponse.nameStyle().style().equals("gradient"));
+				if (playerResponse.nameStyle().color() != null) {
+					playerNameStyle.setColorLight(playerResponse.nameStyle().color().light());
+					playerNameStyle.setColorDark(playerResponse.nameStyle().color().dark());
 				} else {
-					playerNameStyle.setColorLight(i.nameStyle().colorFrom().light());
-					playerNameStyle.setColorToLight(i.nameStyle().colorTo().light());
-					playerNameStyle.setColorDark(i.nameStyle().colorFrom().dark());
-					playerNameStyle.setColorToDark(i.nameStyle().colorTo().dark());
+					playerNameStyle.setColorLight(playerResponse.nameStyle().colorFrom().light());
+					playerNameStyle.setColorToLight(playerResponse.nameStyle().colorTo().light());
+					playerNameStyle.setColorDark(playerResponse.nameStyle().colorFrom().dark());
+					playerNameStyle.setColorToDark(playerResponse.nameStyle().colorTo().dark());
 				}
 				player.setPlayerNameStyle(playerNameStyle);
 			}
-
-			return player;
-		})).collect(Collectors.toMap(Player::getCode, Function.identity(), (u1, u2) -> u1))
-		.values()
-		.stream()
-		.collect(Collectors.toList());
-
-		return playerEntities;
+			
+			results.add(player);
+		}
+		
+		return results;
 	}
 	
 	private List<Player> GetNewOrChangedPlayers(List<Player> players, List<PlayerView> existingPlayerVWs) {	
@@ -485,49 +492,55 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 		return results;
 	}	
 
-	private List<SpeedRun> GetSpeedRunsFromResponses(List<SpeedRunResponse> runs, List<SpeedRunView> existingRunVWs, List<GameView> existingGameVWs, List<Player> existingPlayers) {
+	private List<SpeedRun> GetSpeedRunsFromResponses(List<SpeedRunResponse> runResponses, List<SpeedRunView> existingRunVWs, List<GameView> existingGameVWs, List<Player> existingPlayers) {
+		var results = new ArrayList<SpeedRun>();	
+
 		var platforms = _platformRepo.GetAllPlatforms();
 		var existingCameCodes = existingGameVWs.stream().map(i -> i.getCode()).toList();
-
-		var runEntities = runs.stream().filter(i -> existingCameCodes.contains(i.game())).map(i -> {
+		runResponses = runResponses.stream().filter(i -> existingCameCodes.contains(i.game())).toList();
+		
+		for (var runResponse : runResponses) {
 			var run = new SpeedRun();
 
-			var existingGameVW = existingGameVWs.stream().filter(x -> x.getCode().equals(i.game())).findFirst().orElse(null);	
-			var existingRunVW = existingRunVWs.stream().filter(x -> x.getCode().equals(i.id())).findFirst().orElse(null);		
+			var existingGameVW = existingGameVWs.stream().filter(x -> x.getCode().equals(runResponse.game())).findFirst().orElse(null);	
+			var existingRunVW = existingRunVWs.stream().filter(x -> x.getCode().equals(runResponse.id())).findFirst().orElse(null);		
+			List<SpeedRunPlayer> existingRunPlayers = existingRunVW != null ? existingRunVW.getPlayers() : null;
+			List<SpeedRunVariableValue> existingRunVariableValues = existingRunVW != null ? existingRunVW.getVariableValues() : null;
+			List<SpeedRunVideo> existingRunVideos = existingRunVW != null ? existingRunVW.getVideos() : null;
 
 			run.setId(existingRunVW != null ? existingRunVW.getId() : 0);
-			run.setCode(i.id());
+			run.setCode(runResponse.id());
 			run.setGameId(existingGameVW.getId());
-			var category = existingGameVW.getCategories().stream().filter(g ->  g.getCode().equals(i.category())).findFirst().orElse(null);
+			var category = existingGameVW.getCategories().stream().filter(g ->  g.getCode().equals(runResponse.category())).findFirst().orElse(null);
 			run.setCategoryTypeId(category != null ? category.getCategoryTypeId() : 0);
 			run.setCategoryId(category != null ? category.getId() : 0);
-			run.setLevelId(i.level() != null ? existingGameVW.getLevels().stream().filter(g ->  g.getCode().equals(i.level())).map(g -> g.getId()).findFirst().orElse(0) : null);
+			run.setLevelId(runResponse.level() != null ? existingGameVW.getLevels().stream().filter(g ->  g.getCode().equals(runResponse.level())).map(g -> g.getId()).findFirst().orElse(0) : null);
 			
 			var subCategoryVariableCodes = existingGameVW.getVariables().stream().filter(g -> g.isSubCategory()).map(x -> x.getCode()).toList();
 			var subCategoryVariableValueIds = existingGameVW.getVariableValues().stream()
-												.filter(g -> i.values().entrySet().stream().anyMatch(h -> h.getValue().equals(g.getCode()) && subCategoryVariableCodes.contains(h.getKey())))
+												.filter(g -> runResponse.values().entrySet().stream().anyMatch(h -> h.getValue().equals(g.getCode()) && subCategoryVariableCodes.contains(h.getKey())))
 												.map(x -> Integer.toString(x.getId())).toList();												
 			if (subCategoryVariableValueIds.size() > 0) {
 				run.setSubCategoryVariableValueIds(String.join(",", subCategoryVariableValueIds));
 			}
 
-			run.setPlatformId(platforms.stream().filter(g ->  g.getCode().equals(i.system().platform())).map(g -> g.getId()).findFirst().orElse(null));
-			run.setPrimaryTime(Duration.parse(i.times().primary()).toMillis());
-			run.setDateSumbitted(i.submitted());
-			run.setVerifyDate(i.status().verifyDate());
+			run.setPlatformId(platforms.stream().filter(g ->  g.getCode().equals(runResponse.system().platform())).map(g -> g.getId()).findFirst().orElse(null));
+			run.setPrimaryTime(Duration.parse(runResponse.times().primary()).toMillis());
+			run.setDateSumbitted(runResponse.submitted());
+			run.setVerifyDate(runResponse.status().verifyDate());
 
 			var link = new SpeedRunLink();
 			link.setId(existingRunVW != null ? existingRunVW.getSpeedRunLinkId() : 0);
 			link.setSpeedRunId(run.getId());
-			link.setSrcUrl(i.weblink());
+			link.setSrcUrl(runResponse.weblink());
 			run.setSpeedRunLink(link);
 
-			var playerCodes = i.players().data().stream().map(x -> StringExtensions.KebabToUpperSnakeCase(x.rel()).equals(PlayerType.USER.toString()) ? x.id() : x.name()).toList();
+			var playerCodes = runResponse.players().data().stream().map(x -> StringExtensions.KebabToUpperSnakeCase(x.rel()).equals(PlayerType.USER.toString()) ? x.id() : x.name()).toList();
 			var runPlayers = existingPlayers.stream()
 								.filter(g -> playerCodes.contains(g.getCode()))
 								.map(x -> { 
 									var runPlayer = new SpeedRunPlayer();
-									runPlayer.setId(existingRunVW != null ? existingRunVW.getPlayers().stream().filter(g ->  g.getPlayerId() == x.getId()).map(g -> g.getId()).findFirst().orElse(0) : 0);
+									runPlayer.setId(existingRunPlayers != null ? existingRunPlayers.stream().filter(g ->  g.getPlayerId() == x.getId()).map(g -> g.getId()).findFirst().orElse(0) : 0);
 									runPlayer.setPlayerId(x.getId());
 									return runPlayer;
 								}).toList();
@@ -536,10 +549,10 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			List<SpeedRunVariableValue> variableValues = new ArrayList<SpeedRunVariableValue>();
 			if (existingGameVW.getVariableValues() != null) {
 				variableValues = existingGameVW.getVariableValues().stream()
-							.filter(g -> i.values().entrySet().stream().anyMatch(h -> h.getValue().equals(g.getCode())))
+							.filter(g -> runResponse.values().entrySet().stream().anyMatch(h -> h.getValue().equals(g.getCode())))
 							.map(x -> {
 								var runVariableValue = new SpeedRunVariableValue();
-								runVariableValue.setId(existingRunVW != null ? existingRunVW.getVariableValues().stream().filter(g -> g.getVariableValueId() == x.getId()).map(g -> g.getId()).findFirst().orElse(0) : 0);
+								runVariableValue.setId(existingRunVariableValues != null ? existingRunVariableValues.stream().filter(g -> g.getVariableValueId() == x.getId()).map(g -> g.getId()).findFirst().orElse(0) : 0);
 								runVariableValue.setSpeedRunId(run.getId());
 								runVariableValue.setVariableId(x.getVariableId());			
 								runVariableValue.setVariableValueId(x.getId());			
@@ -549,13 +562,13 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			run.setVariableValues(variableValues);
 
 			List<SpeedRunVideo> videos = new ArrayList<SpeedRunVideo>();
-			if (i.videos() != null && i.videos().links() != null) {
-				for (var videoLink : i.videos().links()) {			
+			if (runResponse.videos() != null && runResponse.videos().links() != null) {
+				for (var videoLink : runResponse.videos().links()) {			
 					try {
 						if (videoLink.uri() != null && !videoLink.uri().isBlank()) {
 							var uri = URI.create(videoLink.uri());
 							var video = new SpeedRunVideo();
-							video.setId(existingRunVW != null ? existingRunVW.getVideos().stream().filter(g ->  g.getVideoLinkUrl().equals(videoLink.uri())).map(g -> g.getId()).findFirst().orElse(0) : 0);
+							video.setId(existingRunVideos != null ? existingRunVideos.stream().filter(g ->  g.getVideoLinkUrl().equals(videoLink.uri())).map(g -> g.getId()).findFirst().orElse(0) : 0);
 							video.setSpeedRunId(run.getId());								
 							video.setVideoLinkUrl(uri.toString());
 							video.setThumbnailLinkUrl(UriExtensions.ToThumbnailURIString(uri.toString()));
@@ -571,26 +584,28 @@ public class SpeedRunService extends BaseService implements ISpeedRunService {
 			run.setVideos(videos);
 
 			if (existingRunVW != null) {
-				if (existingRunVW.getPlayers() != null) {										
-					var removePlayers = existingRunVW.getPlayers().stream().filter(g -> !run.getPlayers().stream().anyMatch(h -> h.getId() == g.getId())).map(g -> g.getId()).toList();
+				if (existingRunPlayers != null) {										
+					var removePlayers = existingRunPlayers.stream().filter(g -> !run.getPlayers().stream().anyMatch(h -> h.getId() == g.getId())).map(g -> g.getId()).toList();
 					run.setPlayersToRemove(removePlayers);	
 				}		
 				
-				if (existingRunVW.getVariableValues() != null) {										
-					var removeVariableValues = existingRunVW.getVariableValues().stream().filter(g -> !run.getVariableValues().stream().anyMatch(h -> h.getId() == g.getId())).map(g -> g.getId()).toList();
+				if (existingRunVariableValues != null) {										
+					var removeVariableValues = existingRunVariableValues.stream().filter(g -> !run.getVariableValues().stream().anyMatch(h -> h.getId() == g.getId())).map(g -> g.getId()).toList();
 					run.setVariableValuesToRemove(removeVariableValues);	
 				}	
 				
-				if (existingRunVW.getVideos() != null) {										
-					var removeVideos = existingRunVW.getVideos().stream().filter(g -> !run.getVideos().stream().anyMatch(h -> h.getId() == g.getId())).map(g -> g.getId()).toList();
+				if (existingRunVideos != null) {										
+					var removeVideos = existingRunVideos.stream().filter(g -> !run.getVideos().stream().anyMatch(h -> h.getId() == g.getId())).map(g -> g.getId()).toList();
 					run.setVideosToRemove(removeVideos);	
 				}					
 			}
 			
-			return run;
-		}).filter(i -> i.getCategoryId() != 0 && !Objects.equals(i.getLevelId(), 0)).toList();
+			if (run.getCategoryId() != 0 && !Objects.equals(run.getLevelId(), 0)) {
+				results.add(run);
+			}
+		}
 
-		return runEntities;
+		return results;
 	}
 
 	private List<SpeedRun> GetNewOrChangedSpeedRuns(List<SpeedRun> runs, List<SpeedRunView> existingRunVWs) {	
